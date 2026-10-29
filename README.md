@@ -6,13 +6,13 @@
 
 **额度还剩多少，任务花了多少，一眼看清。**
 
-一款轻量的 Windows 桌面监测工具，把 Codex 额度、Token 用量、任务进度和 API 等价消费放在同一张悬浮卡片上。支持中文和英文、系统托盘、自定义背景，以及可以随手移动的悬浮球。
+Windows 桌面 AI 用量工作台，将 Codex 额度、Token 用量、并发任务和 API 等价金额分为六个页面。2.0 使用白色与天青色磨砂玻璃界面，支持无边框窗口缩放、最大化、托盘和自定义背景。
 
 [下载正式版](https://github.com/Nahida728/codex-quota-monitor/releases/latest) | [更新日志](CHANGELOG.md) | [反馈问题](https://github.com/Nahida728/codex-quota-monitor/issues) | [English](#english)
 
 > 非官方社区项目，与 OpenAI 没有隶属、合作或背书关系。Codex、OpenAI 及相关图标归各自权利人所有。
 
-<img src="assets/screenshot-zh.png" alt="Codex 监测台中文界面" width="380">
+> 当前源码为 2.0.0-beta.1。已发布正式版与本地测试版可能不同，详见更新日志。
 
 ## 主要功能
 
@@ -23,7 +23,7 @@
 | 本轮预测 | 周额度条标记用尽本轮 5 小时额度后的预计余额，附采样依据 |
 | 重置日历 | 公告、收到和消耗记录按天显示，支持历史年份与格子详情 |
 | 重置概率 | 优先展示 Tibo 承诺信号与目标倒计时，附历史 24 / 48 小时估计、区间和来源 |
-| 用量与消费 | 官方累计 Token、工作天数、日 / 周 / 月趋势、本地模型明细与 API 等价消费 |
+| 用量与消费 | 本机多实例累计 Token、工作日、日 / 周 / 月趋势、模型计价明细；官方累计独立显示 |
 | 最近任务 | 首字响应、实时总 Tokens、峰值 / 最低 / 平均输出速率、缓存命中率 |
 | 并行任务 | 大目标、子智能体、多模型参与、耗时与本轮消费，支持筛选和排序 |
 | 更新 | Codex 客户端更新状态；监测台自身从 GitHub 检查、下载和安装更新 |
@@ -33,11 +33,20 @@
 1. 从 [Releases](https://github.com/Nahida728/codex-quota-monitor/releases/latest) 下载 Windows x64 版本。
 2. **安装版**使用 `setup-x64.exe`，提供安装、快捷方式及卸载；**便携版**使用 `portable-x64.exe`，直接运行。
 3. 在这台电脑上安装官方 Codex Windows 客户端，并使用 ChatGPT 账户登录。监测台通过本地 app-server 读取额度，不需要填写 API Key。
-4. 设置中可以切换语言、上传背景、调整透明度和启用顶部吸附。卡片可以拖动、锁定、置顶、收进托盘或折叠为悬浮球。
+4. 使用侧栏切换总览、用量与费用、任务中心、额度与重置、客户端更新和设置。窗口支持拖动、缩放、最大化及系统分屏；设置中可选置顶、关闭到托盘或退出。
+5. 自定义背景支持上传、拖放和手动构图，并可调整图片位置、强度、模糊、遮罩与卡片不透明度。预览后点击“应用外观”保存，旧背景自动沿用；默认完整显示且不放大小图，放大需要显式启用。
 
 Windows x64；需要能够连接 OpenAI 服务的网络。API Key 登录通常不提供订阅额度。官方未返回 Reserve 独立桶时，界面会显示“未返回”。
 
-## 版本更新
+## 2.0 工作台
+
+- 无边框大窗口替代吸顶、悬浮球和固定小卡片；默认 1360 × 900 DIP，随屏幕工作区适配。
+- 任务、费用、重置和更新详情改为页面，保留原有统计、永久历史和确认操作。
+- 界面改造不更换用户数据目录、模型账本或 Token 计数口径。
+- 费用页按用户指定的老版算法，使用官方每日用量校准 OpenAI 原生模型的 Token 与金额；第三方独立累计。模型分摊为估算，官方未覆盖日期和未注明日期保留原记录，原始账本不被校准结果覆盖。
+- [产品升级方案](docs/product-upgrade-2.0-plan.md)。
+
+## 历史版本更新
 
 1.3.50 重构重置概率看板，优先显示检查站的 Tibo 承诺概率与明确目标倒计时；修复周额度小样本预测误报 0% 和客户端更新历史漏记。客户端记录按月份、日期整理，并缓存不变的日志和界面。
 
@@ -63,9 +72,9 @@ Windows x64；需要能够连接 OpenAI 服务的网络。API Key 登录通常�
 
 ## 怎样理解这些数字
 
-**累计 Token**来自官方账户使用统计。**模型和任务明细**来自这台电脑的 Codex 日志，覆盖普通及归档会话；不涵盖其他设备或未落盘的调用。模型明细可能按官方每日用量校正，因此不能直接当作官方逐模型账单。
+**本机累计 Token**来自已发现的 Codex 实例（含 Codex++ 多开与第三方接入）的普通及归档日志，按输入（含缓存）加输出统计。官方账号累计单独保留在 Token 详情中，两种口径不相加、不互相缩减。日均使用同一批记录中有用量的日期；重建未完成时明确标记不完整，不涵盖其他设备或未落盘的调用。
 
-**API 等价消费**按公开标准 API 价格估算，不是订阅账单，也不表示实际扣款。缓存输入已经包含在输入 Token 中，不应再次相加。历史记录缺少完整定价信息时，保留 Token 并标注金额待重算。
+**API 等价消费**按各厂商公开标准文本 API 价格估算（定价核对于 2026-10-28，包含 Claude 各系列及 GPT-6.1 Terra 等），不是订阅账单，也不表示实际扣款。缓存输入已经包含在输入 Token 中，不应再次相加。历史记录缺少完整定价信息时，保留 Token 并标注金额待重算。
 
 **缓存命中率**为已观测调用的缓存输入 / 输入 Tokens，多个模型按输入量加权，不包含输出。**峰值和最低速率**是日志记录之间的输出区间速率；平均速率包含整个回合的等待和工具时间。官方未记录首字响应时显示“—”。
 
@@ -98,7 +107,7 @@ npm run build -- --publish never
 
 **See your remaining quota and task usage at a glance.**
 
-Codex Quota Monitor is a compact Windows desktop companion for Codex. A floating card brings quota, token usage, task progress and API-equivalent costs together. It supports Chinese and English, the system tray, custom backgrounds and a movable floating orb.
+Codex Quota Monitor is a Windows desktop workspace for quotas, local token usage, concurrent tasks and API-equivalent costs. Version 2.0 uses a white and sky-cyan frosted-glass interface with six pages, a frameless resizable/maximizable window, a system tray and custom backgrounds.
 
 [Download the stable release](https://github.com/Nahida728/codex-quota-monitor/releases/latest) | [Changelog](CHANGELOG.md#130--2026-10-10) | [Report an issue](https://github.com/Nahida728/codex-quota-monitor/issues)
 
@@ -125,7 +134,8 @@ Codex Quota Monitor is a compact Windows desktop companion for Codex. A floating
 1. Download the Windows x64 build from [Releases](https://github.com/Nahida728/codex-quota-monitor/releases/latest).
 2. Choose `setup-x64.exe` for installation, shortcuts and uninstall support, or run `portable-x64.exe` directly.
 3. Install the official Codex Windows client and sign in with your ChatGPT account. The monitor reads quota through the local app-server; no API Key entry is required.
-4. Use Settings to change language, upload a background and enable top-edge docking. Move, lock or pin the card, hide it in the tray, or collapse it to an orb.
+4. Navigate between Overview, Usage & cost, Task center, Quotas & resets, Client updates and Settings. Resize, maximize or snap the frameless window; choose always-on-top and close-to-tray behavior in Settings.
+5. Upload or drop a background, reframe it, and adjust position, strength, blur, overlay and card opacity. Apply commits appearance; Cancel restores it. Existing backgrounds are preserved.
 
 Requires Windows x64 and network access to OpenAI. API-key mode usually does not supply subscription quota. GPT Reserve stays unavailable when its independent bucket is absent.
 
@@ -149,9 +159,9 @@ This release fixes model usage disappearing after an upgrade, retains recorded u
 
 ### Reading the metrics
 
-Lifetime tokens come from the official account usage endpoint. Model/task details come from local normal and archived Codex sessions and do not include other devices or unlogged calls. Model totals may be calibrated against official daily usage; they are not an official per-model bill.
+Local tokens cover indexed regular and archived logs from discovered Codex instances, including Codex++ and third-party providers: input (including cache) plus output. The official account total remains separately available in Token details; the two populations are never added or scaled against each other. Averages use work dates from that same local population. Incomplete rebuilds are marked; other devices and unlogged calls are excluded.
 
-API-equivalent cost uses standard published API rates. It is an estimate, not a subscription charge. Input already includes cached input. Historical tokens remain visible when missing pricing information requires recalculation.
+API-equivalent cost uses sourced Standard text API rates from each vendor, including Claude and GPT-6.1 Terra (checked 2026-10-28). It is an estimate, not a subscription charge. Input already includes cached input. Historical tokens remain visible when missing pricing information requires recalculation.
 
 Cache hit rate is cached input divided by input over observed calls, weighted across models and excluding output. Peak/minimum rates average output between log records; the average includes whole-turn waits and tool time. Missing first-token latency is shown as “—”.
 
@@ -170,3 +180,9 @@ Use the development commands above and read [AGENTS.md](AGENTS.md) before making
 ## License
 
 [MIT](LICENSE). Third-party trademarks and icons retain their owners' rights.
+
+
+多开目录会自动发现 CODEX_HOME 和 Codex++ codex-multi；其他自定义位置可用 CODEX_MONITOR_HOMES 环境变量指定，Windows 下多个绝对路径以分号分隔。
+Additional custom launcher homes can be supplied through CODEX_MONITOR_HOMES (absolute paths separated by semicolons on Windows).
+
+Claude 的 5 分钟/1 小时缓存写入和各厂商上下文阈值分别处理。未记录缓存有效期时采用默认短期写入等价价；地区、加速、第三方加价、工具与按时长计费的缓存存储不包含在文本 Token 估算中。价格更新不会清空用量；旧记录无法还原分档时仍须主动全量扫描。

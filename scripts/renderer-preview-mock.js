@@ -1,10 +1,4 @@
 const params = new URLSearchParams(location.search);
-if (params.get("fixed") === "1") {
-  document.documentElement.style.width = "460px";
-  document.documentElement.style.height = "690px";
-  document.body.style.width = "460px";
-  document.body.style.height = "690px";
-}
 const nowSeconds = Math.floor(Date.now() / 1000);
 const creditCount = Number.parseInt(params.get("credits") || "6", 10);
 const offline = params.get("offline") === "1";
@@ -295,6 +289,18 @@ const snapshot = {
 
 window.codexMonitor = {
   readQuota: async () => snapshot,
+  readSources: async () => [{name:"default",sessions:2},{name:"work-instance",sessions:1}],
+  readPricing: async () => ({date:"2026-10-28",models:[{model:"gpt-6.1-terra",vendor:"OpenAI",input:1,cachedInput:.05,cacheWrite:1.25,output:5,source:"https://developers.openai.com/api/docs/pricing"},{model:"claude-sonnet-5-5",vendor:"Anthropic",input:3,cachedInput:.1,cacheWrite:3.75,output:15,source:"https://platform.claude.com/docs/en/about-claude/pricing"}]}),
+  openPricingSource: async () => true,
+  setAppearance: async value => value,
+  setCloseBehavior: async value => value,
+  readMonitorUpdate: async () => ({status:"idle",currentVersion:"2.0.0-beta.1"}),
+  onMonitorUpdate: () => () => {},
+  checkMonitorUpdate: async () => ({status:"idle",currentVersion:"2.0.0-beta.1"}),
+  rescanCost: async () => snapshot.tokenCost,
+  saveBackground: async dataUrl => ({dataUrl}),
+  validateBackground: async () => true,
+  readBackgroundSource: async () => previewBackground,
   readActiveTaskStatus: async () => ({
     available: snapshot.activeTasks.available,
     count: snapshot.activeTasks.count,
@@ -303,7 +309,7 @@ window.codexMonitor = {
   focusCodex: async () => true,
   openResetSource: async () => true,
   readSettings: async () => ({
-    monitorVersion: "1.3.50",
+    monitorVersion: "2.0.0-beta.1",
     language: params.get("lang") === "en" ? "en" : "zh",
     alwaysOnTop: true,
     positionLocked: false,

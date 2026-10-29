@@ -1,6 +1,7 @@
 // Only numeric counters and timestamps leave this reader. Interval rates are
 // output-token averages between log records, not per-token decoding speeds.
 const MAX_SAFE = Number.MAX_SAFE_INTEGER;
+const { tokenUsageInfo, USAGE_RECORD_PATTERN } = require("./usage-record");
 
 function safeNumber(value) {
   return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= MAX_SAFE
@@ -43,16 +44,17 @@ function summarizeTaskTelemetry(lines, terminal, cost, partial = false) {
   let validIntervals = !partial;
   const rates = [];
   for (const line of Array.isArray(lines) ? lines : []) {
-    if (!/"type"\s*:\s*"token_count"/.test(line)) continue;
+    if (!USAGE_RECORD_PATTERN.test(line)) continue;
     let record;
     try { record = JSON.parse(line); } catch { continue; }
-    if (record.type !== "event_msg" || record.payload?.type !== "token_count") continue;
-    const info = record.payload.info;
-    const input = safeNumber(info?.last_token_usage?.input_tokens);
-    const cached = safeNumber(info?.last_token_usage?.cached_input_tokens);
-    if (input > 0) { cacheSampled = true; cacheCountersKnown &&= cached !== null && cached <= input; }
-    const total = safeNumber(info?.total_token_usage?.output_tokens);
-    const last = safeNumber(info?.last_token_usage?.output_tokens);
+    const info = tokenUsageInfo(record);
+    if (!info) continue;
+    const usage = info?.last_token_usage;
+    const input = safeNumber(usage?.input_tokens ?? usage?.prompt_tokens);
+    const cached = safeNumber(usage?.cached_input_tokens ?? usage?.cache_read_input_tokens ?? usage?.input_tokens_details?.cached_tokens ?? usage?.prompt_tokens_details?.cached_tokens);
+    if (input > 0 || cached > 0) { cacheSampled = true; cacheCountersKnown &&= cached !== null; }
+    const total = safeNumber(info?.total_token_usage?.output_tokens ?? info?.total_token_usage?.completion_tokens);
+    const last = safeNumber(usage?.output_tokens ?? usage?.completion_tokens);
     if (total === null) continue;
     countersKnown = true;
     if (previousTotal !== null && total === previousTotal) continue; // replay/heartbeat

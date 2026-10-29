@@ -13,7 +13,7 @@ const {
   normalizeReceivedResetHistory,
   normalizeConsumedResetHistory
 } = require("./quota-normalizer");
-const { normalizeTokenUsageResponse } = require("./token-usage");
+const { normalizeTokenUsageResponse, combineTokenUsage } = require("./token-usage");
 const {
   CodexSubscriptionReader,
   normalizeSubscriptionDetails
@@ -350,7 +350,8 @@ class QuotaService {
   }
 
   scheduleCostScan(delay = 2000) {
-    if (this.disposed || this.costScanTimer || !this.state.data.tokenCostSnapshot?.rescanPending?.length) return;
+    const snapshot = this.state.data.tokenCostSnapshot;
+    if (this.disposed || this.costScanTimer || !(snapshot?.rescanPending?.length || snapshot?.scanProgress?.pendingFiles)) return;
     this.costScanTimer = setTimeout(async () => {
       this.costScanTimer = null;
       const started = Date.now();
@@ -538,18 +539,19 @@ class QuotaService {
       const resetCheckpoints = await checkpointPromise;
       const persisted = normalized.persistence;
       delete normalized.persistence;
-      const tokenUsage = normalizeTokenUsageResponse(tokenUsageRaw, this.state.data, checkedAt);
+      const accountUsage = normalizeTokenUsageResponse(tokenUsageRaw, this.state.data, checkedAt);
       const tokenCost = normalizeCodexCostUsageResult(
         tokenCostRaw,
         this.state.data,
         checkedAt,
-        tokenUsage
+        accountUsage
       );
+      const tokenUsage = combineTokenUsage(accountUsage, tokenCost);
       const activeTasks = activeTasksRaw;
       const clientUpdate = evaluateClientUpdate(installedVersion, this.state.data, checkedAt);
       const subscription = normalizeSubscriptionDetails(subscriptionRaw, {
         planType: normalized.planType,
-        totalWorkDays: tokenUsage.totalWorkDays
+        totalWorkDays: accountUsage.totalWorkDays
       }, Math.floor(checkedAt / 1000));
       Object.assign(
         this.state.data,
@@ -559,6 +561,7 @@ class QuotaService {
         clientUpdate.persistence
       );
       this.state.set("lastSuccessfulAt", checkedAt);
+      this.scheduleCostScan();
       return {
         online: true,
         resetCheckpoints,
@@ -576,24 +579,26 @@ class QuotaService {
       };
     } catch (error) {
       this.client.dispose();
-      const tokenUsage = normalizeTokenUsageResponse(null, this.state.data, checkedAt);
+      const accountUsage = normalizeTokenUsageResponse(null, this.state.data, checkedAt);
       const tokenCostRaw = await tokenCostPromise;
       const tokenCost = normalizeCodexCostUsageResult(
         tokenCostRaw,
         this.state.data,
         checkedAt,
-        tokenUsage
+        accountUsage
       );
+      const tokenUsage = combineTokenUsage(accountUsage, tokenCost);
       const activeTasksRaw = await activeTasksPromise;
       const activeTasks = activeTasksRaw;
       const installedVersion = await versionPromise;
       const subscriptionRaw = await subscriptionPromise;
       const clientUpdate = evaluateClientUpdate(installedVersion, this.state.data, checkedAt);
       const subscription = normalizeSubscriptionDetails(subscriptionRaw, {
-        totalWorkDays: tokenUsage.totalWorkDays
+        totalWorkDays: accountUsage.totalWorkDays
       }, Math.floor(checkedAt / 1000));
       Object.assign(this.state.data, tokenCost.persistence, clientUpdate.persistence);
       this.state.set("lastClientVersionCheckAt", checkedAt);
+      this.scheduleCostScan();
       const message = String(error?.message || error);
       let errorCode = "NETWORK_ERROR";
       if (message.includes("CODEX_NOT_INSTALLED")) errorCode = "CODEX_NOT_INSTALLED";

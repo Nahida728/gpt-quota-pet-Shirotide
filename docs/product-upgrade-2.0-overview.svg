@@ -1,0 +1,215 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1360" height="900" viewBox="0 0 1360 900" role="img" aria-labelledby="title description">
+  <title id="title">Codex监测台 2.0 首页布局提案</title>
+  <desc id="description">白色天青色的普通桌面窗口，左侧六页导航，右侧依次为额度、累计摘要、用量趋势、运行任务、模型费用和完成轮次。所有数值均为布局示例。</desc>
+  <defs>
+    <linearGradient id="canvas" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#f8fcff"/>
+      <stop offset=".52" stop-color="#e9f6fa"/>
+      <stop offset="1" stop-color="#edf3fb"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" x2="1">
+      <stop stop-color="#68c8dc"/>
+      <stop offset="1" stop-color="#269fbf"/>
+    </linearGradient>
+    <linearGradient id="bars" x1="0" y1="1" x2="0" y2="0">
+      <stop stop-color="#b8e6ef"/>
+      <stop offset="1" stop-color="#41acc9"/>
+    </linearGradient>
+    <filter id="ambient"><feGaussianBlur stdDeviation="62"/></filter>
+    <filter id="shadow" x="-5%" y="-10%" width="110%" height="125%">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#45829a" flood-opacity=".07"/>
+    </filter>
+    <style>
+      text { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; fill: #163545; }
+      .muted { fill: #597584; }
+      .tiny { font-size: 12px; }
+      .small { font-size: 13px; }
+      .body { font-size: 14px; }
+      .label { font-size: 15px; font-weight: 600; }
+      .heading { font-size: 17px; font-weight: 600; }
+      .value { font-size: 32px; font-weight: 600; font-variant-numeric: tabular-nums; }
+      .link { fill: #087e9e; }
+      .panel { fill: #fff; fill-opacity: .79; stroke: #fff; stroke-opacity: .96; filter: url(#shadow); }
+      .line { stroke: #dceaf0; stroke-width: 1; }
+    </style>
+    <clipPath id="window"><rect width="1360" height="900" rx="12"/></clipPath>
+  </defs>
+  <g clip-path="url(#window)">
+    <rect width="1360" height="900" fill="url(#canvas)"/>
+    <g filter="url(#ambient)" opacity=".38">
+      <ellipse cx="1110" cy="330" rx="300" ry="170" fill="#abdfe9"/>
+      <ellipse cx="540" cy="800" rx="290" ry="180" fill="#ceddf8"/>
+    </g>
+    <!-- Standard Windows frame and stable app shell. -->
+    <rect width="1360" height="32" fill="#f9fcfe"/>
+    <rect x="14" y="9" width="14" height="14" rx="4" fill="#269fbf"/>
+    <text x="39" y="22" class="tiny">Codex监测台</text>
+    <path d="M1230 16h12 M1282 11h10v10h-10z M1330 11l10 10m0-10l-10 10" fill="none" stroke="#526e7e" stroke-width="1.2"/>
+    <rect x="0" y="32" width="216" height="868" fill="#fff" fill-opacity=".62"/>
+    <path d="M216 32v868" class="line"/>
+    <rect x="240" y="32" width="1120" height="72" fill="#fff" fill-opacity=".34"/>
+    <path d="M216 104h1144" class="line"/>
+    <rect x="24" y="63" width="34" height="34" rx="11" fill="url(#accent)"/>
+    <path d="M32 81h6l4-8 4 15 4-7" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="69" y="79" class="label">Codex监测台</text>
+    <text x="69" y="97" class="tiny muted">工作台 2.0</text>
+    <text x="26" y="138" class="tiny muted" letter-spacing="2">工作空间</text>
+    <rect x="16" y="153" width="184" height="46" rx="12" fill="#d9f0f7"/>
+    <g stroke="#087e9e" fill="none" stroke-width="1.6" stroke-linejoin="round">
+      <rect x="32" y="168" width="7" height="7" rx="1"/><rect x="43" y="168" width="7" height="7" rx="1"/>
+      <rect x="32" y="179" width="7" height="7" rx="1"/><rect x="43" y="179" width="7" height="7" rx="1"/>
+    </g>
+    <text x="67" y="182" class="label link">总览</text>
+    <g fill="none" stroke="#6f8c9a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M32 233h19M35 229v-8m7 8v-14m7 14v-19"/>
+      <rect x="33" y="263" width="17" height="19" rx="3"/><path d="M37 269h9m-9 5h9m-9 5h5"/>
+      <circle cx="41" cy="322" r="10"/><path d="M41 315v8l5 3"/>
+      <path d="M33 372a9 9 0 1 0 2-10m-3 0v6h6"/>
+      <path d="M36 419l5-3 5 3 3 5-3 5-5 3-5-3-3-5z"/><circle cx="41" cy="424" r="3"/>
+    </g>
+    <text x="67" y="230" class="body muted">用量与费用</text>
+    <text x="67" y="278" class="body muted">任务中心</text>
+    <text x="67" y="326" class="body muted">额度与重置</text>
+    <text x="67" y="378" class="body muted">客户端更新</text>
+    <text x="67" y="430" class="body muted">设置</text>
+    <rect x="20" y="788" width="176" height="84" rx="14" fill="#fff" fill-opacity=".7" stroke="#e1edf2"/>
+    <circle cx="38" cy="812" r="4" fill="#35aa90"/>
+    <text x="50" y="817" class="small">本机多实例记录</text>
+    <text x="34" y="841" class="tiny muted">3 个来源 · 示例状态</text>
+    <text x="34" y="860" class="tiny muted">数据仅在本地处理</text>
+    <!-- Toolbar. -->
+    <text x="240" y="77" font-size="24" font-weight="600">总览</text>
+    <rect x="310" y="53" width="214" height="28" rx="14" fill="#fff" fill-opacity=".76"/>
+    <text x="325" y="72" class="tiny muted">当前额度账户 · Codex Pro</text>
+    <circle cx="924" cy="69" r="4" fill="#35aa90"/>
+    <text x="936" y="74" class="small">连接正常</text>
+    <text x="1020" y="74" class="tiny muted">18:42 同步</text>
+    <rect x="1129" y="50" width="44" height="36" rx="10" fill="#fff" fill-opacity=".8" stroke="#d8e9f0"/>
+    <text x="1151" y="73" text-anchor="middle" class="small">EN</text>
+    <rect x="1185" y="50" width="151" height="36" rx="10" fill="#087e9e"/>
+    <text x="1260" y="73" text-anchor="middle" class="body" style="fill:white">刷新全部状态</text>
+    <!-- Quotas. -->
+    <rect x="240" y="128" width="354" height="128" rx="18" class="panel"/>
+    <rect x="610" y="128" width="354" height="128" rx="18" class="panel"/>
+    <rect x="980" y="128" width="356" height="128" rx="18" class="panel"/>
+    <text x="260" y="157" class="label">5 小时额度</text>
+    <text x="630" y="157" class="label">每周额度</text>
+    <text x="1000" y="157" class="label">GPT Reserve</text>
+    <text x="260" y="200" class="value">64<tspan font-size="18">%</tspan></text>
+    <text x="355" y="198" class="small muted">剩余</text>
+    <text x="630" y="200" class="value">38<tspan font-size="18">%</tspan></text>
+    <text x="725" y="198" class="small muted">剩余</text>
+    <text x="1000" y="198" font-size="24" font-weight="600" fill="#597584">暂未提供</text>
+    <rect x="260" y="214" width="314" height="6" rx="3" fill="#e3eff3"/>
+    <rect x="260" y="214" width="201" height="6" rx="3" fill="url(#accent)"/>
+    <rect x="630" y="214" width="314" height="6" rx="3" fill="#e3eff3"/>
+    <rect x="630" y="214" width="119" height="6" rx="3" fill="url(#accent)"/>
+    <rect x="1000" y="214" width="316" height="6" rx="3" fill="#e3eff3"/>
+    <text x="260" y="242" class="tiny muted">恢复倒计时 2 小时 18 分钟</text>
+    <text x="630" y="242" class="tiny muted">恢复倒计时 3 天 6 小时</text>
+    <text x="1000" y="242" class="tiny muted">等待服务返回独立 Reserve 额度</text>
+    <!-- Cumulative local metrics. -->
+    <rect x="240" y="272" width="262" height="96" rx="18" class="panel"/>
+    <rect x="518" y="272" width="262" height="96" rx="18" class="panel"/>
+    <rect x="796" y="272" width="262" height="96" rx="18" class="panel"/>
+    <rect x="1074" y="272" width="262" height="96" rx="18" class="panel"/>
+    <text x="260" y="300" class="small muted">本机累计 Token</text>
+    <text x="538" y="300" class="small muted">累计 API 等价金额 · USD</text>
+    <text x="816" y="300" class="small muted">累计有记录工作日</text>
+    <text x="1094" y="300" class="small muted">正在运行的任务</text>
+    <text x="260" y="344" class="value">128.4<tspan font-size="17"> 万</tspan></text>
+    <text x="538" y="344" class="value">$12.84</text>
+    <text x="816" y="344" class="value">24<tspan font-size="17"> 天</tspan></text>
+    <text x="1094" y="344" class="value">3<tspan font-size="17"> 项</tspan></text>
+    <!-- Trend panel. -->
+    <rect x="240" y="384" width="716" height="248" rx="18" class="panel"/>
+    <text x="260" y="418" class="heading">用量趋势</text>
+    <text x="260" y="440" class="tiny muted">本机多实例 · 近 14 天 · 输入（含缓存）与输出</text>
+    <rect x="790" y="400" width="146" height="32" rx="9" fill="#eaf3f7"/>
+    <rect x="793" y="403" width="44" height="26" rx="7" fill="#fff"/>
+    <text x="815" y="421" text-anchor="middle" class="small link">日</text>
+    <text x="863" y="421" text-anchor="middle" class="small muted">周</text>
+    <text x="911" y="421" text-anchor="middle" class="small muted">月</text>
+    <g stroke="#dfebf0" stroke-dasharray="3 5">
+      <path d="M303 469h628M303 506h628M303 543h628M303 580h628"/>
+    </g>
+    <text x="260" y="473" class="tiny muted">120k</text>
+    <text x="268" y="510" class="tiny muted">80k</text>
+    <text x="268" y="547" class="tiny muted">40k</text>
+    <text x="285" y="584" class="tiny muted">0</text>
+    <g fill="url(#bars)">
+      <rect x="316" y="538" width="28" height="42" rx="5"/>
+      <rect x="359" y="516" width="28" height="64" rx="5"/>
+      <rect x="402" y="530" width="28" height="50" rx="5"/>
+      <rect x="445" y="490" width="28" height="90" rx="5"/>
+      <rect x="488" y="514" width="28" height="66" rx="5"/>
+      <rect x="531" y="504" width="28" height="76" rx="5"/>
+      <rect x="574" y="526" width="28" height="54" rx="5"/>
+      <rect x="617" y="477" width="28" height="103" rx="5"/>
+      <rect x="660" y="499" width="28" height="81" rx="5"/>
+      <rect x="703" y="518" width="28" height="62" rx="5"/>
+      <rect x="746" y="486" width="28" height="94" rx="5"/>
+      <rect x="789" y="506" width="28" height="74" rx="5"/>
+      <rect x="832" y="466" width="28" height="114" rx="5"/>
+      <rect x="875" y="495" width="28" height="85" rx="5"/>
+    </g>
+    <text x="315" y="605" class="tiny muted">10/14</text>
+    <text x="532" y="605" class="tiny muted">10/19</text>
+    <text x="747" y="605" class="tiny muted">10/24</text>
+    <text x="875" y="605" class="tiny muted">10/27</text>
+    <!-- Task preview. -->
+    <rect x="972" y="384" width="364" height="248" rx="18" class="panel"/>
+    <text x="992" y="418" class="heading">运行任务</text>
+    <text x="1256" y="418" class="small link">全部任务 →</text>
+    <circle cx="997" cy="452" r="4" fill="#35aa90"/>
+    <text x="1011" y="457" class="label">项目 A</text>
+    <text x="1316" y="457" text-anchor="end" class="small">12:48</text>
+    <text x="1011" y="480" class="tiny muted">默认实例 · GPT 系列</text>
+    <text x="1316" y="480" text-anchor="end" class="small link">$0.84</text>
+    <path d="M992 493h324" class="line"/>
+    <circle cx="997" cy="513" r="4" fill="#35aa90"/>
+    <text x="1011" y="518" class="label">项目 B</text>
+    <text x="1316" y="518" text-anchor="end" class="small">08:26</text>
+    <text x="1011" y="541" class="tiny muted">Codex++ 实例 · Claude 系列</text>
+    <text x="1316" y="541" text-anchor="end" class="small link">$0.62</text>
+    <path d="M992 554h324" class="line"/>
+    <circle cx="997" cy="574" r="4" fill="#35aa90"/>
+    <text x="1011" y="579" class="label">项目 C · 子任务</text>
+    <text x="1316" y="579" text-anchor="end" class="small">03:14</text>
+    <text x="1011" y="602" class="tiny muted">独立实例 · GPT 系列</text>
+    <text x="1316" y="602" text-anchor="end" class="small link">$0.15</text>
+    <!-- Detail entry panels. -->
+    <rect x="240" y="648" width="536" height="184" rx="18" class="panel"/>
+    <text x="260" y="682" class="heading">模型费用构成</text>
+    <text x="676" y="682" class="small link">费用明细 →</text>
+    <circle cx="270" cy="713" r="4" fill="#269fbf"/>
+    <text x="283" y="718" class="body">GPT 系列</text>
+    <rect x="405" y="709" width="230" height="8" rx="4" fill="#e5f0f5"/>
+    <rect x="405" y="709" width="166" height="8" rx="4" fill="#55bad2"/>
+    <text x="751" y="718" text-anchor="end" class="body">$7.46</text>
+    <circle cx="270" cy="748" r="4" fill="#8aabcf"/>
+    <text x="283" y="753" class="body">Claude 系列</text>
+    <rect x="405" y="744" width="230" height="8" rx="4" fill="#e5f0f5"/>
+    <rect x="405" y="744" width="120" height="8" rx="4" fill="#8aabcf"/>
+    <text x="751" y="753" text-anchor="end" class="body">$5.38</text>
+    <text x="260" y="804" class="tiny muted">按标准 API 单价估算 · 统计与计价范围见费用详情</text>
+    <rect x="792" y="648" width="544" height="184" rx="18" class="panel"/>
+    <text x="812" y="682" class="heading">最近完成轮次</text>
+    <text x="1236" y="682" class="small link">任务详情 →</text>
+    <text x="812" y="714" class="small muted">首 Token 延迟</text>
+    <text x="992" y="714" class="small muted">轮次 Token</text>
+    <text x="1172" y="714" class="small muted">全程平均速率</text>
+    <text x="812" y="748" font-size="25" font-weight="600">1.3<tspan font-size="14"> s</tspan></text>
+    <text x="992" y="748" font-size="25" font-weight="600">48,260</text>
+    <text x="1172" y="748" font-size="25" font-weight="600">35.8<tspan font-size="12"> tok/s</tspan></text>
+    <path d="M812 766h504" class="line"/>
+    <text x="812" y="796" class="tiny muted">记录区间最低 21.4 / 最高 52.1 tok/s</text>
+    <text x="812" y="816" class="tiny muted">区间速率包含日志采样影响，详情披露覆盖限制</text>
+    <!-- Activity strip and proposal disclosure. -->
+    <circle cx="248" cy="858" r="3" fill="#269fbf"/>
+    <text x="261" y="863" class="small muted">重置管理、公告与更新动态</text>
+    <text x="504" y="863" class="small link">前往对应页面 →</text>
+    <text x="1336" y="886" text-anchor="end" class="tiny muted">首页结构提案 · 全部数值为示例 · 非当前版本截图</text>
+  </g>
+  <rect x=".5" y=".5" width="1359" height="899" rx="11.5" fill="none" stroke="#cfdfe9"/>
+</svg>

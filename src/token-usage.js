@@ -1,4 +1,4 @@
-const MAX_DAILY_BUCKETS = 400;
+const MAX_DAILY_BUCKETS = 10_000;
 
 function normalizeCount(value) {
   if (!Number.isFinite(value) || value < 0) return null;
@@ -91,7 +91,11 @@ function normalizeTokenUsageResponse(raw, previousState = {}, now = Date.now()) 
     observedAt: now
   });
 
-  if (current) {
+  const cached = normalizeSnapshot(previousState?.tokenUsageSnapshot);
+  // A summary-only response cannot replace the last complete dated snapshot;
+  // otherwise fee calibration flickers back to unadjusted local counters.
+  const missingDailyBuckets = !Array.isArray(raw?.dailyUsageBuckets);
+  if (current && !(missingDailyBuckets && cached?.dailyUsageBuckets.length)) {
     return {
       available: true,
       cached: false,
@@ -100,7 +104,6 @@ function normalizeTokenUsageResponse(raw, previousState = {}, now = Date.now()) 
     };
   }
 
-  const cached = normalizeSnapshot(previousState?.tokenUsageSnapshot);
   if (cached) {
     return {
       available: true,
@@ -123,6 +126,37 @@ function normalizeTokenUsageResponse(raw, previousState = {}, now = Date.now()) 
     observedAt: null,
     persistence: {}
   };
+}
+
+function localTokenUsageFromCost(snapshot) {
+  const add = (left, right) => Math.min(Number.MAX_SAFE_INTEGER, left + (normalizeCount(right) || 0));
+  const total = row => (row.models || []).reduce((sum, model) => add(add(sum, model.inputTokens), model.outputTokens),
+    add(normalizeCount(row.unattributedInputTokens) || 0, row.unattributedOutputTokens));
+  const dailyUsageBuckets = normalizeDailyBuckets((snapshot.dailyUsage || []).map(row => ({ startDate: row.date, tokens: total(row) })));
+  const lifetimeTokens = total(snapshot);
+  const datedTokens = dailyUsageBuckets.reduce((sum, row) => add(sum, row.tokens), 0);
+  return { lifetimeTokens, dailyUsageBuckets,
+    totalWorkDays: dailyUsageBuckets.filter(row => row.tokens > 0).length,
+    undatedTokens: Math.max(0, lifetimeTokens - datedTokens),
+    truncated: Boolean(snapshot.truncated), observedAt: snapshot.observedAt };
+}
+
+function combineTokenUsage(account = {}, cost = {}) {
+  const local = cost.verifiedLocalUsage || cost.localUsage;
+  // Account totals can be corrected by the service and cover a different
+  // population. A local ledger must never replace a valid account snapshot.
+  if (account.scope !== "local" && account.available && normalizeCount(account.lifetimeTokens) !== null) {
+    return { ...account, scope: "account", localUsage: cost.available ? local : null };
+  }
+  if (!cost.available || !local || !(local.lifetimeTokens > 0)) return { ...account, scope: account.scope || "account" };
+  return { ...account, ...local, available: true, cached: Boolean(cost.cached), scope: "local",
+    localUsage: local,
+    currentStreakDays: null, longestStreakDays: null, longestRunningTurnSec: null,
+    peakDailyTokens: local.dailyUsageBuckets.reduce((peak, row) => Math.max(peak, row.tokens), 0),
+    accountLifetimeTokens: account.scope === "local" ? account.accountLifetimeTokens : account.lifetimeTokens,
+    accountWorkDays: account.scope === "local" ? account.accountWorkDays : account.totalWorkDays,
+    accountCached: account.scope === "local" ? account.accountCached : Boolean(account.cached),
+    persistence: account.persistence || {} };
 }
 
 function startOfWeek(key) {
@@ -175,6 +209,8 @@ const api = {
   aggregateTokenUsage,
   normalizeDailyBuckets,
   normalizeTokenUsageResponse,
+  localTokenUsageFromCost,
+  combineTokenUsage,
   parseDateKey
 };
 

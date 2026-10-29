@@ -1,9 +1,12 @@
 // Streaming JSON projection. Only model/type/timestamp and numeric token counts
 // survive a chunk boundary; conversation strings and tool payloads are skipped.
-const KEYS = new Set(['type','timestamp','payload','model','info','last_token_usage','total_token_usage',
-  'input_tokens','cached_input_tokens','cache_write_input_tokens','output_tokens','reasoning_output_tokens','total_tokens']);
+const KEYS = new Set(['type','timestamp','payload','model','info','last_token_usage','total_token_usage','usage','thread_token_usage',
+  'input_tokens','cached_input_tokens','cache_write_input_tokens','output_tokens','reasoning_output_tokens','total_tokens',
+  'prompt_tokens','completion_tokens','cache_read_input_tokens','cache_creation_input_tokens',
+  'input_tokens_details','prompt_tokens_details','output_tokens_details','completion_tokens_details','cached_tokens','reasoning_tokens',
+  'cache_write_1h_input_tokens','cache_write_12h_input_tokens','cache_write_5m_input_tokens','cache_write_30m_input_tokens','cache_creation','ephemeral_1h_input_tokens','ephemeral_5m_input_tokens']);
 const STRINGS = new Set(['type','timestamp','payload.type','payload.model']);
-const NUMERIC = /^payload\.info\.(?:last_token_usage|total_token_usage)\.(?:input_tokens|cached_input_tokens|cache_write_input_tokens|output_tokens|reasoning_output_tokens|total_tokens)$/;
+const NUMERIC = /^payload\.(?:info\.(?:last_token_usage|total_token_usage)|usage|thread_token_usage)\.(?:input_tokens|cached_input_tokens|cache_write_input_tokens|output_tokens|reasoning_output_tokens|total_tokens|prompt_tokens|completion_tokens|cache_read_input_tokens|cache_creation_input_tokens|cache_write_(?:1h|12h|5m|30m)_input_tokens|cache_creation\.ephemeral_(?:1h|5m)_input_tokens|(?:input_tokens_details|prompt_tokens_details|output_tokens_details|completion_tokens_details)\.(?:cached_tokens|reasoning_tokens))$/;
 
 class CostRecordProjector {
   constructor(saved) {
@@ -17,7 +20,7 @@ class CostRecordProjector {
     let node = this.record;
     for (const key of path.slice(0, -1)) node = node[key] ||= {};
     node[path.at(-1)] = value;
-    if ((path.join('.') === 'type' && !['turn_context','event_msg'].includes(value)) ||
+    if ((path.join('.') === 'type' && !['turn_context','event_msg','token_usage_record'].includes(value)) ||
         (path.join('.') === 'payload.type' && this.record.type === 'event_msg' && value !== 'token_count')) this.ignored = true;
   }
   finishToken() {

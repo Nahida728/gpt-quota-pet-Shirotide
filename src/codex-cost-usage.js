@@ -1,16 +1,21 @@
 const fsp = require("node:fs/promises");
 const crypto = require("node:crypto");
-const os = require("node:os");
 const path = require("node:path");
 const { StringDecoder } = require("node:string_decoder");
 const { CostRecordProjector } = require("./cost-record-projector");
+const { configuredSessionRoots, discoverCodexSources } = require("./codex-sources");
+const { tokenUsageInfo, USAGE_RECORD_PATTERN, usageCounterValues, observeUsageMirror } = require("./usage-record");
+const { calibrateCostSnapshot } = require("./cost-calibration");
+const { localTokenUsageFromCost } = require("./token-usage");
+const { ADDITIONAL_MODEL_PRICING, PRICING_DATE, SOURCES, catalogModelName, pricingShape, effectivePricing,
+  normalizePricingUnits, priceUnits, usagePricingUnits, UNIT_KEYS } = require("./model-pricing-catalog");
 
 const MAX_ROLLOUT_FILES = 1_000;
 const MAX_ROLLOUT_FILE_BYTES = 512 * 1024 * 1024;
 const MAX_ROLLOUT_TOTAL_BYTES = 2 * 1024 * 1024 * 1024;
 const SCAN_CACHE_MS = 15 * 60 * 1_000;
 const COST_SNAPSHOT_SCHEMA_VERSION = 7;
-const PRICING_DATE = "2026-10-10";
+const USAGE_ADAPTER_VERSION = 3;
 const LONG_CONTEXT_THRESHOLD = 272_000;
 
 // Standard API text-token prices in USD per one million tokens.
@@ -269,7 +274,8 @@ const MODEL_PRICING = Object.freeze({
     cachedInput: 0.574,
     cacheWrite: 0.574,
     output: 3.011
-  }
+  },
+  ...ADDITIONAL_MODEL_PRICING
 });
 
 // Codex++ gateways commonly add provider names, routing tiers, or availability
@@ -329,6 +335,9 @@ function canonicalModelName(value) {
   const model = normalizeModelName(value);
   const aliased = MODEL_ALIASES[model] || model;
   if (MODEL_PRICING[aliased]) return aliased;
+  const catalogModel = catalogModelName(aliased);
+  if (catalogModel) return catalogModel;
+  if (aliased.startsWith("openai/")) return canonicalModelName(aliased.slice(7));
   const thirdParty = THIRD_PARTY_MODEL_RULES.find(([pattern]) => pattern.test(aliased));
   if (thirdParty) return thirdParty[1];
   if (!SNAPSHOT_MODEL_PATTERN.test(aliased)) return aliased;
@@ -341,29 +350,47 @@ function isThirdPartyModel(value) {
 }
 
 function getModelPricing(value) {
-  return MODEL_PRICING[canonicalModelName(value)] || null;
+  const model = canonicalModelName(value);
+  const pricing = MODEL_PRICING[model];
+  if (!pricing) return null;
+  const vendor = pricing.vendor || (/^(?:gpt|codex|o\d)/.test(model) ? "OpenAI" :
+    model.startsWith("deepseek") ? "DeepSeek" : model.startsWith("glm") ? "Z.AI" :
+    model.startsWith("qwen") ? "Qwen" : model.startsWith("minimax") ? "MiniMax" : "Kimi");
+  return effectivePricing({ ...pricing, vendor, source: pricing.source || SOURCES[vendor] || "https://platform.kimi.ai/docs/pricing/chat",
+    cacheWriteLong: pricing.cacheWriteLong ??
+      (vendor === "OpenAI" && /^(?:gpt-6-(?:astra|sol|luna)|gpt-6\.1-(?:sol|terra)|gpt-5\.6-(?:sol|terra|luna)|gpt-reserve)$/.test(model)
+        ? pricing.cacheWrite * 2 : null) });
 }
 
 function normalizeUsage(value, cachedInputIsExclusive = false) {
-  const reportedInputTokens = normalizeCount(value?.input_tokens ?? value?.inputTokens);
+  const reportedInputTokens = normalizeCount(value?.input_tokens ?? value?.prompt_tokens ?? value?.inputTokens);
   const reportedCachedInputTokens = normalizeCount(
-    value?.cached_input_tokens ?? value?.cachedInputTokens
+    value?.cached_input_tokens ?? value?.cache_read_input_tokens ?? value?.input_tokens_details?.cached_tokens ?? value?.prompt_tokens_details?.cached_tokens ?? value?.cachedInputTokens
   );
-  const inputTokens = cachedInputIsExclusive
-    ? safeAdd(reportedInputTokens, reportedCachedInputTokens)
+  const reportedLongWrite = normalizeCount(value?.cache_write_1h_input_tokens ?? value?.cache_write_12h_input_tokens ?? value?.cache_creation?.ephemeral_1h_input_tokens ?? value?.cacheWriteLongInputTokens);
+  const shortWrite = normalizeCount(value?.cache_write_5m_input_tokens ?? value?.cache_write_30m_input_tokens ?? value?.cache_creation?.ephemeral_5m_input_tokens);
+  const reportedCacheWrite = normalizeCount(value?.cache_write_input_tokens ?? value?.cache_creation_input_tokens ?? value?.cacheWriteInputTokens ?? safeAdd(shortWrite, reportedLongWrite));
+  const outputTokens = normalizeCount(value?.output_tokens ?? value?.completion_tokens ?? value?.outputTokens);
+  const explicitExclusive = value?.cache_read_input_tokens !== undefined || value?.cache_creation_input_tokens !== undefined;
+  const exclusive = explicitExclusive ||
+    ((reportedCachedInputTokens > 0 || reportedCacheWrite > 0) && value?.total_tokens === reportedInputTokens + reportedCachedInputTokens + reportedCacheWrite + outputTokens) ||
+    (cachedInputIsExclusive && value?.total_tokens !== reportedInputTokens + outputTokens);
+  const inputTokens = exclusive
+    ? safeAdd(safeAdd(reportedInputTokens, reportedCachedInputTokens), reportedCacheWrite)
     : reportedInputTokens;
   const cachedInputTokens = Math.min(inputTokens, reportedCachedInputTokens);
   const cacheWriteInputTokens = Math.min(
     Math.max(0, inputTokens - cachedInputTokens),
-    normalizeCount(value?.cache_write_input_tokens ?? value?.cacheWriteInputTokens)
+    reportedCacheWrite
   );
   return {
     inputTokens,
     cachedInputTokens,
     cacheWriteInputTokens,
-    outputTokens: normalizeCount(value?.output_tokens ?? value?.outputTokens),
+    cacheWriteLongInputTokens: Math.min(cacheWriteInputTokens, reportedLongWrite),
+    outputTokens,
     reasoningOutputTokens: normalizeCount(
-      value?.reasoning_output_tokens ?? value?.reasoningOutputTokens
+      value?.reasoning_output_tokens ?? value?.output_tokens_details?.reasoning_tokens ?? value?.completion_tokens_details?.reasoning_tokens ?? value?.reasoningOutputTokens
     )
   };
 }
@@ -375,23 +402,15 @@ function calculateUsageCost(model, value) {
     value,
     isThirdPartyModel(model) && Object.hasOwn(value || {}, "input_tokens")
   );
-  const uncachedInputTokens = Math.max(
-    0,
-    usage.inputTokens - usage.cachedInputTokens - usage.cacheWriteInputTokens
-  );
-  const isLongContext = pricing.longContext && usage.inputTokens > LONG_CONTEXT_THRESHOLD;
-  const inputMultiplier = isLongContext ? 2 : 1;
-  const outputMultiplier = isLongContext ? 1.5 : 1;
-  const cost = (
-    uncachedInputTokens * pricing.input * inputMultiplier +
-    usage.cachedInputTokens * pricing.cachedInput * inputMultiplier +
-    usage.cacheWriteInputTokens * pricing.cacheWrite * inputMultiplier +
-    usage.outputTokens * pricing.output * outputMultiplier
-  ) / 1_000_000;
+  const { units, isLongContext } = usagePricingUnits(pricing, usage);
+  const cost = priceUnits(pricing, units);
+  if (cost === null) return null;
   return {
     cost,
     isLongContext,
-    pricing
+    pricing,
+    pricingUnits: units,
+    pricingShape: pricingShape(pricing)
   };
 }
 
@@ -399,15 +418,7 @@ function usageSignature(info) {
   const total = info?.total_token_usage;
   const last = info?.last_token_usage;
   if (!total || !last) return null;
-  const keys = [
-    "input_tokens",
-    "cached_input_tokens",
-    "cache_write_input_tokens",
-    "output_tokens",
-    "reasoning_output_tokens",
-    "total_tokens"
-  ];
-  return crypto.createHash("sha256").update(keys.flatMap(key => [normalizeCount(total[key]), normalizeCount(last[key])]).join(":")).digest("hex");
+  return crypto.createHash("sha256").update(usageCounterValues(total).concat(usageCounterValues(last)).join(":")).digest("hex");
 }
 
 function normalizedUsageDay(value) {
@@ -435,6 +446,7 @@ function createAccumulator() {
   return {
     activeModel: "unknown",
     seenUsage: new Set(),
+    usageMirrors: {},
     models: new Map(),
     unattributedUsage: createUnattributedUsage(),
     dailyUsage: new Map(),
@@ -482,11 +494,13 @@ function addUsageToModels(models, modelName, usage) {
     inputTokens: 0,
     cachedInputTokens: 0,
     cacheWriteInputTokens: 0,
+    cacheWriteLongInputTokens: 0,
     outputTokens: 0,
     reasoningOutputTokens: 0,
     requestCount: 0,
     longContextRequests: 0,
     estimatedCostUsd: 0,
+    pricingUnits: Object.fromEntries(UNIT_KEYS.map(key => [key, 0])),
     priced: Boolean(getModelPricing(modelName))
   };
   entry.inputTokens = safeAdd(entry.inputTokens, usage.inputTokens);
@@ -495,6 +509,7 @@ function addUsageToModels(models, modelName, usage) {
     entry.cacheWriteInputTokens,
     usage.cacheWriteInputTokens
   );
+  entry.cacheWriteLongInputTokens = safeAdd(entry.cacheWriteLongInputTokens, usage.cacheWriteLongInputTokens);
   entry.outputTokens = safeAdd(entry.outputTokens, usage.outputTokens);
   entry.reasoningOutputTokens = safeAdd(
     entry.reasoningOutputTokens,
@@ -504,8 +519,10 @@ function addUsageToModels(models, modelName, usage) {
   const cost = calculateUsageCost(modelName, usage);
   if (cost) {
     entry.estimatedCostUsd += cost.cost;
+    if (entry.pricingUnits) for (const key of UNIT_KEYS) entry.pricingUnits[key] += cost.pricingUnits[key];
+    entry.pricingShape = cost.pricingShape;
     if (cost.isLongContext) entry.longContextRequests += 1;
-  }
+  } else if (entry.priced) entry.pricingPending = true;
   models.set(modelName, entry);
 }
 
@@ -516,6 +533,29 @@ function addUsage(accumulator, model, rawUsage, day = null) {
   addUsageToModels(accumulator.models, modelName, usage);
   const daily = getDailyUsage(accumulator, day);
   if (daily) addUsageToModels(daily.models, modelName, usage);
+}
+
+function removeMirrorContribution(accumulator, contribution) {
+  const { model, day, usage } = contribution;
+  const remove = target => {
+    if (!target) return;
+    for (const [key, count] of Object.entries(usage)) target[key] = Math.max(0, (target[key] || 0) - count);
+    target.requestCount = Math.max(0, target.requestCount - 1);
+    if (model !== "unknown") {
+      const cost = calculateUsageCost(model, usage);
+      if (cost) {
+        target.estimatedCostUsd = Math.max(0, (target.estimatedCostUsd || 0) - cost.cost);
+        if (target.pricingUnits) for (const key of UNIT_KEYS) {
+          target.pricingUnits[key] = Math.max(0, target.pricingUnits[key] - cost.pricingUnits[key]);
+        }
+        if (cost.isLongContext) target.longContextRequests = Math.max(0, target.longContextRequests - 1);
+      }
+    }
+  };
+  remove(model === "unknown" ? accumulator.unattributedUsage : accumulator.models.get(model));
+  const daily = day && accumulator.dailyUsage.get(day);
+  if (daily) remove(model === "unknown" ? daily.unattributedUsage : daily.models.get(model));
+  accumulator.duplicateEvents += 1;
 }
 
 function consumeRolloutLine(accumulator, line) {
@@ -533,21 +573,27 @@ function consumeRolloutLine(accumulator, line) {
     return;
   }
 
-  if (!/"type"\s*:\s*"event_msg"/.test(line) || !/"type"\s*:\s*"token_count"/.test(line)) {
+  if (!USAGE_RECORD_PATTERN.test(line)) {
     return;
   }
 
   try {
     const record = JSON.parse(line);
-    if (record?.type !== "event_msg" || record?.payload?.type !== "token_count") return;
-    const info = record?.payload?.info;
+    const info = tokenUsageInfo(record);
+    if (!info) return;
     const signature = usageSignature(info);
-    if (signature && accumulator.seenUsage.has(signature)) {
+    const exactDuplicate = Boolean(signature && accumulator.seenUsage.has(signature));
+    const day = normalizedUsageDay(record?.timestamp);
+    const usage = normalizeUsage(info.last_token_usage, isThirdPartyModel(accumulator.activeModel));
+    const contribution = usage.inputTokens || usage.outputTokens || usage.cacheWriteInputTokens
+      ? { model: accumulator.activeModel, day, usage } : null;
+    const mirror = observeUsageMirror(accumulator.usageMirrors, record, contribution, exactDuplicate);
+    if (mirror.rollback) removeMirrorContribution(accumulator, mirror.rollback);
+    if (signature) accumulator.seenUsage.add(signature);
+    if (exactDuplicate || mirror.duplicate) {
       accumulator.duplicateEvents += 1;
       return;
     }
-    if (signature) accumulator.seenUsage.add(signature);
-    const day = normalizedUsageDay(record?.timestamp);
     if (accumulator.activeModel === "unknown") {
       addUnattributedUsage(accumulator, info?.last_token_usage, day);
     } else {
@@ -568,12 +614,7 @@ function finalizeModels(models) {
       ...entry,
       estimatedCostUsd: pricing && !entry.pricingPending ? Number((entry.estimatedCostUsd || 0).toFixed(6)) : null,
       cacheHitRate: Number(cacheHitRate.toFixed(2)),
-      pricing: pricing ? {
-        input: pricing.input,
-        cachedInput: pricing.cachedInput,
-        cacheWrite: pricing.cacheWrite,
-        output: pricing.output
-      } : null
+      pricing: publicPricing(pricing)
     };
   }).sort((left, right) => {
     if (left.priced !== right.priced) return left.priced ? -1 : 1;
@@ -651,10 +692,12 @@ function combineModels(modelCollections, mode = "sum") {
         inputTokens: 0,
         cachedInputTokens: 0,
         cacheWriteInputTokens: 0,
+        cacheWriteLongInputTokens: 0,
         outputTokens: 0,
         reasoningOutputTokens: 0,
         requestCount: 0,
         longContextRequests: 0,
+        pricingUnits: model.pricingUnits ? Object.fromEntries(UNIT_KEYS.map(key => [key, 0])) : null,
         estimatedCostUsd: model.priced ? 0 : null
       };
       entry.pricingPending = Boolean(entry.pricingPending || model.pricingPending);
@@ -664,6 +707,10 @@ function combineModels(modelCollections, mode = "sum") {
         entry.cacheWriteInputTokens,
         model.cacheWriteInputTokens
       );
+      entry.cacheWriteLongInputTokens = safeAdd(entry.cacheWriteLongInputTokens, model.cacheWriteLongInputTokens);
+      if (entry.pricingUnits && model.pricingUnits) {
+        for (const key of UNIT_KEYS) entry.pricingUnits[key] += model.pricingUnits[key];
+      } else entry.pricingUnits = null;
       entry.outputTokens = safeAdd(entry.outputTokens, model.outputTokens);
       entry.reasoningOutputTokens = safeAdd(
         entry.reasoningOutputTokens,
@@ -733,6 +780,8 @@ function summarizeRolloutLines(files, now = Date.now()) {
   const unattributedUsage = sumUnattributedUsage(snapshots);
   return {
     scanned: true,
+    schemaVersion: COST_SNAPSHOT_SCHEMA_VERSION,
+    usageAdapterVersion: USAGE_ADAPTER_VERSION,
     pricingDate: PRICING_DATE,
     estimatedCostUsd: Number(models.reduce(
       (total, model) => total + (model.estimatedCostUsd || 0),
@@ -742,6 +791,7 @@ function summarizeRolloutLines(files, now = Date.now()) {
     hasUnattributedUsage: unattributedUsage.unattributedRequestCount > 0,
     ...unattributedUsage,
     models,
+    dailyUsage: combineDailyUsage(snapshots.map(snapshot => snapshot.dailyUsage)),
     filesScanned: Array.isArray(files) ? files.length : 0,
     truncated: false,
     duplicateEvents: snapshots.reduce(
@@ -816,7 +866,7 @@ async function listRolloutFiles(roots) {
 
 function normalizeDailyUsageRows(value) {
   const rows = [];
-  for (const rawRow of Array.isArray(value) ? value.slice(0, 400) : []) {
+  for (const rawRow of Array.isArray(value) ? value.slice(0, 10_000) : []) {
     const date = normalizedUsageDay(rawRow?.date);
     if (!date || !Array.isArray(rawRow?.models)) continue;
     const normalizedModels = rawRow.models.slice(0, 100).map(normalizeCostModel);
@@ -875,7 +925,8 @@ function normalizeRolloutEntry(value) {
     byteOffset: Number.isSafeInteger(value.byteOffset) && value.byteOffset >= 0 ? value.byteOffset : null,
     scanComplete: value.scanComplete !== false,
     scanState: value.scanState && typeof value.scanState === "object" ? value.scanState : null,
-    scanEpoch: normalizeCount(value.scanEpoch)
+    scanEpoch: normalizeCount(value.scanEpoch),
+    usageAdapterVersion: normalizeCount(value.usageAdapterVersion)
   };
 }
 
@@ -904,19 +955,8 @@ class CodexCostUsageReader {
     maxFileBytes = MAX_ROLLOUT_FILE_BYTES,
     maxTotalBytes = MAX_ROLLOUT_TOTAL_BYTES
   } = {}) {
-    const codexRoot = path.join(os.homedir(), ".codex");
-    const primaryRoot = sessionsRoot || path.join(codexRoot, "sessions");
-    const defaultArchivedRoot = sessionsRoot
-      ? path.join(path.dirname(primaryRoot), "archived_sessions")
-      : path.join(codexRoot, "archived_sessions");
-    const configuredRoots = Array.isArray(sessionRoots) && sessionRoots.length
-      ? sessionRoots
-      : [primaryRoot, archivedSessionsRoot || defaultArchivedRoot];
-    this.sessionRoots = [...new Set(
-      configuredRoots
-        .filter(root => typeof root === "string" && root.trim())
-        .map(root => path.resolve(root))
-    )];
+    this.configuredRoots = configuredSessionRoots({ sessionsRoot, archivedSessionsRoot, sessionRoots });
+    this.sessionRoots = this.configuredRoots || discoverCodexSources().sessionRoots;
     this.cacheMs = cacheMs;
     this.maxFiles = Math.max(1, normalizeCount(maxFiles));
     this.maxFileBytes = Math.max(1, normalizeCount(maxFileBytes));
@@ -929,11 +969,17 @@ class CodexCostUsageReader {
   requestFullScan() { this.fullScanRequested = true; this.cachedAt = 0; }
 
   async read(now = Date.now(), previousSnapshot = null, { force = false } = {}) {
+    if (!this.configuredRoots) {
+      const roots = discoverCodexSources().sessionRoots;
+      if (JSON.stringify(roots) !== JSON.stringify(this.sessionRoots)) this.cachedAt = 0;
+      this.sessionRoots = roots;
+    }
     if (!force && !this.fullScanRequested && this.cachedResult && now - this.cachedAt < this.cacheMs) {
       return this.cachedResult;
     }
     if (
       !force && !this.fullScanRequested && previousSnapshot?.schemaVersion === COST_SNAPSHOT_SCHEMA_VERSION &&
+      previousSnapshot?.usageAdapterVersion === USAGE_ADAPTER_VERSION &&
       previousSnapshot?.indexComplete === true &&
       previousSnapshot?.pricingDate === PRICING_DATE &&
       Number.isFinite(previousSnapshot?.observedAt) &&
@@ -955,11 +1001,21 @@ class CodexCostUsageReader {
       (previous?.rolloutIndex || []).map(entry => [entry.id, entry])
     );
     const inventory = await listRolloutFiles(this.sessionRoots);
+    if (previous?.schemaVersion === COST_SNAPSHOT_SCHEMA_VERSION && previous.models.length &&
+        !previous.rolloutIndex.length && !inventory.length && !this.fullScanRequested) {
+      // A price refresh cannot erase compatible aggregates whose source files
+      // are temporarily unavailable. They remain explicitly incomplete.
+      this.cachedResult = { scanned: true, ...previous, truncated: true, indexComplete: false };
+      this.cachedAt = now;
+      return this.cachedResult;
+    }
     const visibleInventory = inventory;
-    const restarting = this.fullScanRequested;
+    // Counter interpretation changed, not prices. Replace readable entries in
+    // bounded passes while retaining committed records until replacement EOF.
+    const restarting = this.fullScanRequested || Boolean(previous && previous.usageAdapterVersion !== USAGE_ADAPTER_VERSION);
     const generation = restarting ? Math.max(now, (previous?.ledgerGeneration || 0) + 1) : previous?.ledgerGeneration || 0;
     const rescanWork = restarting ? {} : { ...(previous?.rescanWork || {}) };
-    const rescanPending = new Set(this.fullScanRequested ? inventory.map(persistedRolloutId) : previous?.rescanPending || []);
+    const rescanPending = new Set(restarting ? inventory.map(persistedRolloutId) : previous?.rescanPending || []);
     this.fullScanRequested = false;
     const inventoryIds = new Set(inventory.map(persistedRolloutId));
     for (const id of rescanPending) if (!inventoryIds.has(id)) { rescanPending.delete(id); delete rescanWork[id]; }
@@ -1013,7 +1069,7 @@ class CodexCostUsageReader {
     const legacyStale = visibleInventory.filter(file => {
       const entry = previousEntries.get(persistedRolloutId(file));
       return entry && !entry.scanState && entry.fingerprint !== rolloutFingerprint(file);
-    }).length;
+    }).length + [...previousEntries.values()].filter(entry => entry.usageAdapterVersion !== USAGE_ADAPTER_VERSION && !inventoryIds.has(entry.id)).length;
     const indexComplete = (
       pendingFiles.length === 0 &&
       rescanPending.size === 0 &&
@@ -1031,6 +1087,7 @@ class CodexCostUsageReader {
       rescanWork,
       scanProgress: { totalFiles: inventory.length, pendingFiles: rescanPending.size || visibleInventory.filter(file => !previousEntries.has(persistedRolloutId(file)) || previousEntries.get(persistedRolloutId(file)).scanComplete === false).length, legacyStale, bytesRead: this.maxTotalBytes - remaining, rebuilding: rescanPending.size > 0 },
       schemaVersion: COST_SNAPSHOT_SCHEMA_VERSION,
+      usageAdapterVersion: USAGE_ADAPTER_VERSION,
       pricingDate: PRICING_DATE,
       estimatedCostUsd: Number(models.reduce(
         (total, model) => total + (model.estimatedCostUsd || 0),
@@ -1064,6 +1121,7 @@ class CodexCostUsageReader {
       accumulator.dailyUsage = new Map(existing.dailyUsage.map(row => [row.date, { date: row.date, models: new Map(row.models.map(m => [m.model, { ...m }])), unattributedUsage: Object.fromEntries(Object.keys(accumulator.unattributedUsage).map(key => [key, normalizeCount(row['unattributed' + key[0].toUpperCase() + key.slice(1)])])) }]));
       accumulator.activeModel = normalizeModelName(existing.scanState?.activeModel);
       accumulator.seenUsage = new Set(existing.scanState?.seenUsage || []);
+      accumulator.usageMirrors = existing.scanState?.usageMirrors || {};
       accumulator.duplicateEvents = existing.duplicateEvents || 0;
     }
     const decoder = new StringDecoder('utf8');
@@ -1095,11 +1153,19 @@ class CodexCostUsageReader {
       }
     } finally { await handle.close(); }
     const snapshot = finalizeAccumulator(accumulator, { observedAt: now });
-    return { ...snapshot, id: persistedRolloutId(file), fingerprint: rolloutFingerprint(file), size: file.size,
+    return { ...snapshot, usageAdapterVersion: USAGE_ADAPTER_VERSION, id: persistedRolloutId(file), fingerprint: rolloutFingerprint(file), size: file.size,
       byteOffset: offset, scanComplete: offset === file.size && !decoder.lastNeed && (projector.ignored || !projector.stack.length),
-      scanState: { activeModel: accumulator.activeModel, seenUsage: [...accumulator.seenUsage], projector: projector.snapshot(),
+      scanState: { activeModel: accumulator.activeModel, seenUsage: [...accumulator.seenUsage], usageMirrors: accumulator.usageMirrors, projector: projector.snapshot(),
         decoder: { bytes: [...decoder.lastChar.subarray(0, decoder.lastNeed ? decoder.lastTotal - decoder.lastNeed : 0)] } }, bytesRead };
   }
+}
+
+function publicPricing(pricing) {
+  if (!pricing) return null;
+  return { input: pricing.input, cachedInput: pricing.cachedInput, cacheWrite: pricing.cacheWrite,
+    cacheWriteLong: pricing.cacheWriteLong, output: pricing.output, vendor: pricing.vendor,
+    source: pricing.source, checkedAt: PRICING_DATE, note: pricing.note || null,
+    contextThreshold: pricing.contextThreshold ?? (pricing.longContext ? LONG_CONTEXT_THRESHOLD : null), contextInclusive: Boolean(pricing.contextInclusive) };
 }
 
 function normalizeCostModel(value) {
@@ -1111,30 +1177,47 @@ function normalizeCostModel(value) {
     normalizeCount(value?.cacheWriteInputTokens)
   );
   const outputTokens = normalizeCount(value?.outputTokens);
+  const cacheWriteLongInputTokens = Math.min(cacheWriteInputTokens, normalizeCount(value?.cacheWriteLongInputTokens));
   const reasoningOutputTokens = normalizeCount(value?.reasoningOutputTokens);
   const pricing = getModelPricing(model);
-  const estimatedCostUsd = pricing && Number.isFinite(value?.estimatedCostUsd)
+  let estimatedCostUsd = pricing && Number.isFinite(value?.estimatedCostUsd)
     ? Math.max(0, value.estimatedCostUsd)
     : null;
+  let units = value?.pricingShape === pricingShape(pricing || {}) ? normalizePricingUnits(value?.pricingUnits) : null;
+  let pending = Boolean(value?.pricingPending || pricing && !Number.isFinite(value?.estimatedCostUsd));
+  const threshold = pricing?.contextThreshold ?? (pricing?.longContext ? LONG_CONTEXT_THRESHOLD : null);
+  const provablyShort = threshold === null || (pricing?.contextInclusive ? inputTokens < threshold : inputTokens <= threshold);
+  if (pricing && !units && provablyShort) {
+    units = usagePricingUnits(pricing, { inputTokens, cachedInputTokens, cacheWriteInputTokens, cacheWriteLongInputTokens, outputTokens }).units;
+  }
+  const shapeChanged = pricing && (value?.pricingShape && value.pricingShape !== pricingShape(pricing) ||
+    value?.pricing && Object.hasOwn(value.pricing, "contextThreshold") && value.pricing.contextThreshold !== threshold);
+  const rateChanged = shapeChanged || pricing && value?.pricing &&
+    (["input", "cachedInput", "cacheWrite", "output"].some(key => value.pricing[key] !== pricing[key]) ||
+      Object.hasOwn(value.pricing, "cacheWriteLong") && value.pricing.cacheWriteLong !== pricing.cacheWriteLong);
+  const needsPrice = pricing && (value?.priced === false || pending || rateChanged || units);
+  if (needsPrice) {
+    const recalculated = units ? priceUnits(pricing, units) : null;
+    pending = recalculated === null;
+    if (recalculated !== null) estimatedCostUsd = Math.round((recalculated + Math.max(1, recalculated) * Number.EPSILON) * 1e6) / 1e6;
+  }
   return {
     model,
     inputTokens,
     cachedInputTokens,
     cacheWriteInputTokens,
+    cacheWriteLongInputTokens,
     outputTokens,
     reasoningOutputTokens,
     requestCount: normalizeCount(value?.requestCount),
     longContextRequests: normalizeCount(value?.longContextRequests),
     cacheHitRate: inputTokens ? Number((cachedInputTokens / inputTokens * 100).toFixed(2)) : 0,
     estimatedCostUsd,
-    priced: Boolean(pricing) && !(value?.pricingPending || !Number.isFinite(value?.estimatedCostUsd)),
-    pricingPending: Boolean(value?.pricingPending || pricing && !Number.isFinite(value?.estimatedCostUsd)),
-    pricing: pricing ? {
-      input: pricing.input,
-      cachedInput: pricing.cachedInput,
-      cacheWrite: pricing.cacheWrite,
-      output: pricing.output
-    } : null
+    priced: Boolean(pricing) && !pending && estimatedCostUsd !== null,
+    pricingPending: pending,
+    pricingUnits: units,
+    pricingShape: units && pricing ? pricingShape(pricing) : null,
+    pricing: publicPricing(pricing)
   };
 }
 
@@ -1190,7 +1273,8 @@ function normalizeCostSnapshot(value) {
   const unattributedUsage = normalizeUnattributedUsage(value, unknownModels);
   return {
     schemaVersion: isCurrentSchema ? COST_SNAPSHOT_SCHEMA_VERSION : 1,
-    pricingDate: typeof value.pricingDate === "string" ? value.pricingDate : PRICING_DATE,
+    usageAdapterVersion: normalizeCount(value.usageAdapterVersion),
+    pricingDate: PRICING_DATE,
     estimatedCostUsd: models.reduce(
       (total, model) => total + (model.estimatedCostUsd || 0),
       0
@@ -1213,140 +1297,33 @@ function normalizeCostSnapshot(value) {
   };
 }
 
-function publicCostSnapshot(snapshot) {
+function publicCostSnapshot(snapshot, rawSnapshot = snapshot) {
   if (!snapshot) return null;
-  const {
-    rolloutIndex,
-    dailyUsage,
-    indexComplete,
-    schemaVersion,
-    rescanPending,
-    rescanWork,
-    ...publicSnapshot
-  } = snapshot;
-  return publicSnapshot;
-}
-
-function scaledCostModel(value, factor) {
-  const model = normalizeCostModel(value);
-  const scaleCount = count => normalizeCount(Math.round(normalizeCount(count) * factor));
-  return normalizeCostModel({
-    ...model,
-    inputTokens: scaleCount(model.inputTokens),
-    cachedInputTokens: scaleCount(model.cachedInputTokens),
-    cacheWriteInputTokens: scaleCount(model.cacheWriteInputTokens),
-    outputTokens: scaleCount(model.outputTokens),
-    reasoningOutputTokens: scaleCount(model.reasoningOutputTokens),
-    requestCount: scaleCount(model.requestCount),
-    longContextRequests: scaleCount(model.longContextRequests),
-    estimatedCostUsd: model.priced
-      ? Number(((model.estimatedCostUsd || 0) * factor).toFixed(6))
-      : null
-  });
-}
-
-function scaledUnattributedUsage(value, factor) {
-  const scale = key => normalizeCount(Math.round(normalizeCount(value?.[key]) * factor));
-  return {
-    unattributedInputTokens: scale("unattributedInputTokens"),
-    unattributedCachedInputTokens: scale("unattributedCachedInputTokens"),
-    unattributedCacheWriteInputTokens: scale("unattributedCacheWriteInputTokens"),
-    unattributedOutputTokens: scale("unattributedOutputTokens"),
-    unattributedReasoningOutputTokens: scale("unattributedReasoningOutputTokens"),
-    unattributedRequestCount: scale("unattributedRequestCount")
+  const { rolloutIndex, dailyUsage, indexComplete, schemaVersion, rescanPending, rescanWork, ...publicSnapshot } = snapshot;
+  const entries = rawSnapshot.rolloutIndex || [];
+  const verified = entries.filter(entry => entry.usageAdapterVersion === USAGE_ADAPTER_VERSION && !entry.scanState?.usageMirrors?.pending);
+  const aggregateVerified = !entries.length && rawSnapshot.usageAdapterVersion === USAGE_ADAPTER_VERSION;
+  const unverifiedFiles = entries.length ? entries.length - verified.length
+    : !aggregateVerified && rawSnapshot.models.length ? Math.max(1, rawSnapshot.filesScanned) : 0;
+  const verifiedUsage = {
+    ...rawSnapshot,
+    models: entries.length ? combineModels(verified.map(entry => entry.models)) : aggregateVerified ? rawSnapshot.models : [],
+    dailyUsage: entries.length ? combineDailyUsage(verified.map(entry => entry.dailyUsage)) : aggregateVerified ? rawSnapshot.dailyUsage : [],
+    ...(entries.length ? sumUnattributedUsage(verified) : aggregateVerified ? sumUnattributedUsage([rawSnapshot]) : sumUnattributedUsage([])),
+    truncated: rawSnapshot.truncated || unverifiedFiles > 0
+  };
+  return { ...publicSnapshot, costScope: "legacy-calibrated", unverifiedFiles,
+    hasUnverifiedHistory: unverifiedFiles > 0,
+    verifiedFiles: verified.filter(entry => entry.scanComplete !== false).length || (aggregateVerified ? rawSnapshot.filesScanned : 0),
+    localUsage: { ...localTokenUsageFromCost(snapshot), hasUnverifiedHistory: unverifiedFiles > 0 },
+    verifiedLocalUsage: { ...localTokenUsageFromCost(verifiedUsage), hasUnverifiedHistory: unverifiedFiles > 0 }
   };
 }
 
-function calibrateCostSnapshot(snapshot, tokenUsage) {
-  const officialBuckets = Array.isArray(tokenUsage?.dailyUsageBuckets)
-    ? tokenUsage.dailyUsageBuckets
-      .map(row => ({
-        date: normalizedUsageDay(row?.startDate),
-        tokens: normalizeCount(row?.tokens)
-      }))
-      .filter(row => row.date)
-    : [];
-  if (!officialBuckets.length || !snapshot.dailyUsage.length) {
-    return {
-      ...snapshot,
-      calibratedToOfficialUsage: false,
-      replayExcludedInputTokens: 0,
-      officialUnmappedInputTokens: 0
-    };
-  }
-
-  const officialByDate = new Map(officialBuckets.map(row => [row.date, row.tokens]));
-  const calibratedModels = [];
-  const calibratedUnattributedRows = [];
-  let rawDailyInputTokens = 0;
-  let rawOfficialComparableInputTokens = 0;
-  let calibratedOfficialComparableInputTokens = 0;
-  for (const row of snapshot.dailyUsage) {
-    const comparableModels = row.models.filter(model => !isThirdPartyModel(model.model));
-    const thirdPartyModels = row.models.filter(model => isThirdPartyModel(model.model));
-    const attributedInputTokens = comparableModels.reduce(
-      (total, model) => safeAdd(total, model.inputTokens),
-      0
-    );
-    const localInputTokens = safeAdd(attributedInputTokens, row.unattributedInputTokens);
-    rawDailyInputTokens = safeAdd(rawDailyInputTokens, localInputTokens);
-    const officialTokens = officialByDate.get(row.date) || 0;
-    const factor = localInputTokens > 0
-      ? Math.min(1, officialTokens / localInputTokens)
-      : 0;
-    rawOfficialComparableInputTokens = safeAdd(
-      rawOfficialComparableInputTokens,
-      localInputTokens
-    );
-    calibratedOfficialComparableInputTokens = safeAdd(
-      calibratedOfficialComparableInputTokens,
-      Math.round(localInputTokens * factor)
-    );
-    calibratedModels.push([
-      ...comparableModels.map(model => scaledCostModel(model, factor)),
-      ...thirdPartyModels
-    ]);
-    calibratedUnattributedRows.push(scaledUnattributedUsage(row, factor));
-  }
-
-  const models = combineModels(calibratedModels).filter(model => (
-    model.inputTokens > 0 || model.outputTokens > 0 || model.requestCount > 0
-  ));
-  const unattributedUsage = sumUnattributedUsage(calibratedUnattributedRows);
-  const calibratedInputTokens = safeAdd(
-    models.reduce((total, model) => safeAdd(total, model.inputTokens), 0),
-    unattributedUsage.unattributedInputTokens
-  );
-  const rawInputTokens = safeAdd(
-    snapshot.models.reduce((total, model) => safeAdd(total, model.inputTokens), 0),
-    snapshot.unattributedInputTokens
-  );
-  const officialLifetimeTokens = normalizeCount(tokenUsage?.lifetimeTokens);
-  return {
-    ...snapshot,
-    estimatedCostUsd: Number(models.reduce(
-      (total, model) => total + (model.estimatedCostUsd || 0),
-      0
-    ).toFixed(6)),
-    hasUnpricedModels: models.some(model => !model.priced),
-    hasUnattributedUsage: unattributedUsage.unattributedRequestCount > 0,
-    ...unattributedUsage,
-    models,
-    calibratedToOfficialUsage: true,
-    rawLocalInputTokens: rawInputTokens,
-    calibratedInputTokens,
-    replayExcludedInputTokens: Math.max(
-      0,
-      rawOfficialComparableInputTokens - calibratedOfficialComparableInputTokens
-    ),
-    officialUnmappedInputTokens: Math.max(
-      0,
-      officialLifetimeTokens - calibratedOfficialComparableInputTokens
-    ),
-    rawUndatedInputTokens: Math.max(0, rawInputTokens - rawDailyInputTokens)
-  };
+function projectCostSnapshot(snapshot, accountUsage) {
+  return calibrateCostSnapshot(snapshot, accountUsage,
+    model => getModelPricing(model)?.vendor === "OpenAI");
 }
-
 function reconcileCostSnapshots(values) {
   const normalized = (Array.isArray(values) ? values : [])
     .map(normalizeCostSnapshot)
@@ -1387,6 +1364,7 @@ function reconcileCostSnapshots(values) {
   const indexComplete = newest.indexComplete === true;
   return {
     schemaVersion: COST_SNAPSHOT_SCHEMA_VERSION,
+    usageAdapterVersion: newest.usageAdapterVersion,
     ledgerGeneration: generation,
     rescanPending: newest.rescanPending,
     rescanWork: newest.rescanWork,
@@ -1428,22 +1406,22 @@ function normalizeCodexCostUsageResult(
     candidate.ledgerGeneration === stored.ledgerGeneration && candidate.observedAt >= stored.observedAt) ? candidate : null;
   if (current) {
     const snapshot = { ...current, observedAt: normalizeCount(raw.observedAt ?? now) };
-    const calibrated = calibrateCostSnapshot(snapshot, tokenUsage);
+    const calibrated = projectCostSnapshot(snapshot, tokenUsage || previousState?.tokenUsageSnapshot);
     return {
       available: true,
       cached: false,
-      ...publicCostSnapshot(calibrated),
+      ...publicCostSnapshot(calibrated, snapshot),
       persistence: { tokenCostSnapshot: snapshot }
     };
   }
 
   const cached = normalizeCostSnapshot(previousState?.tokenCostSnapshot);
   if (cached) {
-    const calibrated = calibrateCostSnapshot(cached, tokenUsage);
+    const calibrated = projectCostSnapshot(cached, tokenUsage || previousState?.tokenUsageSnapshot);
     return {
       available: true,
       cached: true,
-      ...publicCostSnapshot(calibrated),
+      ...publicCostSnapshot(calibrated, cached),
       persistence: {}
     };
   }

@@ -6,6 +6,8 @@ const path = require("node:path");
 const readline = require("node:readline");
 const { readGoalContexts, normalizeTaskContext } = require("./codex-task-context");
 const { normalizeTaskTelemetry, summarizeTaskTelemetry } = require("./task-telemetry");
+const { configuredSessionRoots, discoverCodexSources } = require("./codex-sources");
+const { tokenUsageInfo, compactUsage, USAGE_RECORD_PATTERN } = require("./usage-record");
 
 const {
   PRICING_DATE,
@@ -230,16 +232,15 @@ function latestTimestampMsFromLines(lines, fallback = null) {
 function compactTaskLines(lines) {
   const compact = [];
   for (const line of lines) {
-    if (!/"type"\s*:\s*"(?:turn_context|token_count|task_started|task_complete|task_completed|turn_aborted|response_item)"/.test(line)) continue;
+    if (!/"type"\s*:\s*"(?:turn_context|token_count|token_usage_record|task_started|task_complete|task_completed|turn_aborted|response_item)"/.test(line)) continue;
     try {
       const record = JSON.parse(line);
       if (record.type === "turn_context") {
         compact.push(JSON.stringify({ type: record.type, timestamp: record.timestamp, payload: { model: record.payload?.model } }));
-      } else if (record.type === "event_msg" && record.payload?.type === "token_count") {
-        const usage = value => value && Object.fromEntries(["input_tokens", "cached_input_tokens", "cache_write_input_tokens",
-          "output_tokens", "reasoning_output_tokens", "total_tokens"].map(key => [key, value[key]]));
-        compact.push(JSON.stringify({ type: record.type, timestamp: record.timestamp, payload: { type: "token_count",
-          info: { total_token_usage: usage(record.payload.info?.total_token_usage), last_token_usage: usage(record.payload.info?.last_token_usage) } } }));
+      } else if (tokenUsageInfo(record)) {
+        const info = tokenUsageInfo(record);
+        compact.push(JSON.stringify({ type: "event_msg", timestamp: record.timestamp, payload: { type: "token_count",
+          info: { total_token_usage: compactUsage(info.total_token_usage), last_token_usage: compactUsage(info.last_token_usage) } } }));
       } else {
         const relevant = parseRelevantRecord(line);
         if (!relevant) continue;
@@ -448,7 +449,7 @@ async function listRolloutFiles(roots, now, lookbackMs = null) {
     }
   }
   for (let index = 0; index < roots.length; index += 1) {
-    await visit(roots[index], roots[index], index > 0);
+    await visit(roots[index], roots[index], path.basename(roots[index]).toLowerCase() === "archived_sessions");
   }
   const unique = new Map();
   for (const file of found) {
@@ -676,11 +677,7 @@ async function scanTaskHistoryFile(file, history, now, goalContexts = new Map())
     if (
       active &&
       (
-        line.includes('"type":"turn_context"') ||
-        (
-          line.includes('"type":"event_msg"') &&
-          line.includes('"type":"token_count"')
-        )
+        /"type"\s*:\s*"turn_context"/.test(line) || USAGE_RECORD_PATTERN.test(line)
       )
     ) {
       active.costLines.push(line);
@@ -949,19 +946,8 @@ class CodexActiveTaskReader {
     maxHistoryTotalBytes = MAX_HISTORY_TOTAL_BYTES,
     goalContextReader = readGoalContexts
   } = {}) {
-    const codexRoot = path.join(os.homedir(), ".codex");
-    const primaryRoot = sessionsRoot || path.join(codexRoot, "sessions");
-    const defaultArchivedRoot = sessionsRoot
-      ? path.join(path.dirname(primaryRoot), "archived_sessions")
-      : path.join(codexRoot, "archived_sessions");
-    const configuredRoots = Array.isArray(sessionRoots) && sessionRoots.length
-      ? sessionRoots
-      : [primaryRoot, archivedSessionsRoot || defaultArchivedRoot];
-    this.sessionRoots = [...new Set(
-      configuredRoots
-        .filter(root => typeof root === "string" && root.trim())
-        .map(root => path.resolve(root))
-    )];
+    this.configuredRoots = configuredSessionRoots({ sessionsRoot, archivedSessionsRoot, sessionRoots });
+    this.sessionRoots = this.configuredRoots || discoverCodexSources().sessionRoots;
     this.historyCacheMs = historyCacheMs;
     this.maxHistoryFiles = Math.max(1, Math.floor(Number(maxHistoryFiles) || 1));
     this.maxHistoryFileBytes = Math.max(1, Math.floor(Number(maxHistoryFileBytes) || 1));
@@ -1124,7 +1110,14 @@ class CodexActiveTaskReader {
   }
 
   async read(now = Date.now(), previousHistorySnapshot = null) {
-    const goalContexts = this.goalContextReader();
+    const sources = this.configuredRoots ? null : discoverCodexSources();
+    if (sources) this.sessionRoots = sources.sessionRoots;
+    const goalContexts = new Map();
+    for (const root of sources?.sqliteHomes || [path.dirname(this.sessionRoots[0])]) {
+      for (const [id, context] of this.goalContextReader(root)) {
+        if (!goalContexts.has(id) || (context.goalUpdatedAtMs || 0) >= (goalContexts.get(id).goalUpdatedAtMs || 0)) goalContexts.set(id, context);
+      }
+    }
     this.goalContexts = goalContexts;
     const inventory = await listRolloutFiles(
       this.sessionRoots,

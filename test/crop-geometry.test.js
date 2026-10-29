@@ -2,6 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
   containedImageRect,
+  backgroundSize,
   initialCrop,
   moveCrop,
   resizeCrop,
@@ -13,7 +14,7 @@ test("contains landscape images inside the crop stage", () => {
   assert.deepEqual(rect, { x: 0, y: 97.5, width: 400, height: 225 });
 });
 
-test("initial crop uses the fixed 460:690 window aspect", () => {
+test("initial crop supports desktop, widescreen and legacy image aspects", () => {
   const bounds = { x: 0, y: 0, width: 400, height: 400 };
   const crop = initialCrop(bounds, 460 / 690);
   assert.ok(Math.abs(crop.width / crop.height - 460 / 690) < 0.000001);
@@ -39,4 +40,18 @@ test("maps a displayed crop to original image pixels", () => {
     1500
   );
   assert.deepEqual(source, { x: 250, y: 250, width: 500, height: 750 });
+});
+
+test("small and legacy backgrounds never enlarge implicitly on a large or high-DPI window",()=>{
+  for(const ratio of [1,1.25,1.5,1.695,2]){
+    const size=backgroundSize(1360,900,460,690,{fit:"contain",zoom:100},ratio);
+    assert.ok(size.width*ratio<=460+.001);assert.ok(size.height*ratio<=690+.001);
+    assert.ok(Math.abs(size.width/size.height-460/690)<.00001);
+  }
+});
+test("fit and fill preserve aspect and require explicit permission to upscale",()=>{
+  assert.deepEqual(backgroundSize(1200,800,2400,1600,{fit:"contain"},1),{width:1200,height:800});
+  assert.deepEqual(backgroundSize(1200,800,600,400,{fit:"cover"},1),{width:600,height:400});
+  assert.deepEqual(backgroundSize(1200,800,600,400,{fit:"cover",allowUpscale:true},1),{width:1200,height:800});
+  assert.equal(backgroundSize(0,800,600,400),null);
 });

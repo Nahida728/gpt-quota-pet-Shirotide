@@ -1,30 +1,42 @@
 const fs = require("node:fs");
-const os = require("node:os");
-const path = require("node:path");
 const { getRefreshDelay, ACTIVE_REFRESH_MS } = require("./refresh-policy");
+const { discoverCodexSources } = require("./codex-sources");
 
 class RealtimeSync {
-  constructor({ service, onSnapshot, onTasks, root = path.join(os.homedir(), ".codex"),
+  constructor({ service, onSnapshot, onTasks, root,
     watch = fs.watch, now = Date.now, setTimer = setTimeout, clearTimer = clearTimeout } = {}) {
     Object.assign(this, { service, onSnapshot, onTasks, root, watch, now, setTimer, clearTimer });
     this.lastRemoteAt = -Infinity; this.lastLocalAt = -Infinity; this.localWorkMs = 0;
-    this.localDirty = false; this.remoteDirty = false; this.watchers = [];
+    this.localDirty = false; this.remoteDirty = false; this.watchers = []; this.watchedRoots = new Set();
   }
   start() {
     if (this.started || this.stopped) return;
     this.started = true;
-    try {
-      const watcher = this.watch(this.root, { recursive: true, persistent: false }, (_event, filename) => this.changed(filename));
-      watcher.on?.("error", () => {}); this.watchers.push(watcher);
-    } catch {} // Fallback reads cover unsupported watches and missing directories.
+    this.syncWatchers();
     this.service.client.onChange = () => this.requestRemote();
     this.scheduleFallback();
+  }
+  syncWatchers() {
+    const sources = this.root ? { homes: [this.root], sqliteHomes: [], registries: [] } : discoverCodexSources();
+    const roots = new Map([...sources.homes.map(root => [root, "home"]),
+      ...sources.sqliteHomes.filter(root => !sources.homes.includes(root)).map(root => [root, "sqlite"]),
+      ...sources.registries.map(root => [root, "registry"])]);
+    for (const [root, kind] of roots) {
+      if (this.watchedRoots.has(root)) continue;
+      try {
+        const watcher = this.watch(root, { recursive: kind === "home", persistent: false }, (_event, filename) => {
+          if (kind === "registry") { this.localDirty = true; this.scheduleLocal(); return; }
+          this.changed(filename);
+        });
+        watcher.on?.("error", () => {}); this.watchers.push(watcher); this.watchedRoots.add(root);
+      } catch {} // Missing/new instances are retried by the bounded fallback.
+    }
   }
   changed(filename) {
     const name = String(filename || "").replace(/\\/g, "/");
     if (!name || /^(?:sessions|archived_sessions)\//.test(name) && name.endsWith(".jsonl")) {
       this.localDirty = true; this.scheduleLocal(); this.requestRemote();
-    } else if (/^goals_1\.sqlite(?:-wal)?$/.test(name)) {
+    } else if (/^(?:goals_1|state_5|thread_history_1)\.sqlite(?:-wal)?$/.test(name)) {
       // SQLite readers update -shm read marks even in read-only mode. Watching
       // that file turns our own query into an endless notification loop.
       this.localDirty = true; this.scheduleLocal();
@@ -94,6 +106,7 @@ class RealtimeSync {
     const delay = this.latest?.online ? getRefreshDelay(this.latest.activeTasks) : ACTIVE_REFRESH_MS;
     this.fallbackTimer = this.setTimer(() => {
       this.fallbackTimer = null;
+      this.syncWatchers();
       this.localDirty = true; this.scheduleLocal(); this.requestRemote();
     }, delay);
     this.fallbackTimer.unref?.();

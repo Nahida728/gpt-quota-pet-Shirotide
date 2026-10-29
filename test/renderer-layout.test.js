@@ -2,478 +2,62 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const root = path.join(__dirname,"..","src");
+const html = fs.readFileSync(path.join(root,"renderer","index.html"),"utf8");
+const css = fs.readFileSync(path.join(root,"renderer","workbench.css"),"utf8");
+const renderer = fs.readFileSync(path.join(root,"renderer","renderer.js"),"utf8");
+const shell = fs.readFileSync(path.join(root,"renderer","workbench.js"),"utf8");
+const main = fs.readFileSync(path.join(root,"main.js"),"utf8");
+const preload = fs.readFileSync(path.join(root,"preload.js"),"utf8");
 
-const rendererRoot = path.join(__dirname, "..", "src", "renderer");
-const html = fs.readFileSync(path.join(rendererRoot, "index.html"), "utf8");
-const css = fs.readFileSync(path.join(rendererRoot, "styles.css"), "utf8");
-const renderer = fs.readFileSync(path.join(rendererRoot, "renderer.js"), "utf8");
-const main = fs.readFileSync(path.join(rendererRoot, "..", "main.js"), "utf8");
-const preload = fs.readFileSync(path.join(rendererRoot, "..", "preload.js"), "utf8");
-
-test("combines three independent quota bars in one panel", () => {
-  assert.match(
-    css,
-    /\.quota-section\s*\{[\s\S]*?grid-template-rows:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/
-  );
-  assert.match(html, /id="fiveHourPanel"/);
-  assert.match(html, /id="weeklyPanel"/);
-  assert.match(html, /id="reservePanel"/);
-  assert.match(css, /width: var\(--quota-progress/);
+test("every retained business binding resolves to a unique element",()=>{
+ const array=renderer.slice(renderer.indexOf("const elements ="),renderer.indexOf("].map(id =>"));
+ const ids=[...html.matchAll(/id="([^"]+)"/g)].map(match=>match[1]);
+ assert.equal(new Set(ids).size,ids.length,"Duplicate IDs in the page tree");
+ for(const match of array.matchAll(/"([A-Za-z][A-Za-z0-9]+)"/g))assert.ok(ids.includes(match[1]),"Missing element: "+match[1]);
 });
-
-test("header version comes from the installed monitor rather than stale literal copy",()=>{
-  assert.match(html,/id="appVersion"/);
-  assert.doesNotMatch(html,/CODEX PULSE\s+V\d/);
-  assert.match(main,/monitorVersion:\s*app\.getVersion\(\)/);
-  assert.match(renderer,/CODEX PULSE V\$\{settings\.monitorVersion\}/);
+test("desktop shell contains six independent pages and one refresh action",()=>{
+ assert.deepEqual([...html.matchAll(/data-page="([^"]+)"/g)].map(match=>match[1]),["overview","usage","tasks","quota","updates","settings"]);
+ assert.equal([...html.matchAll(/id="refreshButton"/g)].length,1);
+ assert.match(shell,/querySelectorAll\("\.workspace-page\[data-page\]"\)/);
+ assert.doesNotMatch(html,/floating-orb|top-dock-tab|drag-edge|collapseButton/);
 });
-
-test("renders every reset credit into a dedicated list row", () => {
-  assert.match(html, /id="resetCreditList"/);
-  assert.match(renderer, /items\.forEach\(\(credit,\s*index\)\s*=>/);
-  assert.match(renderer, /className\s*=\s*"reset-credit-item"/);
+test("frameless resizable desktop window keeps native caption controls and no shaping",()=>{
+ assert.match(main,/frame: false, transparent: false/);assert.match(main,/resizable: true, movable: true, maximizable: true/);
+ assert.match(main,/titleBarStyle: "hidden"/);assert.match(main,/titleBarOverlay:/);
+ assert.match(css,/-webkit-app-region:drag/);assert.match(css,/-webkit-app-region:no-drag/);
+ assert.doesNotMatch(main,/setShape|will-resize|setMaximumSize|startSystemWindowMove|isTopDock/);
+ assert.match(main,/getNormalBounds\(\)/);assert.match(main,/isMinimized\(\)/);
+ assert.match(main,/requestSingleInstanceLock\(\)/);
+ assert.doesNotMatch(preload,/setCollapsed|revealTopDock|setPositionLocked|beginOrbGesture/);
 });
-
-test("places the reset-credit entry in the three-card status row", () => {
-  const quotaIndex = html.indexOf('class="quota-section"');
-  const signalsIndex = html.indexOf('class="signals"');
-  const tokenIndex = html.indexOf('class="token-overview');
-  const taskIndex = html.indexOf('class="active-task-card');
-  assert.ok(quotaIndex >= 0 && quotaIndex < signalsIndex);
-  assert.ok(signalsIndex < tokenIndex && tokenIndex < taskIndex);
-  assert.equal((html.match(/class="status-card(?:\s[^"]*)?"/g) || []).length, 3);
-  assert.match(html, /id="resetCreditButton"/);
-  assert.match(html, /id="resetStatusCount"/);
-  assert.doesNotMatch(html, /class="reset-section"/);
-  assert.match(html, /id="clientUpdateStatus"/);
-  assert.match(html, /id="clientUpdateVersion"/);
-  assert.match(
-    css,
-    /\.signals\s*\{[\s\S]*?grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/
-  );
+test("quota, token, task and permanent history views remain reachable",()=>{
+ for(const id of ["fiveHourPanel","weeklyPanel","reservePanel","tokenUsageModal","tokenCostModal","activeTaskModal","subscriptionModal","resetCreditList","receivedResetHistoryList","consumedResetHistoryList","officialResetHistoryList","clientUpdateHistoryList","checkpointStatistics","taskPerformanceScope"])
+  assert.ok(html.includes('id="'+id+'"'),id);
+ assert.match(html,/data-panel="usage:trend"/);assert.match(html,/data-panel="usage:cost"/);assert.match(html,/data-panel="tasks:all"/);
+ assert.match(html,/data-panel="quota:subscription"/);assert.match(html,/data-panel="quota:official"/);
 });
-
-test("places the expanded token overview before the active-task card", () => {
-  const signalsIndex = html.indexOf('class="signals"');
-  const tokenIndex = html.indexOf('class="token-overview');
-  const taskIndex = html.indexOf('class="active-task-card');
-  assert.ok(signalsIndex >= 0 && signalsIndex < tokenIndex);
-  assert.ok(tokenIndex < taskIndex);
-  assert.match(html, /id="lifetimeTokenValue"/);
-  assert.match(html, /id="totalWorkDaysValue"/);
-  assert.match(html, /id="tokenModalTotalWorkDays"/);
-  assert.match(html, /id="tokenModalDailyAverage"/);
-  assert.match(html, /id="tokenModalDailyCost"/);
-  assert.match(renderer, /usage\.totalWorkDays/);
-  assert.match(renderer, /usage\.lifetimeTokens\s*\/\s*workDays/);
-  assert.match(renderer, /cost\.estimatedCostUsd\s*\/\s*workDays/);
-  assert.match(html, /id="estimatedCostValue"/);
-  assert.match(html, /id="tokenCostHelp"/);
-  assert.match(css, /\.token-overview\s*\{[\s\S]*?height:\s*96px/);
-  assert.match(css, /\.active-task-card\s*\{[\s\S]*?height:\s*154px/);
-  assert.doesNotMatch(css, /\.is-offline-state \.active-task-card/);
+test("shared state keeps accounting denominators and completion outcomes",()=>{
+ assert.match(renderer,/usage\.lifetimeTokens\s*\/\s*workDays/);assert.match(renderer,/cost\.estimatedCostUsd\s*\/\s*workDays/);
+ assert.match(renderer,/function confirmAllCompletedTasks/);assert.match(renderer,/completedTaskCount/);assert.match(renderer,/manualInterruptedTaskCount/);assert.match(renderer,/abnormalInterruptedTaskCount/);
+ assert.match(renderer,/function syncWorkbench/);assert.match(renderer,/function renderTaskDrawer/);assert.match(renderer,/noMatchingTasks/);
 });
-
-test("shows live and pending tasks with recovered aggregate performance records", () => {
-  assert.match(html, /id="activeTaskCard"/);
-  assert.match(html, /id="activeTaskCount"/);
-  assert.match(html, /id="activeTaskPending"/);
-  assert.match(html, /id="activeTaskElapsed"/);
-  assert.match(html, /id="activeTaskTotalCost"/);
-  assert.match(html, /id="activeTaskAverageTime"/);
-  assert.match(html, /id="activeTaskAverageCost"/);
-  assert.match(html, /id="activeTaskTotalCount"/);
-  assert.match(html, /id="activeTaskTotalElapsed"/);
-  assert.match(html, /id="activeTaskPreviewList"/);
-  assert.match(html, /id="activeTaskMoreIndicator"/);
-  assert.match(html, /id="activeTaskModal"/);
-  assert.match(html, /id="activeTaskList"/);
-  assert.match(renderer, /function renderActiveTasks/);
-  assert.match(renderer, /function renderActiveTaskPreview/);
-  assert.match(renderer, /const previewTasks = activeTasks\.map/);
-  assert.match(renderer, /function renderActiveTaskDetails/);
-  assert.match(renderer, /pendingTasks\.forEach\(\(task,\s*index\)\s*=>/);
-  assert.match(renderer, /dataset\.pendingTaskAction/);
-  assert.match(renderer, /activeTaskManualInterruptedStatus/);
-  assert.match(renderer, /activeTaskAbnormalInterruptedStatus/);
-  assert.match(html, /id="taskInterruptionModal"/);
-  assert.match(html, /id="statScopeModal"/);
-  assert.match(html, /data-stat-scope="token-daily-cost"/);
-  assert.match(html, /data-stat-scope="task-duration"/);
-  assert.match(html, /data-stat-scope="task-cost"/);
-  assert.match(html, /data-stat-scope="task-total-count"/);
-  assert.match(renderer, /showTaskInterruptionAlert\(normalizedTask\)/);
-  assert.match(renderer, /function renderStatScopeDialog/);
-  assert.match(renderer, /activeTaskRecords\.timedTaskCount/);
-  assert.match(renderer, /activeTaskReturnCodex/);
-  assert.match(renderer, /activeTaskConfirm/);
-  assert.match(renderer, /window\.codexMonitor\.focusCodex\(\)/);
-  assert.match(renderer, /activeTaskRecords\.longestElapsedSeconds/);
-  assert.match(renderer, /activeTaskRecords\.highestEstimatedCostUsd/);
-  assert.match(renderer, /activeTaskRecords\.totalTaskCount/);
-  assert.match(renderer, /activeTaskRecords\.totalElapsedSeconds/);
-  assert.match(renderer, /formatActiveTaskCost\(task\)/);
-  assert.match(renderer, /requestAnimationFrame\(tick\)/);
-  assert.match(renderer, /activeTaskCard\.addEventListener\("click",\s*openActiveTasks\)/);
-  assert.match(preload, /focusCodex:\s*\(\)\s*=>\s*ipcRenderer\.invoke\("codex:focus"\)/);
-  assert.match(main, /ipcMain\.handle\("codex:focus"/);
-  assert.match(css, /@keyframes active-task-time-pulse/);
-  assert.match(
-    css,
-    /\.active-task-card\.is-running \.active-task-metric-longest strong\s*\{[\s\S]*?animation:\s*active-task-time-pulse/
-  );
-  assert.match(css, /\.active-task-preview-row\s*\{[\s\S]*?grid-template-columns:/);
-  assert.match(
-    css,
-    /\.active-task-card\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0,\s*1\.03fr\)\s+minmax\(0,\s*\.97fr\)/
-  );
-  assert.match(
-    css,
-    /\.active-task-metrics\s*\{[\s\S]*?grid-template-columns:\s*repeat\(2/
-  );
-  assert.match(css, /\.stat-scope-help\s*\{[\s\S]*?border-radius:\s*50%/);
-  assert.match(css, /\.active-task-preview-list\.is-single \.active-task-preview-row/);
-  assert.match(css, /\.active-task-completed-actions\s*\{[\s\S]*?grid-template-columns:/);
+test("charts resize to their container and respect reduced motion",()=>{
+ assert.match(renderer,/getBoundingClientRect\(\)/);assert.match(renderer,/new ResizeObserver/);
+ assert.match(renderer,/prefers-reduced-motion: reduce/);assert.match(renderer,/window\.Workbench\.visible\(elements.tokenUsageChart\)/);
+ assert.match(html,/data-token-period="day"/);assert.match(html,/data-token-period="week"/);assert.match(html,/data-token-period="month"/);
+ assert.match(css,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);assert.match(css,/@media \(max-width:1199px\)/);
+ assert.doesNotMatch(css,/text-overflow:\s*ellipsis|width:\s*460px|height:\s*690px/);
 });
-
-test("shows API-equivalent cost with an independent model-detail dialog", () => {
-  assert.match(html, /id="tokenCostModal"/);
-  assert.match(html, /id="modelCostList"/);
-  assert.match(renderer, /function renderTokenCostDetails/);
-  assert.match(renderer, /model\.inputTokens/);
-  assert.match(renderer, /model\.cachedInputTokens/);
-  assert.match(renderer, /model\.outputTokens/);
-  assert.match(renderer, /model\.cacheHitRate/);
-  assert.match(renderer, /modelCostInput:\s*"总输入（含缓存）"/);
-  assert.match(renderer, /modelCostCached:\s*"其中缓存"/);
-  assert.match(renderer, /cost\.hasUnattributedUsage/);
-  assert.match(renderer, /model\.model !== "unknown"/);
-  assert.match(renderer, /本机重复事件会按官方每日 Token 总账校准/);
-  assert.match(renderer, /cost\.replayExcludedInputTokens/);
-  assert.match(renderer, /cost\.officialUnmappedInputTokens/);
-  assert.match(renderer, /tokenCostHelp\.addEventListener\("click",[\s\S]*?closeStatScope\(\(\)\s*=>\s*openTokenCost\(\)\)/);
-  assert.match(renderer, /event\?\.stopPropagation\(\)/);
-  assert.match(css, /\.stat-scope-help\s*\{[\s\S]*?border-radius:\s*50%/);
+test("background composition and persistence are bounded and independent of window size",()=>{
+ assert.match(preload,/validateBackground/);assert.match(main,/fs\.fsyncSync\(handle\)/);
+ assert.match(main,/safeRemoveBackground/);assert.match(renderer,/normalize|cropAspectRatio/);
+ assert.doesNotMatch(renderer,/canvas\.width = 460|naturalWidth <= 460|460 \/ 690/);
+ assert.match(html,/id="applyAppearance"/);assert.match(html,/id="cancelAppearance"/);assert.match(html,/id="useWholeBackground"/);
 });
-
-test("keeps the Token Pulse brand on one line in compact and expanded layouts", () => {
-  assert.match(css, /\.token-overview-heading \.eyebrow\s*\{[\s\S]*?white-space:\s*nowrap/);
-  assert.match(css, /\.token-overview\s*\{[\s\S]*?grid-template-columns:\s*84px/);
-  assert.match(css, /\.token-overview\.is-expanded\s*\{[\s\S]*?grid-template-columns:\s*88px/);
-});
-
-test("token chart supports animated day, week, and month aggregation", () => {
-  assert.match(html, /data-token-period="day"/);
-  assert.match(html, /data-token-period="week"/);
-  assert.match(html, /data-token-period="month"/);
-  assert.match(html, /id="tokenUsageChart"/);
-  assert.match(renderer, /aggregateTokenUsage\(buckets,\s*period\)/);
-  assert.match(renderer, /requestAnimationFrame\(animateFrame\)/);
-  assert.match(renderer, /\(now\s*-\s*startedAt\)\s*\/\s*360/);
-});
-
-test("token chart exposes every node through a bounded hover tooltip", () => {
-  assert.match(html, /id="tokenChartTooltip"/);
-  assert.match(css, /\.token-chart-tooltip\s*\{[\s\S]*?pointer-events:\s*none/);
-  assert.match(renderer, /function updateTokenChartTooltip/);
-  assert.match(renderer, /function chartBars/);
-  assert.match(renderer, /Math\.abs\(bar\.x - pointer\.x\)/);
-  assert.match(renderer, /bar\.slotWidth\s*\/\s*2/);
-  assert.match(renderer, /addEventListener\("pointermove",\s*updateTokenChartTooltip\)/);
-  assert.match(renderer, /context\.roundRect\(/);
-  assert.doesNotMatch(renderer, /function drawTokenLine/);
-  assert.match(renderer, /end\.setUTCDate\(end\.getUTCDate\(\) \+ 6\)/);
-  assert.match(renderer, /if \(period === "month"\)/);
-});
-
-test("recognized subscription plan opens assisted-days, expiry, and renewal countdown details", () => {
-  assert.match(
-    html,
-    /<button class="connection-label no-drag" id="connectionLabel"[\s\S]*?disabled/
-  );
-  assert.match(html, /id="subscriptionModal"/);
-  assert.match(html, /id="subscriptionAssistedDays"/);
-  assert.match(html, /id="subscriptionExpiry"/);
-  assert.match(html, /id="subscriptionCountdown"/);
-  assert.match(renderer, /connectionLabel\.addEventListener\("click",\s*openSubscription\)/);
-  assert.match(renderer, /if \(!elements.subscriptionModal.hidden\) renderSubscriptionCountdown\(\)/);
-  assert.match(renderer, /subscription\.assistedWorkDays/);
-  assert.match(renderer, /subscription\.renewalAt/);
-  assert.match(css, /\.subscription-dialog\s*\{[\s\S]*?min-height:\s*465px/);
-});
-
-test("connection state uses a clickable breathing light and a non-layout-blocking glass dialog", () => {
-  assert.match(html, /id="connectionStatusButton"[\s\S]*?id="statusDot"/);
-  assert.match(html, /id="connectionStatusModal"/);
-  assert.match(html, /id="connectionStatusTitle"/);
-  assert.match(html, /id="connectionStatusMessage"/);
-  assert.match(html, /id="connectionIssueList"/);
-  assert.match(html, /id="connectionStatusDone"[\s\S]*?data-i18n="connectionAcknowledge"/);
-  assert.doesNotMatch(html, /id="offlineNotice"/);
-  assert.match(renderer, /connectionStatusButton\.addEventListener\("click",\s*openConnectionStatus\)/);
-  assert.match(renderer, /connectionStatusDone\.addEventListener\("click",\s*closeConnectionStatus\)/);
-  assert.match(renderer, /let automaticOfflineAlertShown = false/);
-  assert.match(renderer, /if \(!automaticOfflineAlertShown\)\s*\{\s*automaticOfflineAlertShown = true;\s*openConnectionStatus\(\)/);
-  assert.equal((renderer.match(/automaticOfflineAlertShown = false/g) || []).length, 1);
-  assert.match(renderer, /connectionIssueList\.hidden = isOnline/);
-  assert.doesNotMatch(renderer, /app\.classList\.(?:add|remove)\("is-offline-state"\)/);
-  assert.match(css, /\.connection-status-button\s*\{[\s\S]*?cursor:\s*pointer/);
-  assert.match(css, /\.connection-dialog\s*\{[\s\S]*?rgba\(var\(--danger-rgb\),\.17\)/);
-  assert.match(css, /\.connection-modal\.is-online \.connection-dialog\s*\{[\s\S]*?rgba\(var\(--mint-rgb\),\.16\)/);
-});
-
-test("client update copy is bilingual and does not rely on ellipsis", () => {
-  assert.match(renderer, /clientUpdateDetected:\s*"检测到新版已安装"/);
-  assert.match(renderer, /clientUpdateDetected:\s*"New version installed"/);
-  assert.match(renderer, /clientUpdateReady:\s*"发现可用更新"/);
-  assert.match(renderer, /clientUpdateReady:\s*"Update available"/);
-  assert.doesNotMatch(
-    css,
-    /\.status-card[\s\S]{0,1200}text-overflow:\s*ellipsis/
-  );
-});
-
-test("client update card opens a permanent installed-version timeline", () => {
-  assert.match(
-    html,
-    /class="status-card status-card-button no-drag" id="clientUpdateCard" role="button" tabindex="0"/
-  );
-  assert.match(html, /id="clientUpdateHistoryModal"/);
-  assert.match(html, /id="clientUpdateHistoryCurrent"/);
-  assert.match(html, /id="clientUpdateHistoryPending"/);
-  assert.match(html, /id="clientUpdateHistoryList"/);
-  assert.match(renderer, /function renderClientUpdateHistory/);
-  assert.match(renderer, /clientUpdateHistoryChange/);
-  assert.match(renderer, /record\.detectedAt\s*\/\s*1_000/);
-  assert.match(renderer, /clientUpdateCard\.addEventListener\("click",\s*openClientUpdateHistory\)/);
-  assert.match(css, /\.client-update-history-list\s*\{[\s\S]*?overflow-y:\s*auto/);
-});
-
-test("official-reset display only renders website announcement sources", () => {
-  assert.doesNotMatch(renderer, /renderOfficialResetHistory|snapshot\.officialResetHistory/);
-  assert.match(renderer, /appendCheckpointRows\(elements\.officialResetHistoryList,\s*checkpoint\)/);
-});
-
-test("caps the visible reset list at six rows and scrolls larger counts", () => {
-  assert.match(renderer, /renderedRowCount\s*>\s*6/);
-  assert.match(renderer, /Math\.min\(renderedRowCount,\s*6\)/);
-  assert.match(
-    css,
-    /\.reset-credit-list\.is-overflowing\s*\{[\s\S]*?grid-auto-rows:\s*28px/
-  );
-  assert.match(
-    css,
-    /\.reset-credit-list\s*\{[\s\S]*?overflow-y:\s*hidden/
-  );
-  assert.match(
-    css,
-    /\.reset-credit-list\.is-overflowing\s*\{[\s\S]*?overflow-y:\s*auto/
-  );
-});
-
-test("keeps reset details in a scrollable secondary view", () => {
-  assert.match(
-    css,
-    /\.reset-credit-list\s*\{[\s\S]*?grid-template-rows:\s*repeat\(var\(--reset-visible-count\),\s*28px\)/
-  );
-  assert.match(css, /\.reset-credit-list\s*\{[\s\S]*?align-content:\s*start/);
-  assert.match(html, /id="resetCreditModal"/);
-  assert.match(html, /id="receivedResetHistoryList"/);
-  assert.match(html, /id="consumedResetHistoryList"/);
-  assert.match(renderer, /function renderReceivedResetHistory/);
-  assert.match(renderer, /function renderConsumedResetHistory/);
-  assert.match(
-    renderer,
-    /renderResetCredits\(data\.resets,\s*data\.events\.newReset,\s*data\.events\.manualReset\)/
-  );
-  assert.match(renderer, /resetCreditButton\.addEventListener\("click",\s*openResetCredits\)/);
-  assert.match(css, /\.reset-detail-list\s*\{[\s\S]*?max-height:\s*188px/);
-  assert.match(
-    css,
-    /\.received-reset-history,[\s\S]*?\.consumed-reset-history\s*\{[\s\S]*?overflow:\s*auto/
-  );
-  assert.doesNotMatch(renderer, /updateUsageSectionBalance/);
-});
-
-test("secondary views preserve glass backgrounds and native drag regions", () => {
-  assert.doesNotMatch(html, /class="(?:crop|reset|history|token|cost|task)-modal no-drag"/);
-  assert.match(
-    css,
-    /\.crop-modal,[\s\S]*?\.task-modal\s*\{[\s\S]*?background:\s*rgba\(4,11,18,.26\)/
-  );
-  assert.match(
-    css,
-    /\.crop-heading,[\s\S]*?\.history-heading\s*\{[\s\S]*?-webkit-app-region:\s*drag/
-  );
-  assert.match(
-    css,
-    /\.is-position-locked \.crop-heading,[\s\S]*?\.is-position-locked \.history-heading:active\s*\{[\s\S]*?-webkit-app-region:\s*no-drag/
-  );
-  assert.match(css, /\.drag-edge\s*\{[\s\S]*?z-index:\s*80/);
-});
-
-test("secondary dialogs use interruptible reduced-motion-safe entrance and exit animations", () => {
-  assert.match(
-    css,
-    /\.crop-modal\.is-entering:not\(\[hidden\]\),[\s\S]*?\.task-modal\.is-entering:not\(\[hidden\]\)\s*\{[\s\S]*?animation:\s*secondary-overlay-enter/
-  );
-  assert.match(
-    css,
-    /\.crop-modal\.is-entering:not\(\[hidden\]\) \.crop-dialog,[\s\S]*?\.task-modal\.is-entering:not\(\[hidden\]\) \.task-dialog\s*\{[\s\S]*?animation:\s*secondary-dialog-enter/
-  );
-  assert.match(css, /@keyframes secondary-dialog-enter\s*\{[\s\S]*?translateY\(14px\) scale\(\.965\)[\s\S]*?translateY\(-2px\) scale\(1\.006\)/);
-  assert.match(css, /@keyframes secondary-content-enter/);
-  assert.match(css, /\.task-modal\.is-entering:not\(\[hidden\]\) \.task-dialog > \*\s*\{[\s\S]*?secondary-content-enter/);
-  assert.match(css, /\.crop-modal\.is-closing:not\(\[hidden\]\),[\s\S]*?\.task-modal\.is-closing:not\(\[hidden\]\)\s*\{[\s\S]*?secondary-overlay-exit/);
-  assert.match(css, /@keyframes secondary-dialog-exit\s*\{[\s\S]*?translateY\(8px\) scale\(\.982\)/);
-  assert.match(renderer, /function openSecondaryModal\(modal,\s*focusTarget\)/);
-  assert.match(renderer, /function closeSecondaryModal\(modal,\s*restoreFocus/);
-  assert.match(renderer, /setTimeout\(finish,\s*SECONDARY_MODAL_ENTER_FALLBACK_MS\)/);
-  assert.match(renderer, /event\.animationName === "secondary-dialog-exit"/);
-  assert.match(renderer, /setTimeout\(finish,\s*SECONDARY_MODAL_EXIT_FALLBACK_MS\)/);
-  assert.match(renderer, /modal\.inert = true/);
-  assert.match(renderer, /openSecondaryModal\(elements\.cropModal,\s*elements\.cropClose\)/);
-  assert.match(renderer, /closeSecondaryModal\(elements\.tokenUsageModal,\s*elements\.tokenOverview/);
-  assert.match(css, /@media \(prefers-reduced-motion:\s*reduce\)/);
-});
-
-test("receives event-driven snapshots without one-second data or display intervals", () => {
-  assert.match(preload, /onSnapshot: callback/);
-  assert.match(preload, /onTasks: callback/);
-  assert.match(main, /new RealtimeSync/);
-  assert.doesNotMatch(renderer, /probeForActiveTask|readActiveTaskStatus\(\)/);
-  assert.doesNotMatch(renderer, /setInterval|scheduleNextRefresh/);
-  assert.match(renderer, /!document\.hidden && !windowCollapsed && !topDockRetracted/);
-});
-
-test("moves language and background controls into settings and docks one fixed window", () => {
-  assert.match(html, /id="settingsButton"/);
-  assert.match(html, /id="settingsPopover"[\s\S]*?id="languageButton"[\s\S]*?id="topDockToggle"[\s\S]*?id="backgroundDropZone"/);
-  const connectionMarkup = html.slice(html.indexOf('id="connectionStrip"'), html.indexOf("</section>", html.indexOf('id="connectionStrip"')));
-  assert.doesNotMatch(connectionMarkup, /id="languageButton"|id="backgroundButton"/);
-  assert.match(html, /id="topDockTab"/);
-  assert.match(main, /const TOP_DOCK_TAB_HEIGHT\s*=\s*22/);
-  assert.match(main, /const TOP_DOCK_SNAP_DISTANCE\s*=\s*96/);
-  assert.match(main, /const TOP_DOCK_RELEASE_DISTANCE\s*=\s*160/);
-  assert.match(main, /topDockDocked:\s*isTopDocked/);
-  assert.doesNotMatch(main, /isTopDockDocked/);
-  assert.match(main, /const tab = getTopDockShapeRect\(\);[\s\S]*?createRectangularWindowShape\(tab\.width,\s*tab\.height,\s*tab\.x,\s*tab\.y\)/);
-  assert.match(main, /window:revealTopDock/);
-  assert.match(main, /window:retractTopDock/);
-  assert.match(main, /window:topDockPaintReady/);
-  assert.match(main, /window:topDockRendererReady/);
-  assert.match(main, /await waitForTopDockTabPaint\(\)/);
-  assert.match(main, /Date\.now\(\) < topDockRevealGraceUntil \|\| isCursorInsideFullWindow\(\)/);
-  assert.match(main, /function setWindowPositionInternally\(position\)[\s\S]*?window\.setBounds\(\{[\s\S]*?width:\s*WINDOW_WIDTH,[\s\S]*?height:\s*WINDOW_HEIGHT/);
-  assert.match(main, /const wasDocked = isTopDocked;[\s\S]*?if \(!wasDocked\) void retractTopDock\(\)/);
-  assert.match(main, /const allowedDistance = isTopDocked[\s\S]*?TOP_DOCK_RELEASE_DISTANCE[\s\S]*?TOP_DOCK_SNAP_DISTANCE/);
-  assert.match(main, /window\.setShape\(\[\]\);[\s\S]*?isTopDockRetracted = false/);
-  assert.match(renderer, /topDockTab\.addEventListener\("pointerenter",\s*revealTopDock\)/);
-  assert.match(renderer, /topDockTab\.addEventListener\("pointermove",\s*revealTopDock\)/);
-  assert.match(renderer, /function acknowledgeTopDockPaint\(paintRequestId\)[\s\S]*?getBoundingClientRect\(\)[\s\S]*?confirmTopDockPaint\(paintRequestId,\s*\{/);
-  assert.match(renderer, /const fallbackTimer = setTimeout\(finish,\s*96\)/);
-  assert.match(renderer, /onTopDockChanged\(state => applyTopDockState\(state\)\);[\s\S]*?notifyTopDockReady\(\)/);
-  assert.match(main, /contentBounds\.x - bounds\.x/);
-  assert.match(main, /workArea\.y - tab\.y/);
-  assert.match(main, /if \(!paintedTabRect\)\s*\{[\s\S]*?isTopDockRetracted = false;[\s\S]*?window\.setShape\(\[\]\)/);
-  assert.match(renderer, /document\.documentElement\.addEventListener\("pointerleave",\s*scheduleTopDockRetract\)/);
-  assert.doesNotMatch(main, /setInterval\(/);
-  assert.doesNotMatch(renderer, /pointermove[\s\S]{0,200}(?:setPosition|setBounds)/);
-  const nativeMoveHandler = main.slice(main.indexOf('window.on("move"'), main.indexOf('window.on("moved"'));
-  assert.doesNotMatch(nativeMoveHandler, /isTopDocked\s*=\s*false/);
-});
-
-test("collapse and expand clip one persistent native window without a surface swap", () => {
-  assert.match(html, /id="collapseButton"/);
-  assert.match(html, /id="floatingOrb"/);
-  assert.match(html, /id="floatingOrbIcon"/);
-  assert.match(html, /id="floatingOrbOpen"/);
-  assert.match(html, /class="connection-actions no-drag"[\s\S]*?id="collapseButton"/);
-  const titlebarMarkup = html.slice(html.indexOf('id="titlebar"'), html.indexOf("</header>"));
-  assert.doesNotMatch(titlebarMarkup, /id="collapseButton"/);
-  const floatingOrbRule = css.slice(css.indexOf(".floating-orb {"), css.indexOf(".floating-orb::before"));
-  assert.match(floatingOrbRule, /-webkit-app-region:\s*no-drag/);
-  assert.match(css, /\.floating-orb-open\s*\{[\s\S]*?inset:\s*0[\s\S]*?pointer-events:\s*none/);
-  assert.match(css, /body\.is-window-collapsed \.floating-orb\s*\{[\s\S]*?opacity:\s*1[\s\S]*?-webkit-app-region:\s*no-drag/);
-  assert.match(css, /body\.is-window-collapsed \.floating-orb-open\s*\{[\s\S]*?-webkit-app-region:\s*no-drag/);
-  assert.doesNotMatch(html, /floating-orb-open no-drag/);
-  assert.match(renderer, /getCollapseButtonAnchor\(\)/);
-  assert.match(renderer, /applyWindowModeVisual\(true,\s*windowModeAnchor\)/);
-  assert.match(renderer, /await waitForWindowModePaint\(\)/);
-  assert.match(renderer, /setCollapsed\(true,\s*windowModeAnchor\)/);
-  assert.match(main, /const ORB_SIZE\s*=\s*76/);
-  assert.match(main, /windowModeAnchor/);
-  assert.match(main, /window\s*=\s*new BrowserWindow\(\{/);
-  assert.doesNotMatch(main, /orbWindow\s*=\s*new BrowserWindow/);
-  assert.match(main, /function createRectangularWindowShape\(width,\s*height,\s*offsetX\s*=\s*0,\s*offsetY\s*=\s*0\)/);
-  assert.match(main, /window\.setShape\(createRectangularWindowShape\(\s*ORB_SIZE,\s*ORB_SIZE/);
-  assert.match(main, /window\.setShape\(\[\]\)/);
-  assert.doesNotMatch(main, /createCircularWindowShape|ORB_SHAPE_OVERSCAN|createRectangularWindowShape\(WINDOW_WIDTH,\s*WINDOW_HEIGHT\)/);
-  assert.match(css, /\.floating-orb\s*\{[\s\S]*?clip-path:\s*circle\(50% at 50% 50%\)/);
-  assert.match(css, /body\.is-window-collapsed \.glass-card\s*\{[\s\S]*?visibility:\s*hidden/);
-  assert.match(main, /function positionWindow\(target,\s*position\)/);
-  assert.match(main, /function positionWindow\(target,\s*position\)[\s\S]*?target\.setBounds\(\{[\s\S]*?width:\s*WINDOW_WIDTH,[\s\S]*?height:\s*WINDOW_HEIGHT/);
-  assert.doesNotMatch(main, /transitionWindow|capturePage\(|window-transition/);
-  assert.doesNotMatch(renderer, /TransitionSnapshot|transitionSnapshot|updateTransitionSnapshot/);
-  const modeChangeSource = main.slice(
-    main.indexOf("async function setWindowMode"),
-    main.indexOf("function buildTrayMenu")
-  );
-  assert.doesNotMatch(modeChangeSource, /setTimeout|requestAnimationFrame|prepareWindowModeTransition/);
-  assert.doesNotMatch(modeChangeSource, /\.(?:show|showInactive|hide)\(/);
-  assert.doesNotMatch(modeChangeSource, /setBounds|setPosition|setOpacity/);
-  assert.doesNotMatch(main, /window\.on\("focus",\s*scheduleOrbClickExpand\)/);
-  assert.doesNotMatch(modeChangeSource, /window\.blur\(\)|window\.setFocusable\(/);
-  assert.doesNotMatch(main, /suppressOrbFocusExpandUntil|orbClickCandidateTimer/);
-  assert.doesNotMatch(main, /handleOrbPointer|orbClickFallback|hookWindowMessage/);
-  assert.match(main, /require\("\.\/native-window-drag"\)/);
-  assert.match(main, /startSystemWindowMove\(window\.getNativeWindowHandle\(\)\)/);
-  assert.match(main, /didWindowMove\(startBounds,\s*endBounds\)/);
-  assert.match(main, /ipcMain\.on\("window:beginOrbGesture",\s*handleOrbNativeGesture\)/);
-  assert.match(preload, /beginOrbGesture:\s*\(\)\s*=>\s*ipcRenderer\.send\("window:beginOrbGesture"\)/);
-  assert.equal(fs.existsSync(path.join(rendererRoot, "window-transition.html")), false);
-  assert.equal(fs.existsSync(path.join(rendererRoot, "window-transition.css")), false);
-  assert.equal(fs.existsSync(path.join(rendererRoot, "window-transition.js")), false);
-  assert.match(main, /ipcMain\.handle\("window:setCollapsed"/);
-  assert.match(main, /app\.requestSingleInstanceLock\(\)/);
-  assert.match(main, /app\.on\("second-instance"/);
-  assert.ok(
-    main.indexOf('window.once("ready-to-show"') < main.indexOf('window.loadFile(path.join(__dirname, "renderer", "index.html"))')
-  );
-  assert.match(main, /window\.webContents\.once\("did-finish-load",\s*showInitialWindow\)/);
-  assert.match(main, /if\s*\(initialWindowShown\s*\|\|[\s\S]*?\)\s*return;\s*initialWindowShown\s*=\s*true/);
-  assert.match(renderer, /floatingOrbOpen\.addEventListener\("click",\s*expandFromFloatingOrb\)/);
-  assert.doesNotMatch(renderer, /officialResetButton\.classList\.toggle\("has-history"/);
-  assert.doesNotMatch(css, /\.status-card-button\.has-history/);
-  assert.match(css, /\.floating-orb\s*\{[\s\S]*?will-change:\s*opacity/);
-  assert.match(css, /\.titlebar\s*\{[\s\S]*?-webkit-app-region:\s*no-drag/);
-  assert.match(css, /\.brand\s*\{[\s\S]*?flex:\s*1[\s\S]*?-webkit-app-region:\s*drag/);
-  assert.match(css, /\.window-actions\s*\{[\s\S]*?-webkit-app-region:\s*no-drag/);
-  assert.match(renderer, /Math\.round\(bounds\.left\s*\+\s*bounds\.width\s*\/\s*2\)/);
-  assert.match(main, /function readLargestPngFromIco\(iconPath\)/);
-  assert.match(main, /largestPng\.toString\("base64"\)/);
-  assert.match(main, /image\.resize\(\{\s*width:\s*64,\s*height:\s*64,\s*quality:\s*"best"\s*\}\)/);
-  const orbImageRule = css.slice(
-    css.indexOf(".floating-orb img"),
-    css.indexOf("body.is-window-collapsed .floating-orb")
-  );
-  assert.doesNotMatch(orbImageRule, /filter:/);
-});
-
-test("full-card and orb movement remain native without per-frame bound writes", () => {
-  assert.doesNotMatch(renderer, /setBounds\s*\(|setPosition\s*\(/);
-  assert.match(main, /resizable:\s*false/);
-  assert.match(main, /thickFrame:\s*false/);
-  assert.match(main, /window\.setMinimumSize\(WINDOW_WIDTH,\s*WINDOW_HEIGHT\)/);
-  assert.match(main, /window\.setMaximumSize\(WINDOW_WIDTH,\s*WINDOW_HEIGHT\)/);
-  assert.match(main, /finally\s*\{\s*isChangingWindowMode\s*=\s*false/);
-  assert.match(main, /window\.on\("will-resize",\s*event\s*=>\s*\{[\s\S]*?event\.preventDefault\(\)/);
-  assert.match(main, /window\.on\("move"/);
-  assert.match(main, /window\.on\("moved"[\s\S]*?markOrbNativeMove/);
-  assert.doesNotMatch(main, /orbPointerStartBounds|handleOrbPointer/);
-  assert.match(main, /if\s*\(nextCollapsed\)[\s\S]*?window\.setMovable\(true\)/);
-  assert.match(main, /else\s*\{[\s\S]*?window\.setMovable\(!store\.get\("positionLocked"/);
-  assert.doesNotMatch(main, /setInterval\(/);
-  assert.match(renderer, /floatingOrb\.addEventListener\("pointerdown"[\s\S]*?beginOrbGesture\(\)/);
-  assert.doesNotMatch(renderer, /floatingOrb\.addEventListener\("pointermove"/);
+test("remaining overlays retain security, focus and bounded motion",()=>{
+ assert.match(main,/contextIsolation: true/);assert.match(main,/nodeIntegration: false, sandbox: true/);
+ assert.match(html,/default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:/);
+ assert.match(renderer,/secondaryModalQueue/);assert.match(renderer,/setWorkspaceInert/);assert.match(renderer,/event.key === "Tab"/);
+ assert.match(css,/secondary-dialog-enter/);assert.match(css,/secondary-dialog-exit/);assert.match(css,/prefers-reduced-motion:reduce/);
 });

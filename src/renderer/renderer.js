@@ -1,5 +1,84 @@
 const i18n = {
   zh: {
+    allowBackgroundUpscale: "允许放大小图",
+    backgroundActual: "原始像素大小",
+    backgroundScaleHint: "默认保留完整图片且不放大小图。勾选允许放大后，铺满或缩放才会超过原始像素。",
+    pricingScope: "统计范围与计价说明",
+    taskScope: "任务统计与性能口径",
+    navOverview: "总览",
+    navUsage: "用量与费用",
+    navTasks: "任务中心",
+    navQuota: "额度与重置",
+    navUpdates: "客户端更新",
+    mainNavigation: "主导航",
+    pageSections: "页面分区",
+    backOverview: "返回总览",
+    overviewSubtitle: "额度、用量与正在进行的工作",
+    pageSubtitle: "本机记录与已验证的服务数据",
+    overviewTrend: "用量趋势",
+    overviewTrendHint: "近 30 天 · 本机输入（含缓存）加输出",
+    overviewModelCosts: "模型费用构成",
+    overviewCostHint: "沿用老版每日校准，模型 Token 与金额使用同一口径；详见费用页。",
+    viewAll: "查看全部 →",
+    usageTrendTab: "用量趋势",
+    usageCostTab: "模型费用",
+    usagePricingTab: "模型价目表",
+    taskStatistics: "累计统计",
+    appearanceAndGeneral: "常规与外观",
+    sourcesTitle: "实例与数据",
+    sourcesHint: "自动发现默认 Codex、Codex++ 多开目录和已配置的本机会话来源。目录可读表示能够读取日志，不代表远程额度账户在线。旧索引中不能可靠归属到实例的记录保留在累计总量中。",
+    sourcesUnavailable: "暂时无法读取实例目录，请稍后重试。",
+    sourcesEmpty: "未发现可用的本机实例目录。",
+    sourceReadable: "可读会话目录：{count} 类",
+    sourceNoSessions: "目录已发现，尚无可读会话",
+    sourceCount: "已发现 {count} 个实例",
+    refreshSources: "重新检测实例",
+    sourceScanSummary: "累计索引 {count} 份会话文件；{state}。实例列表仅表示目录发现，不代表逐实例索引已完整。",
+    connectionStatusTitleKey: "连接诊断",
+    diagnosticsHint: "点击连接指示灯或下方按钮查看诊断。只有成功取得远程额度才显示在线；本机任务和历史统计可以离线使用。",
+    aboutTitle: "关于",
+    aboutDescription: "面向 Windows 的本地 AI 用量工作台，支持多实例任务、模型计价、额度与永久历史。",
+    localDataHint: "本地处理，不读取或保存对话正文。",
+    workspaceFooter: "本机记录 · API 等价金额（USD）",
+    alwaysOnTopSetting: "始终置顶",
+    alwaysOnTopHint: "让工作台保持在其他普通窗口上方",
+    closeBehaviorTitle: "关闭窗口时",
+    closeBehaviorHint: "选择后台监控或退出应用",
+    closeToTray: "隐藏到托盘",
+    closeToQuit: "退出应用",
+    backgroundFit: "图片适配",
+    backgroundCover: "铺满窗口",
+    backgroundContain: "完整显示",
+    backgroundPositionX: "水平位置",
+    backgroundPositionY: "垂直位置",
+    backgroundZoom: "图片缩放",
+    backgroundBlur: "图片模糊",
+    backgroundVeil: "白色遮罩",
+    cardOpacity: "卡片不透明度",
+    reducedTransparency: "减少透明效果",
+    applyAppearance: "应用外观",
+    appearanceSaved: "外观已保存",
+    appearanceSaveFailed: "外观保存失败，请重试",
+    editBackground: "重新构图",
+    cropAspect: "构图比例",
+    cropCurrentWindow: "当前窗口",
+    cropOriginal: "原图比例",
+    useWholeBackground: "使用完整图片",
+    pricingExplain: "单位为美元 / 百万 Token，采用标准文本 API 价格。输入已包含缓存，缓存读取不重复计入 Token。下表显示基础价；逐次请求的长上下文分档和长 TTL 缓存写入以模型费用明细为准。未公开的价格显示 —，不能当作免费。",
+    pricingSummary: "核价日期：{date} · {count} 个模型",
+    pricingSearch: "搜索模型或厂商",
+    pricingModel: "模型",
+    modelPricingVendorLabel: "厂商",
+    pricingWrite: "短期缓存写入",
+    pricingSource: "官方来源",
+    pricingUnavailable: "价目表暂不可用",
+    taskSearch: "搜索项目或模型",
+    taskDetails: "任务详情",
+    taskOutcomes: "已完成 {completed} · 手动中断 {manual} · 异常中断 {abnormal} · 目标步骤结束 {managed}",
+    noMatchingTasks: "没有符合当前筛选条件的任务。",
+    backgroundInvalidDimensions: "图片无法读取，或超过 16000 像素边长 / 4000 万像素限制。",
+    backgroundSaving: "正在保存图片…",
+    backgroundSaveFailed: "背景保存失败，原背景已保留。",
     monitorUpdateTitle: "监测台更新",
     monitorUpdateHint: "自动检查并下载，任务空闲时重启监测台。Codex 任务不受影响。",
     monitorUpdateCheck: "检查更新",
@@ -17,7 +96,7 @@ const i18n = {
     costScanRecorded: "历史记录已保留；{count} 份可手动更新",
     costScanIdle: "已扫描 {count} 份，包含归档",
     costScanFailed: "扫描暂不可用，可稍后重试",
-    modelCostPricingPending: "金额待重算",
+    modelCostPricingPending: "计价依据待补全",
     latestTaskTitle: "最近任务",
     latestTaskEmpty: "等待任务",
     taskConcurrency: "并发：{count}",
@@ -230,22 +309,50 @@ const i18n = {
     tokenUsageRegion: "Token 使用概览",
     tokenUsageTitle: "Token 使用量",
     tokenUsageCachedTitle: "Token 缓存",
-    lifetimeTokens: "累计 Token",
+    lifetimeTokens: "账号累计 Token",
+    localLifetimeTokens: "本机累计 Token",
+    tokenLocalLive: "本机日志已同步",
+    tokenLocalCached: "本机历史快照",
+    tokenLocalSource: "已发现的本机实例（含第三方接入）：输入（含缓存）＋输出；{state}。官方账号累计：{account}，单独保留，不相加。",
+    tokenLocalComplete: "当前日志已索引",
+    tokenLocalPartial: "重建未完成，部分旧记录尚未核实",
+    tokenAccountSource: "当前显示官方账号统计。本机多开及第三方调用在模型用量明细中单列，不与账号总量相加。",
+    tokenAccountWithLocalSource: "当前显示官方账号统计。另已核实本机 {local} Token（{state}），包含第三方接入；待核实历史另行保留，不与账号总量相加。",
+    statScopeTokenAccount: "覆盖最近一次有效 account/usage/read 返回的官方账号统计及日期桶；不从本机日志推算或累加。日均 Token 以同一官方快照中有用量的日期数为分母，不按日历天数计算。第三方接入与多开日志的本机总量是独立口径，不保证被官方统计覆盖；无有效响应时保留最近一次有效账号快照，不取历史最大值。",
+    statScopeTokenLocal: "本机口径覆盖已发现实例及其普通/归档 JSONL 中完成校验的用量记录，包括第三方模型。总量为输入（缓存为子集）＋输出，不使用可能加权的 total_tokens。日均以同一批记录中有用量的日期数为分母；不包含其他设备、未发现目录、已删除且未记录的日志或未写入的调用。旧账、未完成扫描及重复关系待确认的记录另行保留，不计入。未注明日期的 {undated} Token 只计入总量；{localState}。官方账号总量 {account} 为独立口径，不与本机相加。",
     averageDailyTokens: "日均 Token",
     averageDailyCost: "日均消费（API 等价）",
     totalWorkDays: "累计工作",
     workDays: "{count} 天",
     estimatedApiCost: "API 等价金额",
     estimatedApiCostShort: "API 等价金额",
-    estimatedTotalCost: "本机可统计调用",
+    estimatedTotalCost: "本机调用估算",
     openCostDetails: "查看模型用量与 API 成本明细",
-    costEstimateHint: "按本机模型明细和 OpenAI 标准 API 价格估算，不代表 Codex 订阅的实际收费。本机重复事件会按官方每日 Token 总账校准；总输入已经包含缓存输入，两项不要相加。",
+    costEstimateHint: "沿用老版算法：按官方每日用量校准分摊 OpenAI 原生模型的本机记录，再汇总非缓存输入、缓存输入、缓存写入与输出金额；第三方模型独立累计。模型分摊为估算，不等于逐请求实测。官方缺失日期和未注明日期保留原记录；未知模型或无单价依据的部分不补猜费用。校准不覆盖原始账本，也不代表已确认这些差额全部是重复。",
     costCoverage: "{count} 个模型；定价更新 {date}",
     costCoveragePartial: "{count} 个模型；部分未计价；{date}",
-    costCoverageTruncated: "本机记录过多，仅统计可安全读取的部分",
+    costCoverageTruncated: "历史重读尚未覆盖全部记录，保留已有账本估算",
+    costCoverageUnverified: "{count} 份历史尚未重新读取；费用沿用老算法校准，原始记录保留",
+    costVerifiedCoverage: "已重算 {count} 份日志；其余可恢复记录继续参与估价",
+    costVerificationPending: "待核实",
+    costPriceUnavailable: "未计价",
+    costLegacyAlgorithm: "老版算法：OpenAI 原生模型按官方日桶校准，第三方独立累计。模型分摊为估算。",
+    costTokenBasis: "费用页输入：校准前 {raw}；校准后合计 {calibrated}，其中第三方 {independent}",
+    costUncoveredDates: "官方未覆盖 {count} 个本地用量日期，这些日期按原记录保留",
+    costCalibrationUnavailable: "官方日桶暂不可用，当前保留本机原始估算",
+    modelCostCalibratedInput: "校准输入（含缓存）",
+    modelCostCalibratedOutput: "校准输出",
+    modelCostCalibratedRequests: "约 {count} 次校准等效调用",
+    modelCostRateUnavailable: "所需单价缺失",
+    costAmountBreakdown: "当前日志重算 {verified}；历史记录估算 {historical}",
+    costContextEstimated: "{count} 个模型缺少部分请求分档，估价依据与范围见模型明细",
+    modelCostContextEstimate: "部分请求分档缺失：沿用有效记录金额或基础价估算；可计价部分范围 {minimum}–{maximum}",
+    modelCostPartialRates: "部分调用或计价项依据不足，仅汇总可计算金额",
+    modelCostHistoryPending: "历史待核实",
+    modelCostUnverifiedTokens: "其中约 {tokens} Token 来自尚未重读的记录，可计价部分已纳入估算",
     costCoverageUnattributed: "另有 {count} 次调用缺少模型上下文，已排除",
-    costCoverageCalibrated: "已按官方每日总账排除 {tokens} 重复 Token",
-    costCoverageUnmapped: "官方还有 {tokens} Token 缺少本机模型明细，未计价",
+    costCoverageCalibrated: "按官方日桶校准调整 {tokens} 输入 Token；模型分摊为估算",
+    costCoverageUnmapped: "账号口径有 {tokens} Token 未能归属到本机模型，未据此补计费用",
     modelCostInput: "总输入（含缓存）",
     modelCostCached: "其中缓存",
     modelCostOutput: "输出",
@@ -254,6 +361,11 @@ const i18n = {
     modelCostUnknown: "未识别模型",
     modelCostEmpty: "暂无可统计的本机模型用量",
     modelCostRate: "每百万 Token：输入 ${input}；缓存 ${cached}；输出 ${output}",
+    modelPricingVendor: "{vendor} 标准文本价",
+    modelCostWriteRates: "缓存写入 {shortTtl} ${short} / {longTtl} ${long}（每百万）",
+    modelPriceThreshold: "单次输入{operator}{tokens} Token 使用高档价格",
+    modelPricePeak: "按高峰标准价估算，未推断低峰与节假日折扣",
+    modelPriceGlobal: "按 Global 区域价格估算",
     modelCostRequests: "{count} 次调用",
     modelCostCacheWrite: "缓存写入 {tokens}",
     modelCostLongContext: "{count} 次长上下文按官方倍率计价",
@@ -294,7 +406,7 @@ const i18n = {
     taskAbnormalMessage: "{project} 的任务未检测到正常结束或手动停止事件，已在 {time} 停止计时。请检查 Codex 客户端、网络、系统休眠或进程异常。",
     statScopeTitle: "{metric}；统计口径",
     statScopeOpen: "查看“{metric}”统计口径说明",
-    statScopeTokenDailyCost: "日均消费使用“本机可读取会话的 API 等价金额 ÷ 官方账号记录到 Token 的工作天数”。它不是订阅实际收费；未定价模型、已删除或无法读取的会话不会计入，历史扫描被截断时也只能覆盖已安全读取的部分。",
+    statScopeTokenDailyCost: "费用页沿用老版每日校准：OpenAI 原生模型按官方日桶分摊，第三方独立累计。日均费用使用同一批展示记录中有输入或输出的日期数，不混用账号工作天数；未注明日期的记录保留在总额中，但不推造工作日。金额及模型 Token 使用同一校准口径，不代表逐请求实测或订阅账单，原始账本不被覆盖。",
     statScopeTaskRunning: "进行中任务来自近期本机会话的明确 task_started 状态。当前扫描达到安全文件或字节上限，可能还有未显示的任务；列表不会根据文件更新时间猜测任务状态。",
     statScopeTaskRunningUnavailable: "当前无法完整读取本机任务状态，因此进行中数量不可用。监测台只接受明确的 task_started 状态，不会根据文件更新时间猜测任务。",
     statScopeTaskPending: "待处理只保存本次监测台运行期间刚完成或中断、且尚未由你确认的任务。关闭监测台后不会恢复这些任务名称或条目；历史总数和结果分类仍以匿名数字永久保存。",
@@ -326,40 +438,112 @@ const i18n = {
     reading: "读取 Codex 数据…",
     pinOn: "解锁位置",
     pinOff: "锁定位置",
-    collapseToOrb: "收缩为悬浮球",
-    expandFromOrb: "展开 Codex监测台",
-    floatingOrb: "Codex 悬浮球，按住任意位置拖动，单击展开",
     minimize: "最小化",
     hide: "隐藏到托盘"
     ,
-    backgroundTitle: "卡片背景",
-    backgroundHint: "添加图片后，玻璃折射与层次会更加明显。",
+    backgroundTitle: "工作台背景",
+    backgroundHint: "上传后使用完整图片；需要裁切时点击“重新构图”。位置、模糊与透明度可预览，点击“应用外观”保存。",
     chooseBackground: "选择图片",
     clearBackground: "恢复默认",
-    backgroundOpacity: "背景透明度",
+    backgroundOpacity: "背景强度",
     backgroundTooLarge: "图片不能超过 20 MB",
     backgroundSettings: "背景设置",
     settingsTitle: "设置",
     settingsOpen: "打开设置",
     languageSetting: "界面语言",
     languageSettingHint: "切换中文或英文显示",
-    topDockSetting: "吸附屏幕顶部",
-    topDockSettingHint: "拖到顶部后自动收起，靠近箭头展开",
-    topDockToggle: "启用或关闭顶部吸附",
-    expandTopDock: "展开 Codex监测台",
     close: "关闭",
     dropBackground: "拖入图片或点击选择",
-    backgroundRequirement: "图片需大于 460 × 690",
-    backgroundTooSmall: "图片尺寸不足，宽度需大于 460、高度需大于 690",
+    backgroundRequirement: "PNG、JPEG、WebP、GIF · 最大 20 MB · GIF 使用静态帧",
+    backgroundTooSmall: "图片尺寸无效",
     unsupportedImage: "请选择 PNG、JPG、WebP 或 GIF 图片",
-    cropTitle: "截取背景区域",
-    cropHint: "拖动选框调整位置，拖动右下角改变选区大小。",
+    cropTitle: "调整背景构图",
+    cropHint: "拖动选框或用方向键移动；拖动右下角调整大小。可直接使用完整图片。",
     cropResize: "调整裁剪区域",
     cancel: "取消",
     applyCrop: "使用此区域",
     cropSaving: "正在保存…"
   },
   en: {
+    allowBackgroundUpscale: "Allow enlarging small images",
+    backgroundActual: "Original pixel size",
+    backgroundScaleHint: "Images remain complete and are not enlarged by default. Enable enlargement to fill or zoom beyond original pixels.",
+    pricingScope: "Coverage and pricing rules",
+    taskScope: "Task and performance coverage",
+    navOverview: "Overview",
+    navUsage: "Usage & cost",
+    navTasks: "Task center",
+    navQuota: "Quotas & resets",
+    navUpdates: "Client updates",
+    mainNavigation: "Main navigation",
+    pageSections: "Page sections",
+    backOverview: "Back to overview",
+    overviewSubtitle: "Quotas, usage and work in progress",
+    pageSubtitle: "Local records and verified service data",
+    overviewTrend: "Usage trend",
+    overviewTrendHint: "Last 30 days · local input (including cache) plus output",
+    overviewModelCosts: "Cost by model",
+    overviewCostHint: "Uses legacy daily calibration; model Tokens and cost share the same basis. See cost details.",
+    viewAll: "View all →",
+    usageTrendTab: "Usage trend",
+    usageCostTab: "Model costs",
+    usagePricingTab: "Model prices",
+    taskStatistics: "Lifetime statistics",
+    appearanceAndGeneral: "General & appearance",
+    sourcesTitle: "Instances & data",
+    sourcesHint: "Discovers the default Codex home, Codex++ instances and configured local session sources. Readable directories indicate local log access, not remote account connectivity. Older records without reliable instance attribution remain in the cumulative total.",
+    sourcesUnavailable: "Instance directories are temporarily unavailable. Try again later.",
+    sourcesEmpty: "No local instance directories were found.",
+    sourceReadable: "Readable session directory types: {count}",
+    sourceNoSessions: "Directory found; no readable sessions yet",
+    sourceCount: "{count} instances found",
+    refreshSources: "Detect instances again",
+    sourceScanSummary: "{count} session files indexed in total; {state}. Directory discovery does not establish complete per-instance indexing.",
+    connectionStatusTitleKey: "Connection diagnostics",
+    diagnosticsHint: "Click the connection indicator or the button below for diagnostics. Online means a successful remote quota read. Local tasks and usage history remain available offline.",
+    aboutTitle: "About",
+    aboutDescription: "A local Windows workspace for AI usage, concurrent instances, model pricing, quotas and permanent history.",
+    localDataHint: "Processed locally. Conversation text is never read or stored.",
+    workspaceFooter: "Local records · API equivalents (USD)",
+    alwaysOnTopSetting: "Always on top",
+    alwaysOnTopHint: "Keep this workspace above other normal windows",
+    closeBehaviorTitle: "When closing the window",
+    closeBehaviorHint: "Choose background monitoring or exit",
+    closeToTray: "Hide to tray",
+    closeToQuit: "Quit application",
+    backgroundFit: "Image fit",
+    backgroundCover: "Fill window",
+    backgroundContain: "Show entire image",
+    backgroundPositionX: "Horizontal position",
+    backgroundPositionY: "Vertical position",
+    backgroundZoom: "Image zoom",
+    backgroundBlur: "Image blur",
+    backgroundVeil: "White overlay",
+    cardOpacity: "Card opacity",
+    reducedTransparency: "Reduce transparency",
+    applyAppearance: "Apply appearance",
+    appearanceSaved: "Appearance saved",
+    appearanceSaveFailed: "Could not save appearance. Try again.",
+    editBackground: "Reframe image",
+    cropAspect: "Frame ratio",
+    cropCurrentWindow: "Current window",
+    cropOriginal: "Original ratio",
+    useWholeBackground: "Use entire image",
+    pricingExplain: "USD per million Tokens at standard text API rates. Input already includes cache; cache reads are not additional Tokens. This table shows base rates. Per-request context tiers and long-TTL cache writes are described in model cost details. Unpublished rates show — and are not free.",
+    pricingSummary: "Prices checked {date} · {count} models",
+    pricingSearch: "Search model or vendor",
+    pricingModel: "Model",
+    modelPricingVendorLabel: "Vendor",
+    pricingWrite: "Short-TTL cache write",
+    pricingSource: "Official source",
+    pricingUnavailable: "Price catalog unavailable",
+    taskSearch: "Search project or model",
+    taskDetails: "Task details",
+    taskOutcomes: "Completed {completed} · Manually interrupted {manual} · Abnormally interrupted {abnormal} · Goal steps stopped {managed}",
+    noMatchingTasks: "No tasks match the current filters.",
+    backgroundInvalidDimensions: "Image is invalid or exceeds 16,000 pixels per side / 40 million pixels.",
+    backgroundSaving: "Saving image…",
+    backgroundSaveFailed: "Could not save the background. The previous image is retained.",
     monitorUpdateTitle: "Monitor updates",
     monitorUpdateHint: "Checks and downloads automatically. The monitor restarts when tasks are idle. Codex tasks keep running.",
     monitorUpdateCheck: "Check updates",
@@ -377,7 +561,7 @@ const i18n = {
     costScanRecorded: "History retained; {count} ready for manual update",
     costScanIdle: "{count} sessions recorded, including archives",
     costScanFailed: "Scan unavailable. Please retry later.",
-    modelCostPricingPending: "Cost needs recalculation",
+    modelCostPricingPending: "Pricing evidence incomplete",
     latestTaskTitle: "Latest task",
     latestTaskEmpty: "Waiting for a task",
     taskConcurrency: "Live: {count}",
@@ -590,22 +774,50 @@ const i18n = {
     tokenUsageRegion: "Token usage overview",
     tokenUsageTitle: "Token usage",
     tokenUsageCachedTitle: "Cached usage",
-    lifetimeTokens: "Lifetime tokens",
+    lifetimeTokens: "Account lifetime tokens",
+    localLifetimeTokens: "Local tokens",
+    tokenLocalLive: "Local logs synced",
+    tokenLocalCached: "Cached local records",
+    tokenLocalSource: "Discovered local instances, including third-party providers: input (including cache) + output; {state}. Official account total: {account}, kept separately and never added.",
+    tokenLocalComplete: "current logs indexed",
+    tokenLocalPartial: "rebuild incomplete; some older records remain unverified",
+    tokenAccountSource: "Showing official account usage. Local multi-instance and third-party calls appear separately in model details and are never added to the account total.",
+    tokenAccountWithLocalSource: "Showing official account usage. Separately, {local} local Tokens are verified ({state}), including third-party providers. Unverified history is retained separately and never added to the account total.",
+    statScopeTokenAccount: "Includes the official account summary and dated buckets from the latest valid account/usage/read snapshot; local logs never replace or add to this total. Daily average Tokens divide by dates with usage in that same official snapshot, not calendar days. Local multi-instance and third-party usage has a separate population that the official endpoint may not cover. When unavailable, the latest valid account snapshot is retained without taking historical maxima.",
+    statScopeTokenLocal: "Local coverage includes verified usage in regular/archived JSONL logs from discovered instances, including third-party providers. Tokens = input (cache is a subset) + output; weighted total_tokens is ignored. Daily averages divide by dates with usage in this same population. Other devices, undiscovered directories, deleted unrecorded logs and unlogged calls are excluded. Older ledgers, unfinished scans and unconfirmed mirror candidates are retained separately and excluded. {undated} undated Tokens contribute only to the total; {localState}. The official account total of {account} has a separate scope and is never added to local usage.",
     averageDailyTokens: "Daily average Tokens",
     averageDailyCost: "Daily average API equivalent",
     totalWorkDays: "Total work",
     workDays: "{count} days",
-    estimatedApiCost: "API-equivalent cost",
-    estimatedApiCostShort: "API cost est.",
-    estimatedTotalCost: "Locally measurable calls",
+    estimatedApiCost: "API-equivalent estimate",
+    estimatedApiCostShort: "API cost estimate",
+    estimatedTotalCost: "Local call estimate",
     openCostDetails: "View model usage and API cost details",
-    costEstimateHint: "Estimated from local model details using standard OpenAI API prices; this is not an actual Codex subscription charge. Replayed local events are capped to the official daily Token ledger. Total input already includes cached input, so do not add them.",
+    costEstimateHint: "Uses the legacy algorithm: allocate native OpenAI usage against official daily buckets, then aggregate uncached input, cached input, cache writes and output costs. Third-party models remain independent. Model allocation is an estimate, not per-request measurement. Missing official dates and undated records retain their local evidence. Unknown models or missing pricing evidence do not receive invented costs. Calibration does not overwrite the raw ledger or prove every adjustment is replayed usage.",
     costCoverage: "{count} models; Pricing updated {date}",
     costCoveragePartial: "{count} models; Some unpriced; {date}",
-    costCoverageTruncated: "Only a bounded portion of the local records could be safely scanned",
+    costCoverageTruncated: "History re-reading is incomplete; retained ledger entries remain in the estimate",
+    costCoverageUnverified: "{count} historical records await re-reading; costs use legacy calibration while original evidence is retained",
+    costVerifiedCoverage: "{count} logs recalculated; other recoverable records remain priceable",
+    costVerificationPending: "Unverified",
+    costPriceUnavailable: "Unpriced",
+    costLegacyAlgorithm: "Legacy algorithm: native OpenAI models use official daily calibration; third-party usage remains independent. Model allocation is estimated.",
+    costTokenBasis: "Cost-page input: {raw} before calibration; {calibrated} after calibration, including {independent} independent third-party Tokens",
+    costUncoveredDates: "{count} local usage dates have no official bucket and retain their recorded usage",
+    costCalibrationUnavailable: "Official daily buckets are unavailable; retaining the raw local estimate",
+    modelCostCalibratedInput: "Calibrated input",
+    modelCostCalibratedOutput: "Calibrated output",
+    modelCostCalibratedRequests: "Approximately {count} calibrated call equivalents",
+    modelCostRateUnavailable: "Used rate unavailable",
+    costAmountBreakdown: "Recalculated logs {verified}; historical estimates {historical}",
+    costContextEstimated: "{count} models lack some request tiers; see model details for estimate bases and ranges",
+    modelCostContextEstimate: "Some request tiers are missing: using supported recorded amounts or base rates; priced-component range {minimum}–{maximum}",
+    modelCostPartialRates: "Some calls or components lack pricing evidence; includes only calculable amounts",
+    modelCostHistoryPending: "Unverified history",
+    modelCostUnverifiedTokens: "Approximately {tokens} Tokens come from records not yet re-read; priceable portions are included as estimates",
     costCoverageUnattributed: "{count} calls had no direct model context and were excluded",
-    costCoverageCalibrated: "Removed {tokens} replayed Tokens against the official daily ledger",
-    costCoverageUnmapped: "{tokens} official Tokens have no local model detail and remain unpriced",
+    costCoverageCalibrated: "Adjusted {tokens} input Tokens against official daily buckets; model allocation is estimated",
+    costCoverageUnmapped: "{tokens} account Tokens cannot be attributed to local models; no cost is invented for the difference",
     modelCostInput: "Total input (incl. cached)",
     modelCostCached: "Cached portion",
     modelCostOutput: "Output",
@@ -614,6 +826,11 @@ const i18n = {
     modelCostUnknown: "Unidentified model",
     modelCostEmpty: "No local model usage is available",
     modelCostRate: "Per 1M Tokens: input ${input}; cached ${cached}; output ${output}",
+    modelPricingVendor: "{vendor} standard text rates",
+    modelCostWriteRates: "Cache writes {shortTtl} ${short} / {longTtl} ${long} per 1M",
+    modelPriceThreshold: "Higher rates when request input {operator}{tokens} Tokens",
+    modelPricePeak: "Peak list-rate equivalent; off-peak and holiday discounts are excluded",
+    modelPriceGlobal: "Global-region equivalent rates",
     modelCostRequests: "{count} calls",
     modelCostCacheWrite: "Cache writes {tokens}",
     modelCostLongContext: "{count} long-context calls use official multipliers",
@@ -654,7 +871,7 @@ const i18n = {
     taskAbnormalMessage: "{project} ended without a normal completion or manual stop event. Timing stopped at {time}. Check the Codex client, network, system sleep, or an unexpected process exit.",
     statScopeTitle: "{metric}; Coverage",
     statScopeOpen: "View the coverage notes for {metric}",
-    statScopeTokenDailyCost: "Daily average cost is the API-equivalent value from readable local sessions divided by work days with Tokens in the official account data. It is not an actual subscription charge. Unpriced models and deleted or unreadable sessions are excluded, and a bounded scan can cover only the safely read portion.",
+    statScopeTokenDailyCost: "The cost page uses legacy daily calibration: native OpenAI models are allocated against official daily buckets, while third-party usage remains independent. Daily average cost uses dates with input or output in the same displayed population, not account work days. Undated evidence remains in the total without inventing work days. Cost and model Tokens use the same calibrated basis; neither is a per-request measurement or subscription bill, and the raw ledger is retained.",
     statScopeTaskRunning: "Running tasks require an explicit task_started state in recent readable local sessions. This scan reached a safe file or byte bound, so another task may be omitted. File modification time is never used to guess that a task is running.",
     statScopeTaskRunningUnavailable: "The local task state cannot currently be read completely, so the running count is unavailable. The monitor requires an explicit task_started state and never guesses from file modification time.",
     statScopeTaskPending: "Pending contains only newly completed or interrupted tasks from this monitor session that you have not confirmed. Project names and pending entries are not restored after the monitor exits; anonymous historical totals and outcome counts remain permanently stored.",
@@ -686,33 +903,26 @@ const i18n = {
     reading: "Reading Codex data…",
     pinOn: "Unlock position",
     pinOff: "Lock position",
-    collapseToOrb: "Collapse to floating orb",
-    expandFromOrb: "Expand quota monitor",
-    floatingOrb: "Codex floating orb. Hold anywhere to drag; click to expand.",
     minimize: "Minimize",
     hide: "Hide to tray",
-    backgroundTitle: "Card background",
-    backgroundHint: "Add an image to make the glass refraction and depth more visible.",
+    backgroundTitle: "Workspace background",
+    backgroundHint: "Uploads keep the entire image. Choose Reframe image to crop explicitly. Preview position, blur and opacity, then Apply appearance to save.",
     chooseBackground: "Choose image",
     clearBackground: "Use default",
-    backgroundOpacity: "Background opacity",
+    backgroundOpacity: "Background strength",
     backgroundTooLarge: "Images must be under 20 MB",
     backgroundSettings: "Background settings",
     settingsTitle: "Settings",
     settingsOpen: "Open settings",
     languageSetting: "Interface language",
     languageSettingHint: "Switch between Chinese and English",
-    topDockSetting: "Dock to screen top",
-    topDockSettingHint: "Drag to the top to retract; approach the arrow to reveal",
-    topDockToggle: "Enable or disable top docking",
-    expandTopDock: "Reveal Codex Quota Monitor",
     close: "Close",
     dropBackground: "Drop an image or click to choose",
-    backgroundRequirement: "Image must exceed 460 × 690",
-    backgroundTooSmall: "Image is too small. Width must exceed 460 and height must exceed 690.",
+    backgroundRequirement: "PNG, JPEG, WebP, GIF · up to 20 MB · static GIF frame",
+    backgroundTooSmall: "Invalid image dimensions",
     unsupportedImage: "Choose a PNG, JPG, WebP, or GIF image",
-    cropTitle: "Crop background",
-    cropHint: "Drag the frame to move it. Drag the lower-right handle to resize.",
+    cropTitle: "Frame background image",
+    cropHint: "Drag or use arrow keys to move the frame; resize from its lower-right corner. You can also use the entire image.",
     cropResize: "Resize crop area",
     cancel: "Cancel",
     applyCrop: "Use this area",
@@ -721,10 +931,11 @@ const i18n = {
 };
 
 const elements = Object.fromEntries([
+  "taskSearch", "taskOutcomeTotals", "taskDetailDrawer", "taskDrawerTitle", "taskDrawerContent", "taskDrawerClose", "cropAspect", "cropRatioLabel", "useWholeBackground",
   "app", "connectionStrip", "connectionLabel", "connectionStatusButton", "statusDot",
   "connectionStatusModal", "connectionStatusTitle", "connectionStatusMessage",
   "connectionIssueList", "connectionStatusDone",
-  "languageButton", "refreshButton", "pinButton", "collapseButton", "minimizeButton", "closeButton", "titlebar",
+  "languageButton", "refreshButton", "pinButton", "titlebar",
   "quotaSection", "statusSection",
   "resetProbabilityButton", "resetProbability24", "resetProbability48", "resetProbabilityStatus",
   "resetProbabilityModal", "resetProbabilityClose", "resetProbabilityDone", "checkpointSummary",
@@ -737,7 +948,7 @@ const elements = Object.fromEntries([
   "appVersion", "taskPerformance", "latestTaskIdentity", "latestTaskFirstToken", "latestTaskTokens",
   "latestTaskPeak", "latestTaskMin", "latestTaskAverage", "latestTaskCacheHit", "taskPerformanceScope", "taskConcurrency",
   "monitorUpdateStatus", "monitorUpdateCheck", "monitorUpdateInstall",
-  "settingsButton", "settingsPopover", "settingsClose", "topDockToggle",
+  "settingsButton", "settingsPopover", "settingsClose", 
   "chooseBackground", "clearBackground",
   "opacitySlider", "opacityValue", "backgroundError", "customBackground", "backgroundDropZone",
   "cropModal", "cropClose", "cropCancel", "cropApply", "cropStage", "cropImage", "cropBox",
@@ -755,7 +966,7 @@ const elements = Object.fromEntries([
   "clientUpdateHistoryCurrent", "clientUpdateHistoryPending", "clientUpdateHistoryList",
   "subscriptionModal", "subscriptionClose", "subscriptionDone", "subscriptionPlan",
   "subscriptionAssistedDays", "subscriptionExpiry", "subscriptionCountdown", "subscriptionNote",
-  "tokenOverview", "tokenOverviewTitle", "lifetimeTokenValue", "totalWorkDaysValue",
+  "tokenOverview", "tokenOverviewTitle", "lifetimeTokenValue", "tokenLifetimeLabel", "tokenModalLifetimeLabel", "tokenSourceNote", "totalWorkDaysValue",
   "estimatedCostValue", "tokenCostHelp", "tokenSparkline",
   "tokenUsageModal", "tokenUsageClose", "tokenUsageDone", "tokenModalLifetime",
   "tokenModalDailyAverage", "tokenModalDailyCost", "tokenModalTotalWorkDays",
@@ -777,21 +988,12 @@ const elements = Object.fromEntries([
   "taskInterruptionDone",
   "statScopeModal", "statScopeTitle", "statScopeMessage", "statScopeClose",
   "statScopeDone",
-  "lastChecked", "autoRefreshLabel", "loadingLayer", "floatingOrb", "floatingOrbIcon", "floatingOrbOpen",
-  "topDockTab"
+  "lastChecked", "autoRefreshLabel", "loadingLayer", 
+  
 ].map(id => [id, document.getElementById(id)]));
 
 let language = "zh";
-let alwaysOnTop = true;
-let positionLocked = false;
-let windowCollapsed = false;
-let windowModeChanging = false;
-let windowModeAnchor = { x: 358, y: 43 };
-let topDockEnabled = false;
-let topDockDocked = false;
-let topDockRetracted = false;
-let topDockLeaveTimer = null;
-let topDockRevealPending = false;
+let alwaysOnTop = false;
 let latestSnapshot = null;
 let presentationFrame = null;
 let lastPresentationSecond = null;
@@ -802,6 +1004,17 @@ let latestCheckpoints = null;
 let isRefreshing = false;
 let backgroundDataUrl = null;
 let backgroundOpacity = 0.34;
+let savedBackgroundOpacity = 0.34;
+let backgroundNaturalSize = null;
+let backgroundLoadedDataUrl = null;
+let backgroundAppearance = { fit: "contain", x: 50, y: 50, zoom: 100, blur: 0, veil: 18, cardOpacity: 80, reducedTransparency: false, allowUpscale: false };
+let savedAppearance = { ...backgroundAppearance };
+let workbenchReady = false;
+let selectedTaskIdentity = null;
+let cropLoadSequence = 0;
+let lastQuotaData = null;
+const rendererUnsubscribers = [];
+let chartResizeObserver = null;
 let cropSource = null;
 let cropInteraction = null;
 let cropFrame = null;
@@ -853,6 +1066,13 @@ const SECONDARY_DIALOG_SELECTOR = [
 const SECONDARY_MODAL_ENTER_FALLBACK_MS = 460;
 const SECONDARY_MODAL_EXIT_FALLBACK_MS = 320;
 const secondaryModalTransitions = new WeakMap();
+const secondaryModalQueue = [];
+
+function setWorkspaceInert(inert) {
+  document.querySelector(".workspace").inert = inert;
+  document.querySelector(".sidebar").inert = inert;
+  elements.taskDetailDrawer.inert = inert;
+}
 
 function cancelSecondaryModalTransition(modal) {
   const transition = secondaryModalTransitions.get(modal);
@@ -863,6 +1083,17 @@ function cancelSecondaryModalTransition(modal) {
 }
 
 function openSecondaryModal(modal, focusTarget) {
+  if (modal.dataset.panel) {
+    const [page, tab] = modal.dataset.panel.split(":");
+    window.Workbench.navigate(page, tab === "all" ? "running" : tab); return;
+  }
+  const blocking = [...document.querySelectorAll('[aria-modal="true"]')].find(node => node !== modal && !node.hidden);
+  if (blocking) {
+    if (!secondaryModalQueue.some(item => item.modal === modal)) secondaryModalQueue.push({ modal, focusTarget });
+    return;
+  }
+  if (modal === elements.connectionStatusModal) renderConnectionStatusDialog();
+  setWorkspaceInert(true);
   cancelSecondaryModalTransition(modal);
   modal.inert = false;
   modal.removeAttribute("aria-hidden");
@@ -902,6 +1133,7 @@ function openSecondaryModal(modal, focusTarget) {
 }
 
 function closeSecondaryModal(modal, restoreFocus, { onClose, onHidden } = {}) {
+  if (modal?.dataset.panel) { onClose?.(); window.Workbench.navigate("overview"); onHidden?.(); return; }
   if (!modal || modal.hidden || modal.classList.contains("is-closing")) return;
 
   cancelSecondaryModalTransition(modal);
@@ -927,7 +1159,13 @@ function closeSecondaryModal(modal, restoreFocus, { onClose, onHidden } = {}) {
     modal.inert = false;
     modal.removeAttribute("aria-hidden");
     onHidden?.();
-    restoreFocus?.focus({ preventScroll: true });
+    const queued = secondaryModalQueue.shift();
+    if (queued) openSecondaryModal(queued.modal, queued.focusTarget);
+    else {
+      setWorkspaceInert(false);
+      const target = restoreFocus?.isConnected && window.Workbench.visible(restoreFocus) ? restoreFocus : document.getElementById("pageTitle");
+      target?.focus({ preventScroll: true });
+    }
   };
 
   transition.onAnimationEnd = event => {
@@ -974,32 +1212,19 @@ function applyLanguage() {
   elements.activeTaskCard.setAttribute("aria-label", t("activeTaskDetailsLabel"));
   elements.tokenPeriodSwitch.setAttribute("aria-label", t("tokenPeriodGroup"));
   elements.tokenUsageChart.setAttribute("aria-label", t("tokenChartLabel"));
-  elements.pinButton.title = positionLocked ? t("pinOn") : t("pinOff");
-  elements.pinButton.setAttribute("aria-label", elements.pinButton.title);
-  elements.collapseButton.title = t("collapseToOrb");
-  elements.collapseButton.setAttribute("aria-label", t("collapseToOrb"));
-  elements.floatingOrbOpen.title = t("expandFromOrb");
-  elements.floatingOrbOpen.setAttribute("aria-label", t("expandFromOrb"));
-  elements.minimizeButton.title = t("minimize");
-  elements.minimizeButton.setAttribute("aria-label", t("minimize"));
-  elements.closeButton.title = t("hide");
-  elements.closeButton.setAttribute("aria-label", t("hide"));
+  elements.pinButton.setAttribute("aria-label", t("alwaysOnTopSetting"));
   elements.settingsButton.title = t("settingsOpen");
   elements.settingsButton.setAttribute("aria-label", t("settingsOpen"));
-  elements.settingsClose.setAttribute("aria-label", t("close"));
-  elements.topDockToggle.setAttribute("aria-label", t("topDockToggle"));
-  elements.topDockTab.title = t("expandTopDock");
-  elements.topDockTab.setAttribute("aria-label", t("expandTopDock"));
   elements.cropClose.setAttribute("aria-label", t("close"));
   elements.cropResizeHandle.setAttribute("aria-label", t("cropResize"));
-  elements.officialResetHistoryClose.setAttribute("aria-label", t("close"));
-  elements.clientUpdateHistoryClose.setAttribute("aria-label", t("close"));
-  elements.subscriptionClose.setAttribute("aria-label", t("close"));
-  elements.resetCreditClose.setAttribute("aria-label", t("close"));
-  elements.tokenUsageClose.setAttribute("aria-label", t("close"));
-  elements.tokenCostClose.setAttribute("aria-label", t("close"));
-  elements.activeTaskClose.setAttribute("aria-label", t("close"));
-  elements.resetProbabilityClose.setAttribute("aria-label", t("close"));
+  elements.officialResetHistoryClose.setAttribute("aria-label", t("backOverview"));
+  elements.clientUpdateHistoryClose.setAttribute("aria-label", t("backOverview"));
+  elements.subscriptionClose.setAttribute("aria-label", t("backOverview"));
+  elements.resetCreditClose.setAttribute("aria-label", t("backOverview"));
+  elements.tokenUsageClose.setAttribute("aria-label", t("backOverview"));
+  elements.tokenCostClose.setAttribute("aria-label", t("backOverview"));
+  elements.activeTaskClose.setAttribute("aria-label", t("backOverview"));
+  elements.resetProbabilityClose.setAttribute("aria-label", t("backOverview"));
   elements.taskInterruptionDone.setAttribute("aria-label", t("acknowledge"));
   elements.statScopeClose.setAttribute("aria-label", t("close"));
   elements.statScopeDone.setAttribute("aria-label", t("acknowledge"));
@@ -1010,6 +1235,8 @@ function applyLanguage() {
     button.setAttribute("aria-label", label);
   });
   elements.officialResetButton.setAttribute("aria-label", t("openOfficialResetHistory"));
+  window.Workbench.localize();
+  elements.taskSearch.placeholder = t("taskSearch");
   if (latestSnapshot) render(latestSnapshot);
   if (!elements.taskInterruptionModal.hidden && activeAbnormalAlertTask) {
     renderTaskInterruptionAlert(activeAbnormalAlertTask);
@@ -1020,194 +1247,195 @@ function applyLanguage() {
 }
 
 function applyBackground() {
-  elements.customBackground.style.backgroundImage = backgroundDataUrl ? `url("${backgroundDataUrl}")` : "none";
+  elements.customBackground.style.backgroundImage = backgroundDataUrl ? 'url("' + backgroundDataUrl + '")' : "none";
   elements.customBackground.style.opacity = backgroundDataUrl ? String(backgroundOpacity) : "0";
+  if (backgroundDataUrl && backgroundLoadedDataUrl !== backgroundDataUrl) {
+    backgroundLoadedDataUrl = backgroundDataUrl; backgroundNaturalSize = null;
+    const requested = backgroundDataUrl, probe = new Image();
+    probe.onload = () => {
+      if (backgroundDataUrl !== requested) return;
+      backgroundNaturalSize = { width: probe.naturalWidth, height: probe.naturalHeight }; applyBackground();
+    };
+    probe.src = requested;
+  }
+  const size = backgroundNaturalSize && window.CropGeometry.backgroundSize(window.innerWidth, window.innerHeight,
+    backgroundNaturalSize.width, backgroundNaturalSize.height, backgroundAppearance, window.devicePixelRatio);
+  elements.customBackground.style.backgroundSize = size ? size.width + "px " + size.height + "px" : "auto";
+  elements.customBackground.style.opacity = backgroundDataUrl && size ? String(backgroundOpacity) : "0";
+  elements.customBackground.style.backgroundPosition = backgroundAppearance.x + "% " + backgroundAppearance.y + "%";
+  elements.customBackground.style.transform = "none";
+  elements.customBackground.style.filter = "blur(" + backgroundAppearance.blur + "px)";
+  elements.app.style.setProperty("--veil", backgroundDataUrl ? backgroundAppearance.veil / 100 : 0);
+  elements.app.style.setProperty("--card-opacity", backgroundAppearance.reducedTransparency ? .98 : backgroundAppearance.cardOpacity / 100);
+  elements.app.classList.toggle("reduced-transparency", backgroundAppearance.reducedTransparency);
   elements.app.classList.toggle("has-custom-background", Boolean(backgroundDataUrl));
   elements.opacitySlider.value = String(Math.round(backgroundOpacity * 100));
-  elements.opacityValue.textContent = `${Math.round(backgroundOpacity * 100)}%`;
+  elements.opacityValue.textContent = Math.round(backgroundOpacity * 100) + "%";
   elements.clearBackground.disabled = !backgroundDataUrl;
+  document.getElementById("editBackground").disabled = !backgroundDataUrl;
+  document.getElementById("backgroundFit").value = backgroundAppearance.fit;
+  document.getElementById("reducedTransparency").checked = backgroundAppearance.reducedTransparency;
+  document.getElementById("allowBackgroundUpscale").checked = backgroundAppearance.allowUpscale;
+  for (const [id,key] of Object.entries({ backgroundX: "x", backgroundY: "y", backgroundZoom: "zoom", backgroundBlur: "blur", backgroundVeil: "veil", cardOpacity: "cardOpacity" })) {
+    document.getElementById(id).value = backgroundAppearance[key];
+    document.getElementById(id + "Value").textContent = backgroundAppearance[key] + (key === "blur" ? "px" : "%");
+  }
 }
 
-function closeBackgroundPopover() {
-  elements.settingsPopover.hidden = true;
-  elements.settingsButton.classList.remove("is-active");
-}
-
+function closeBackgroundPopover() { window.Workbench.navigate("overview"); }
 function showBackgroundError(messageKey) {
-  elements.backgroundError.textContent = t(messageKey);
-  elements.backgroundError.hidden = false;
+  elements.backgroundError.textContent = t(messageKey); elements.backgroundError.hidden = false;
+  if (!elements.cropModal.hidden) elements.cropSourceInfo.textContent = t(messageKey);
 }
-
 function renderCropBox() {
   if (!cropSource?.crop) return;
   const { x, y, width, height } = cropSource.crop;
-  Object.assign(elements.cropBox.style, {
-    left: `${x}px`,
-    top: `${y}px`,
-    width: `${width}px`,
-    height: `${height}px`
-  });
+  Object.assign(elements.cropBox.style, { left: x + "px", top: y + "px", width: width + "px", height: height + "px" });
 }
-
 function closeCropModal() {
-  closeSecondaryModal(elements.cropModal, elements.settingsButton, {
-    onHidden() {
-      elements.cropImage.removeAttribute("src");
-      cropSource = null;
-      cropInteraction = null;
-    }
-  });
+  cropLoadSequence++;
+  closeSecondaryModal(elements.cropModal, document.getElementById("chooseBackground"), { onHidden() {
+    elements.cropImage.removeAttribute("src"); cropSource = null; cropInteraction = null;
+  } });
 }
-
-function openCropper(dataUrl, name = "") {
+function cropAspectRatio() {
+  const selected = elements.cropAspect.value;
+  return selected === "original" ? cropSource.naturalWidth / cropSource.naturalHeight
+    : selected === "window" ? window.innerWidth / window.innerHeight : Number(selected) || 1.6;
+}
+function layoutCropper(preserve = true) {
+  if (!cropSource || elements.cropModal.hidden) return;
+  const previous = preserve && cropSource.crop ? window.CropGeometry.toSourceRect(cropSource.crop, cropSource.displayedImage, cropSource.naturalWidth, cropSource.naturalHeight) : null;
+  const displayed = window.CropGeometry.containedImageRect(elements.cropStage.clientWidth, elements.cropStage.clientHeight, cropSource.naturalWidth, cropSource.naturalHeight);
+  if (!displayed) return;
+  cropSource.displayedImage = displayed;
+  cropSource.crop = previous ? {
+    x: displayed.x + previous.x / cropSource.naturalWidth * displayed.width,
+    y: displayed.y + previous.y / cropSource.naturalHeight * displayed.height,
+    width: previous.width / cropSource.naturalWidth * displayed.width,
+    height: previous.height / cropSource.naturalHeight * displayed.height
+  } : window.CropGeometry.initialCrop(displayed, cropAspectRatio());
+  Object.assign(elements.cropImage.style, { left: displayed.x + "px", top: displayed.y + "px", width: displayed.width + "px", height: displayed.height + "px" });
+  elements.cropRatioLabel.textContent = elements.cropAspect.selectedOptions[0].textContent;
+  renderCropBox();
+}
+async function openCropper(dataUrl, name = "") {
   elements.backgroundError.hidden = true;
+  const sequence = ++cropLoadSequence;
+  try {
+    if (window.codexMonitor.validateBackground && !await window.codexMonitor.validateBackground(dataUrl)) {
+      showBackgroundError("backgroundInvalidDimensions"); return;
+    }
+  } catch { showBackgroundError("unsupportedImage"); return; }
+  if (sequence !== cropLoadSequence) return;
   const probe = new Image();
   probe.onload = () => {
-    if (probe.naturalWidth <= 460 || probe.naturalHeight <= 690) {
-      showBackgroundError("backgroundTooSmall");
-      return;
+    if (sequence !== cropLoadSequence) return;
+    if (!probe.naturalWidth || !probe.naturalHeight || probe.naturalWidth * probe.naturalHeight > 40 * 1024 * 1024 || Math.max(probe.naturalWidth, probe.naturalHeight) > 16000) {
+      showBackgroundError("backgroundInvalidDimensions"); return;
     }
-    cropSource = {
-      dataUrl,
-      name,
-      naturalWidth: probe.naturalWidth,
-      naturalHeight: probe.naturalHeight,
-      displayedImage: null,
-      crop: null
-    };
+    cropSource = { dataUrl, name, naturalWidth: probe.naturalWidth, naturalHeight: probe.naturalHeight, displayedImage: null, crop: null };
     elements.cropImage.src = dataUrl;
-    elements.cropSourceInfo.textContent = `${name ? `${name}; ` : ""}${probe.naturalWidth} × ${probe.naturalHeight}`;
+    elements.cropSourceInfo.textContent = (name ? name + "; " : "") + probe.naturalWidth + " × " + probe.naturalHeight;
     openSecondaryModal(elements.cropModal, elements.cropClose);
-    requestAnimationFrame(() => {
-      const displayedImage = window.CropGeometry.containedImageRect(
-        elements.cropStage.clientWidth,
-        elements.cropStage.clientHeight,
-        probe.naturalWidth,
-        probe.naturalHeight
-      );
-      cropSource.displayedImage = displayedImage;
-      cropSource.crop = window.CropGeometry.initialCrop(displayedImage, 460 / 690);
-      Object.assign(elements.cropImage.style, {
-        left: `${displayedImage.x}px`,
-        top: `${displayedImage.y}px`,
-        width: `${displayedImage.width}px`,
-        height: `${displayedImage.height}px`
-      });
-      renderCropBox();
-    });
+    requestAnimationFrame(() => layoutCropper(false));
   };
-  probe.onerror = () => showBackgroundError("unsupportedImage");
+  probe.onerror = () => { if (sequence === cropLoadSequence) showBackgroundError("unsupportedImage"); };
   probe.src = dataUrl;
 }
-
 function readDroppedImage(file) {
   elements.backgroundError.hidden = true;
-  if (!file || !/^image\/(png|jpeg|webp|gif)$/i.test(file.type || "")) {
-    showBackgroundError("unsupportedImage");
-    return;
-  }
-  if (file.size > 20 * 1024 * 1024) {
-    showBackgroundError("backgroundTooLarge");
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = () => openCropper(reader.result, file.name);
-  reader.onerror = () => showBackgroundError("unsupportedImage");
-  reader.readAsDataURL(file);
+  if (!file || !/^image\/(png|jpeg|webp|gif)$/i.test(file.type || "")) { showBackgroundError("unsupportedImage"); return; }
+  if (file.size > 20 * 1024 * 1024) { showBackgroundError("backgroundTooLarge"); return; }
+  const reader = new FileReader(); reader.onload = () => importBackground(reader.result);
+  reader.onerror = () => showBackgroundError("unsupportedImage"); reader.readAsDataURL(file);
 }
-
+async function importBackground(dataUrl) {
+  elements.backgroundError.hidden = true;
+  elements.chooseBackground.disabled = true;
+  try {
+    const result = await window.codexMonitor.saveBackground(dataUrl, null);
+    if (!result?.dataUrl) { showBackgroundError("backgroundSaveFailed"); return; }
+    backgroundDataUrl = result.dataUrl; applyBackground();
+  } catch { showBackgroundError("backgroundSaveFailed"); }
+  finally { elements.chooseBackground.disabled = false; }
+}
+async function saveCrop(useWhole = false) {
+  if (!cropSource?.crop || elements.cropApply.disabled) return;
+  const sourceRect = window.CropGeometry.toSourceRect(cropSource.crop, cropSource.displayedImage, cropSource.naturalWidth, cropSource.naturalHeight);
+  const crop = useWhole ? null : { x: sourceRect.x / cropSource.naturalWidth, y: sourceRect.y / cropSource.naturalHeight, width: sourceRect.width / cropSource.naturalWidth, height: sourceRect.height / cropSource.naturalHeight };
+  elements.cropApply.disabled = true; elements.useWholeBackground.disabled = true;
+  elements.cropClose.disabled = true; elements.cropCancel.disabled = true;
+  elements.cropApply.textContent = t("backgroundSaving");
+  try {
+    const result = await window.codexMonitor.saveBackground(cropSource.dataUrl, crop);
+    if (!result?.dataUrl) { showBackgroundError("backgroundSaveFailed"); return; }
+    backgroundDataUrl = result.dataUrl; applyBackground(); closeCropModal();
+  } catch { showBackgroundError("backgroundSaveFailed"); }
+  finally {
+    elements.cropApply.disabled = false; elements.useWholeBackground.disabled = false;
+    elements.cropClose.disabled = false; elements.cropCancel.disabled = false;
+    elements.cropApply.textContent = t("applyCrop");
+  }
+}
 function initializeCropper() {
+  elements.cropAspect.addEventListener("change", () => layoutCropper(false));
   elements.cropBox.addEventListener("pointerdown", event => {
     if (!cropSource?.crop || event.button !== 0) return;
-    cropInteraction = {
-      pointerId: event.pointerId,
-      mode: event.target === elements.cropResizeHandle ? "resize" : "move",
-      x: event.clientX,
-      y: event.clientY,
-      crop: { ...cropSource.crop }
-    };
-    elements.cropBox.setPointerCapture(event.pointerId);
-    event.preventDefault();
-    event.stopPropagation();
+    cropInteraction = { pointerId:event.pointerId, mode:event.target === elements.cropResizeHandle ? "resize" : "move", x:event.clientX, y:event.clientY, crop:{...cropSource.crop} };
+    elements.cropBox.setPointerCapture(event.pointerId); event.preventDefault();
   });
-
   elements.cropBox.addEventListener("pointermove", event => {
     if (!cropInteraction || event.pointerId !== cropInteraction.pointerId || cropFrame !== null) return;
-    const clientX = event.clientX;
-    const clientY = event.clientY;
-    cropFrame = requestAnimationFrame(() => {
-      cropFrame = null;
-      if (!cropInteraction || !cropSource) return;
-      const deltaX = clientX - cropInteraction.x;
-      const deltaY = clientY - cropInteraction.y;
-      cropSource.crop = cropInteraction.mode === "resize"
-        ? window.CropGeometry.resizeCrop(
-            cropInteraction.crop,
-            deltaX,
-            deltaY,
-            cropSource.displayedImage,
-            460 / 690
-          )
-        : window.CropGeometry.moveCrop(
-            cropInteraction.crop,
-            deltaX,
-            deltaY,
-            cropSource.displayedImage
-          );
+    const clientX=event.clientX, clientY=event.clientY;
+    cropFrame=requestAnimationFrame(() => {
+      cropFrame=null; if(!cropInteraction || !cropSource)return;
+      const dx=clientX-cropInteraction.x,dy=clientY-cropInteraction.y;
+      cropSource.crop=cropInteraction.mode === "resize" ? window.CropGeometry.resizeCrop(cropInteraction.crop,dx,dy,cropSource.displayedImage,cropAspectRatio()) : window.CropGeometry.moveCrop(cropInteraction.crop,dx,dy,cropSource.displayedImage);
       renderCropBox();
     });
   });
-
-  const endCropInteraction = event => {
-    if (!cropInteraction || event.pointerId !== cropInteraction.pointerId) return;
-    try { elements.cropBox.releasePointerCapture(event.pointerId); } catch {}
-    cropInteraction = null;
-  };
-  elements.cropBox.addEventListener("pointerup", endCropInteraction);
-  elements.cropBox.addEventListener("pointercancel", endCropInteraction);
-
-  elements.cropClose.addEventListener("click", closeCropModal);
-  elements.cropCancel.addEventListener("click", closeCropModal);
-  elements.cropApply.addEventListener("click", async () => {
-    if (!cropSource?.crop) return;
-    const sourceRect = window.CropGeometry.toSourceRect(
-      cropSource.crop,
-      cropSource.displayedImage,
-      cropSource.naturalWidth,
-      cropSource.naturalHeight
-    );
-    const canvas = document.createElement("canvas");
-    canvas.width = 460;
-    canvas.height = 690;
-    const context = canvas.getContext("2d", { alpha: false });
-    context.drawImage(
-      elements.cropImage,
-      sourceRect.x,
-      sourceRect.y,
-      sourceRect.width,
-      sourceRect.height,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-    elements.cropApply.disabled = true;
-    elements.cropApply.textContent = t("cropSaving");
-    try {
-      const result = await window.codexMonitor.saveCroppedBackground(canvas.toDataURL("image/png"));
-      if (result?.dataUrl) {
-        backgroundDataUrl = result.dataUrl;
-        applyBackground();
-        closeCropModal();
-        closeBackgroundPopover();
-      } else {
-        showBackgroundError(result?.error === "FILE_TOO_LARGE" ? "backgroundTooLarge" : "unsupportedImage");
-      }
-    } finally {
-      elements.cropApply.disabled = false;
-      elements.cropApply.textContent = t("applyCrop");
-    }
+  for(const eventName of ["pointerup","pointercancel"]) elements.cropBox.addEventListener(eventName,event=>{
+    if(!cropInteraction || event.pointerId !== cropInteraction.pointerId)return;
+    try{elements.cropBox.releasePointerCapture(event.pointerId);}catch{} cropInteraction=null;
   });
+  elements.cropBox.addEventListener("keydown", event=>{
+    if(!cropSource?.crop || !["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(event.key))return;
+    event.preventDefault(); const step=event.shiftKey?12:3;
+    const dx=event.key === "ArrowLeft"?-step:event.key === "ArrowRight"?step:0;
+    const dy=event.key === "ArrowUp"?-step:event.key === "ArrowDown"?step:0;
+    cropSource.crop=event.target === elements.cropResizeHandle ? window.CropGeometry.resizeCrop(cropSource.crop,dx,dy,cropSource.displayedImage,cropAspectRatio()) : window.CropGeometry.moveCrop(cropSource.crop,dx,dy,cropSource.displayedImage);
+    renderCropBox();
+  });
+  elements.cropClose.addEventListener("click",closeCropModal); elements.cropCancel.addEventListener("click",closeCropModal);
+  elements.cropApply.addEventListener("click",()=>saveCrop(false)); elements.useWholeBackground.addEventListener("click",()=>saveCrop(true));
+}
+
+function syncWorkbench() {
+  if (!workbenchReady) return;
+  window.Workbench.sync(latestSnapshot, { usd: formatUsd });
+  const records = activeTaskRecords;
+  elements.taskOutcomeTotals.textContent = t("taskOutcomes", { completed:formatTokenCount(records.completedTaskCount), manual:formatTokenCount(records.manualInterruptedTaskCount), abnormal:formatTokenCount(records.abnormalInterruptedTaskCount), managed:formatTokenCount(records.managedStoppedTaskCount) });
+}
+
+function closeTaskDrawer() {
+  elements.taskDetailDrawer.hidden = true; selectedTaskIdentity = null;
+}
+function renderTaskDrawer() {
+  if (!selectedTaskIdentity) return;
+  const task = [...activeTasks,...pendingTasks].find(task=>activeTaskIdentity(task)===selectedTaskIdentity);
+  if (!task) { closeTaskDrawer(); return; }
+  const active=activeTasks.includes(task);
+  elements.taskDrawerTitle.textContent=task.projectName || t("activeTaskProjectFallback");
+  const content=elements.taskDrawerContent; content.replaceChildren();
+  appendTaskContext(content,task,!active);
+  const stats=document.createElement("div");stats.className="active-task-item-stats";
+  appendActiveTaskStat(stats,t("activeTaskTimeLabel"),formatTaskDuration(active?getTaskElapsedSeconds(task):task.elapsedSeconds));
+  stats.querySelector("strong").dataset.drawerElapsed = "true";
+  appendActiveTaskStat(stats,t("activeTaskCostLabel"),formatActiveTaskCost(task));
+  content.append(stats,createTaskModelRows(task));
+  const note=document.createElement("p");note.className="active-task-explanation";
+  note.textContent=t("activeTaskDetailsHint");content.append(note);
 }
 
 function formatDate(timestamp, includeYear = false) {
@@ -1839,10 +2067,13 @@ function formatUsd(value) {
 }
 
 function formatApiEstimate(cost = {}) {
-  if (!cost.available || !Number.isFinite(cost.estimatedCostUsd)) return t("tokenUnavailable");
+  if (!cost.available) return t("tokenUnavailable");
+  if (!Number.isFinite(cost.estimatedCostUsd)) return t("costPriceUnavailable");
   const partial = cost.hasUnpricedModels || cost.hasUnattributedUsage ||
     cost.officialUnmappedInputTokens > 0 || cost.truncated;
-  return `${partial ? "≥" : "≈"}${formatUsd(cost.estimatedCostUsd)}`;
+  const rebuilding = cost.calibratedToOfficialUsage || cost.hasUnverifiedHistory ||
+    cost.scanProgress?.rebuilding || cost.scanProgress?.legacyStale > 0;
+  return `${partial && !rebuilding ? "≥" : "≈"}${formatUsd(cost.estimatedCostUsd)}`;
 }
 
 function formatTaskDuration(value) {
@@ -1890,9 +2121,10 @@ function getActiveTaskModelNames(task) {
 }
 
 function formatPrice(value) {
+  if (!Number.isFinite(value)) return t("tokenUnavailable");
   return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 0,
-    maximumFractionDigits: 3
+    maximumFractionDigits: 6
   }).format(Number(value) || 0);
 }
 
@@ -1956,7 +2188,7 @@ function chartBars(series, width, height, padding, maximum, compact = false) {
   const slotWidth = usableWidth / Math.max(1, series.length);
   const barWidth = Math.max(
     compact ? 2 : 3,
-    Math.min(compact ? 8 : 16, slotWidth * (compact ? .62 : .58))
+    Math.min(compact ? 24 : 32, slotWidth * (compact ? .62 : .58))
   );
   const bottom = height - padding.bottom;
   return series.map((item, index) => ({
@@ -1991,9 +2223,9 @@ function drawTokenBars(
   context.save();
   context.globalAlpha = alpha;
   const gradient = context.createLinearGradient(0, padding.top, 0, height - padding.bottom);
-  gradient.addColorStop(0, "rgba(157,168,255,.96)");
-  gradient.addColorStop(.52, "rgba(120,234,213,.9)");
-  gradient.addColorStop(1, "rgba(120,234,213,.48)");
+  gradient.addColorStop(0, "rgba(35,159,187,.96)");
+  gradient.addColorStop(.52, "rgba(82,182,207,.9)");
+  gradient.addColorStop(1, "rgba(153,215,231,.65)");
 
   bars.forEach((bar, index) => {
     const highlighted = index === highlightedIndex;
@@ -2005,7 +2237,7 @@ function drawTokenBars(
       ? "rgba(207,255,246,.62)"
       : "rgba(120,234,213,.28)";
     context.shadowBlur = highlighted ? 13 : (compact ? (overview ? 6 : 3) : 7);
-    context.fillStyle = highlighted ? "#dffff8" : gradient;
+    context.fillStyle = highlighted ? "#087e9e" : gradient;
     context.beginPath();
     context.roundRect(
       bar.x - renderedWidth / 2,
@@ -2025,13 +2257,13 @@ function drawTokenBars(
   context.restore();
 }
 
-function drawTokenAxes(context, series, width, height) {
+function drawTokenAxes(context, series, width, height, period = tokenPeriod) {
   if (!series.length) return;
   const padding = TOKEN_CHART_PADDING;
   const maximum = Math.max(1, ...series.map(item => item.tokens));
   context.save();
-  context.fillStyle = "rgba(206,226,237,.48)";
-  context.font = '9px "Segoe UI Variable", sans-serif';
+  context.fillStyle = "rgba(71,109,128,.85)";
+  context.font = '12px "Segoe UI Variable", sans-serif';
   context.textBaseline = "middle";
   context.textAlign = "right";
   for (const ratio of [1, .5, 0]) {
@@ -2045,7 +2277,7 @@ function drawTokenAxes(context, series, width, height) {
   labelIndexes.forEach((index, labelIndex) => {
     const x = bars[index].x;
     context.textAlign = labelIndex === 0 ? "left" : (labelIndex === labelIndexes.length - 1 ? "right" : "center");
-    context.fillText(formatTokenDate(series[index].startDate, tokenPeriod), x, height - 8);
+    context.fillText(formatTokenDate(series[index].startDate, period), x, height - 8);
   });
   context.restore();
 }
@@ -2167,7 +2399,7 @@ function renderTokenChart(animate = true) {
     tokens: formatTokenCount(last.tokens, true)
   });
 
-  if (!animate || !previousSeries.length) {
+  if (!animate || !previousSeries.length || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     drawTokenChartFrame([], nextSeries, 1);
     return;
   }
@@ -2187,46 +2419,47 @@ function renderTokenChart(animate = true) {
 }
 
 function drawTokenSparkline() {
-  const series = getTokenSeries("day").slice(-16);
+  if (!window.Workbench.visible(elements.tokenSparkline)) return;
+  const series = getTokenSeries("day");
   const { context, width, height } = prepareCanvas(elements.tokenSparkline);
   context.clearRect(0, 0, width, height);
-  drawTokenBars(
-    context,
-    series,
-    width,
-    height,
-    1,
-    1,
-    true,
-    elements.tokenOverview.classList.contains("is-expanded")
-  );
+  document.getElementById("overviewChartEmpty").hidden = series.length > 0;
+  drawTokenAxes(context, series, width, height, "day");
+  drawTokenBars(context, series, width, height, 1, 1, false);
 }
 
 function renderTokenUsageModal(animate = false) {
   const usage = latestSnapshot?.tokenUsage || {};
   const cost = latestSnapshot?.tokenCost || {};
+  const verifiedLocal = cost.verifiedLocalUsage || cost.localUsage;
   const workDays = Number.isFinite(usage.totalWorkDays)
     ? Math.max(0, Math.floor(usage.totalWorkDays))
     : 0;
-  elements.tokenModalLifetime.textContent = formatTokenCount(usage.lifetimeTokens);
+  elements.tokenModalLifetimeLabel.textContent = t(usage.scope === "local" ? "localLifetimeTokens" : "lifetimeTokens");
+  elements.tokenModalLifetime.textContent = `${usage.truncated || usage.hasUnverifiedHistory ? "≈" : ""}${formatTokenCount(usage.lifetimeTokens)}`;
+  elements.tokenSourceNote.textContent = usage.scope === "local"
+    ? t("tokenLocalSource", { state: t(usage.truncated || usage.hasUnverifiedHistory ? "tokenLocalPartial" : "tokenLocalComplete"), account: formatTokenCount(usage.accountLifetimeTokens) })
+    : verifiedLocal ? t("tokenAccountWithLocalSource", { local: formatTokenCount(verifiedLocal.lifetimeTokens),
+      state: t(verifiedLocal.truncated || cost.hasUnverifiedHistory ? "tokenLocalPartial" : "tokenLocalComplete") }) : t("tokenAccountSource");
   elements.tokenModalDailyAverage.textContent = (
-    workDays > 0 && Number.isFinite(usage.lifetimeTokens)
+    workDays > 0 && !usage.undatedTokens && Number.isFinite(usage.lifetimeTokens)
   )
     ? formatTokenCount(Math.round(usage.lifetimeTokens / workDays))
     : t("tokenUnavailable");
+  const costWorkDays = cost.localUsage?.totalWorkDays || 0;
   elements.tokenModalDailyCost.textContent = (
-    workDays > 0 && cost.available && Number.isFinite(cost.estimatedCostUsd)
+    costWorkDays > 0 && !cost.localUsage?.undatedTokens && cost.available && Number.isFinite(cost.estimatedCostUsd)
   )
     ? formatApiEstimate({
         ...cost,
-        estimatedCostUsd: cost.estimatedCostUsd / workDays
+        estimatedCostUsd: cost.estimatedCostUsd / costWorkDays
       })
     : t("tokenUnavailable");
   elements.tokenModalTotalWorkDays.textContent = Number.isFinite(usage.totalWorkDays)
     ? t("workDays", { count: formatTokenCount(usage.totalWorkDays) })
     : t("tokenUnavailable");
   elements.tokenUsageFreshness.textContent = usage.available
-    ? t(usage.cached ? "tokenCached" : "tokenLive")
+    ? t(usage.scope === "local" ? (usage.cached ? "tokenLocalCached" : "tokenLocalLive") : (usage.cached ? "tokenCached" : "tokenLive"))
     : t("tokenUnavailable");
   elements.tokenPeriodSwitch.querySelectorAll("[data-token-period]").forEach(button => {
     button.classList.toggle("is-active", button.dataset.tokenPeriod === tokenPeriod);
@@ -2237,13 +2470,14 @@ function renderTokenUsageModal(animate = false) {
 
 function renderTokenUsage(usage = {}) {
   elements.tokenOverviewTitle.textContent = t(usage.cached ? "tokenUsageCachedTitle" : "tokenUsageTitle");
-  elements.lifetimeTokenValue.textContent = formatTokenCount(usage.lifetimeTokens);
+  elements.tokenLifetimeLabel.textContent = t(usage.scope === "local" ? "localLifetimeTokens" : "lifetimeTokens");
+  elements.lifetimeTokenValue.textContent = `${usage.truncated || usage.hasUnverifiedHistory ? "≈" : ""}${formatTokenCount(usage.lifetimeTokens)}`;
   elements.totalWorkDaysValue.textContent = Number.isFinite(usage.totalWorkDays)
     ? t("workDays", { count: formatTokenCount(usage.totalWorkDays) })
     : t("tokenUnavailable");
   elements.tokenOverview.classList.toggle("is-unavailable", !usage.available);
   requestAnimationFrame(drawTokenSparkline);
-  setTimeout(drawTokenSparkline, 340);
+  syncWorkbench();
   if (!elements.tokenUsageModal.hidden) requestAnimationFrame(() => renderTokenUsageModal(false));
 }
 
@@ -2272,6 +2506,15 @@ function renderTokenCostDetails(cost = latestSnapshot?.tokenCost || {}) {
     date: cost.pricingDate || "—"
   });
   const coverageNotes = [coverage];
+  if (cost.calibrationMethod === "legacy-daily") {
+    coverageNotes.push(t("costLegacyAlgorithm"));
+    coverageNotes.push(t("costTokenBasis", {
+      raw: formatTokenCount(cost.rawLocalInputTokens), calibrated: formatTokenCount(cost.calibratedInputTokens),
+      independent: formatTokenCount(cost.independentInputTokens)
+    }));
+    if (cost.calibrationUncoveredDays > 0) coverageNotes.push(t("costUncoveredDates", { count: formatTokenCount(cost.calibrationUncoveredDays) }));
+    if (!cost.calibratedToOfficialUsage && cost.calibratedNativeInputTokens > 0) coverageNotes.push(t("costCalibrationUnavailable"));
+  }
   if (cost.hasUnattributedUsage) {
     coverageNotes.push(t("costCoverageUnattributed", {
       count: formatTokenCount(cost.unattributedRequestCount)
@@ -2288,6 +2531,7 @@ function renderTokenCostDetails(cost = latestSnapshot?.tokenCost || {}) {
     }));
   }
   if (cost.truncated) coverageNotes.push(t("costCoverageTruncated"));
+  if (cost.hasUnverifiedHistory) coverageNotes.push(t("costCoverageUnverified", { count: formatTokenCount(cost.unverifiedFiles || 0) }));
   elements.tokenCostCoverage.textContent = coverageNotes.join("; ");
   elements.modelCostList.replaceChildren();
 
@@ -2309,31 +2553,42 @@ function renderTokenCostDetails(cost = latestSnapshot?.tokenCost || {}) {
     const modelCost = document.createElement("span");
     modelCost.textContent = model.priced
       ? `≈${formatUsd(model.estimatedCostUsd)}`
-      : t(model.pricingPending ? "modelCostPricingPending" : "modelCostUnpriced");
+      : t(model.missingPriceComponents?.length ? "modelCostRateUnavailable" : model.pricingPending ? "modelCostPricingPending" : "modelCostUnpriced");
     modelCost.classList.toggle("is-unpriced", !model.priced);
     heading.append(modelName, modelCost);
 
     const stats = document.createElement("div");
     stats.className = "model-cost-stats";
-    appendModelCostStat(stats, t("modelCostInput"), formatTokenCount(model.inputTokens, true));
+    appendModelCostStat(stats, t(model.accountCalibrated ? "modelCostCalibratedInput" : "modelCostInput"), formatTokenCount(model.inputTokens));
     appendModelCostStat(
       stats,
       t("modelCostCached"),
-      formatTokenCount(model.cachedInputTokens, true)
+      formatTokenCount(model.cachedInputTokens)
     );
-    appendModelCostStat(stats, t("modelCostOutput"), formatTokenCount(model.outputTokens, true));
+    appendModelCostStat(stats, t(model.accountCalibrated ? "modelCostCalibratedOutput" : "modelCostOutput"), formatTokenCount(model.outputTokens));
     appendModelCostStat(stats, t("modelCostHitRate"), `${Number(model.cacheHitRate || 0).toFixed(1)}%`);
     item.append(heading, stats);
 
-    const details = [t("modelCostRequests", {
+    const details = [t(model.accountCalibrated ? "modelCostCalibratedRequests" : "modelCostRequests", {
       count: formatTokenCount(model.requestCount)
     })];
+    if (model.pricingPartial) details.push(t("modelCostPartialRates"));
     if (model.pricing) {
+      details.unshift(t("modelPricingVendor", { vendor: model.pricing.vendor || "API" }));
       details.unshift(t("modelCostRate", {
         input: formatPrice(model.pricing.input),
         cached: formatPrice(model.pricing.cachedInput),
         output: formatPrice(model.pricing.output)
       }));
+      if (["Anthropic", "OpenAI"].includes(model.pricing.vendor) && Number.isFinite(model.pricing.cacheWriteLong)) {
+        details.push(t("modelCostWriteRates", { shortTtl: model.pricing.vendor === "Anthropic" ? "5m" : "30m",
+          longTtl: model.pricing.vendor === "Anthropic" ? "1h" : "12h",
+          short: formatPrice(model.pricing.cacheWrite), long: formatPrice(model.pricing.cacheWriteLong) }));
+      }
+      if (model.pricing.contextThreshold) details.push(t("modelPriceThreshold", {
+        operator: model.pricing.contextInclusive ? "≥" : ">", tokens: formatTokenCount(model.pricing.contextThreshold, true) }));
+      if (model.pricing.note === "peak") details.push(t("modelPricePeak"));
+      if (model.pricing.note === "global") details.push(t("modelPriceGlobal"));
     }
     if (model.cacheWriteInputTokens > 0) {
       details.push(t("modelCostCacheWrite", {
@@ -2356,6 +2611,7 @@ function renderTokenCostDetails(cost = latestSnapshot?.tokenCost || {}) {
 function renderTokenCost(cost = {}) {
   elements.estimatedCostValue.textContent = formatApiEstimate(cost);
   if (!elements.tokenCostModal.hidden) renderTokenCostDetails(cost);
+  syncWorkbench();
 }
 
 function openTokenCost(event) {
@@ -2498,10 +2754,14 @@ function renderStatScopeDialog() {
   const values = {
     total: formatTokenCount(activeTaskRecords.totalTaskCount),
     timed: formatTokenCount(activeTaskRecords.timedTaskCount),
+    undated: formatTokenCount(latestSnapshot?.tokenUsage?.undatedTokens || 0),
+    account: formatTokenCount(latestSnapshot?.tokenUsage?.accountLifetimeTokens ?? latestSnapshot?.tokenUsage?.lifetimeTokens),
+    localState: t(latestSnapshot?.tokenCost?.localUsage?.truncated || latestSnapshot?.tokenCost?.hasUnverifiedHistory ? "tokenLocalPartial" : "tokenLocalComplete"),
     truncated: statScopeTruncationCopy()
   };
   const messageKey = {
     "token-daily-cost": "statScopeTokenDailyCost",
+    "token-local": latestSnapshot?.tokenUsage?.scope === "local" ? "statScopeTokenLocal" : "statScopeTokenAccount",
     "task-running": activeTasksAvailable
       ? "statScopeTaskRunning"
       : "statScopeTaskRunningUnavailable",
@@ -2641,6 +2901,11 @@ function renderActiveTaskClock() {
     const task = activeTasks[Number(node.dataset.taskElapsedIndex)];
     if (task) node.textContent = formatTaskDuration(getTaskElapsedSeconds(task));
   });
+  if (!elements.taskDetailDrawer.hidden && selectedTaskIdentity) {
+    const task = activeTasks.find(task => activeTaskIdentity(task) === selectedTaskIdentity);
+    const elapsed = elements.taskDrawerContent.querySelector("[data-drawer-elapsed]");
+    if (task && elapsed) elapsed.textContent = formatTaskDuration(getTaskElapsedSeconds(task));
+  }
   elements.activeTaskPreviewList.querySelectorAll("[data-task-preview-elapsed-index]").forEach(node => {
     const task = activeTasks[Number(node.dataset.taskPreviewElapsedIndex)];
     if (task) node.textContent = formatTaskDuration(getTaskElapsedSeconds(task));
@@ -2662,7 +2927,7 @@ function renderActiveTaskPreview() {
     return;
   }
 
-  previewTasks.slice(0, 2).forEach(({ task, pending }, index) => {
+  previewTasks.slice(0, 3).forEach(({ task, pending }, index) => {
     const row = document.createElement("div");
     row.className = [
       "active-task-preview-row",
@@ -2700,6 +2965,8 @@ function renderActiveTaskPreview() {
 }
 
 function taskVisible(task, pending) {
+  const query = elements.taskSearch.value.trim().toLowerCase();
+  if (query && !(String(task.projectName || "") + " " + getActiveTaskModelNames(task).join(" ")).toLowerCase().includes(query)) return false;
   const filter = elements.taskFilter.value;
   return filter === "all" || (filter === "running" && !pending) || (filter === "pending" && pending) ||
     (filter === "goal" && Boolean(task.goalStatus)) || (filter === "subagent" && task.taskKind === "subagent");
@@ -2775,6 +3042,8 @@ function createTaskModelRows(task) {
 
 function renderActiveTaskDetails() {
   const previousScroll = elements.activeTaskList.scrollTop;
+  const pageScroll = document.getElementById("workspaceContent").scrollTop;
+  const focusedDetail = elements.activeTaskList.contains(document.activeElement) ? document.activeElement.dataset.taskDetailId : null;
   const focusedAction = elements.activeTaskList.contains(document.activeElement) ? {
     identity: document.activeElement.dataset.pendingTaskId,
     action: document.activeElement.dataset.pendingTaskAction
@@ -2839,6 +3108,8 @@ function renderActiveTaskDetails() {
       ].filter(Boolean).join("; ");
       item.append(note);
     }
+    const details = document.createElement("button"); details.type = "button"; details.className = "text-button"; details.textContent = t("taskDetails");
+    details.dataset.taskDetailId = activeTaskIdentity(task); item.append(details);
     elements.activeTaskList.append(item);
   });
 
@@ -2896,7 +3167,13 @@ function renderActiveTaskDetails() {
     item.append(stats, createTaskModelRows(task), actions);
     elements.activeTaskList.append(item);
   });
+  if (!elements.activeTaskList.querySelector(".active-task-item")) {
+    const empty = document.createElement("p"); empty.className = "active-task-empty"; empty.textContent = t("noMatchingTasks"); elements.activeTaskList.append(empty);
+  }
   elements.activeTaskList.scrollTop = previousScroll;
+  if (!elements.activeTaskModal.hidden) document.getElementById("workspaceContent").scrollTop = pageScroll;
+  if (focusedDetail) [...elements.activeTaskList.querySelectorAll("[data-task-detail-id]")].find(node => node.dataset.taskDetailId === focusedDetail)?.focus({preventScroll:true});
+  renderTaskDrawer();
   if (focusedAction?.identity) {
     const control = [...elements.activeTaskList.querySelectorAll("button")].find(button =>
       button.dataset.pendingTaskId === focusedAction.identity && button.dataset.pendingTaskAction === focusedAction.action);
@@ -2963,7 +3240,7 @@ function renderActiveTasks(result = {}) {
   );
   renderStatScopeButtons();
   renderActiveTaskRecords();
-  const hiddenTaskCount = Math.max(0, activeTasks.length - 2);
+  const hiddenTaskCount = Math.max(0, activeTasks.length - 3);
   elements.activeTaskMoreIndicator.hidden = hiddenTaskCount === 0;
   elements.activeTaskMoreIndicator.textContent = hiddenTaskCount
     ? t("activeTaskMore", { count: hiddenTaskCount })
@@ -2974,6 +3251,7 @@ function renderActiveTasks(result = {}) {
   if (activeTasks.length) renderActiveTaskClock();
 
   if (!elements.activeTaskModal.hidden) renderActiveTaskDetails();
+  syncWorkbench();
   startPresentationClock();
 }
 
@@ -2996,7 +3274,7 @@ async function handlePendingTaskAction(event) {
   pendingTasks.splice(index, 1);
   renderActiveTaskPreview();
   renderActiveTaskDetails();
-  const hiddenTaskCount = Math.max(0, activeTasks.length - 2);
+  const hiddenTaskCount = Math.max(0, activeTasks.length - 3);
   elements.activeTaskMoreIndicator.hidden = hiddenTaskCount === 0;
   elements.activeTaskMoreIndicator.textContent = hiddenTaskCount
     ? t("activeTaskMore", { count: hiddenTaskCount })
@@ -3139,6 +3417,7 @@ function closeConnectionStatus() {
 function renderOnline(snapshot) {
   const { data } = snapshot;
   connectionState = "online";
+  lastQuotaData = data;
   elements.connectionStrip.className = "connection-strip is-online";
   elements.connectionStatusButton.disabled = false;
   elements.connectionStatusButton.title = t("openConnectionStatus");
@@ -3200,9 +3479,9 @@ function renderOffline(snapshot) {
   elements.connectionLabel.setAttribute("aria-label", t("connectionDisconnectedLabel"));
   if (!elements.connectionStatusModal.hidden) renderConnectionStatusDialog(false);
   renderResetCredits(
-    {},
-    { history: snapshot.receivedResetHistory },
-    { history: snapshot.consumedResetHistory }
+    lastQuotaData?.resets || {},
+    { history: snapshot.receivedResetHistory || receivedResetHistory },
+    { history: snapshot.consumedResetHistory || consumedResetHistory }
   );
   renderClientUpdate(snapshot.clientUpdate);
   if (!automaticOfflineAlertShown) {
@@ -3230,6 +3509,7 @@ function render(snapshot) {
   renderTokenCost(snapshot.tokenCost);
   renderActiveTasks(snapshot.activeTasks);
   updateLastChecked();
+  syncWorkbench();
 }
 
 function applySnapshot(snapshot) {
@@ -3241,7 +3521,7 @@ function applySnapshot(snapshot) {
 }
 
 function startPresentationClock() {
-  const needed = !document.hidden && !windowCollapsed && !topDockRetracted &&
+  const needed = !document.hidden &&
     (activeTasks.length > 0 || !elements.subscriptionModal.hidden || Boolean(currentCheckpointCommitment()));
   if (!needed) {
     if (presentationFrame !== null) cancelAnimationFrame(presentationFrame);
@@ -3273,6 +3553,7 @@ async function refresh({ initial = false, silent = false } = {}) {
     applySnapshot(await window.codexMonitor.readQuota());
   } catch {
     latestSnapshot = {
+      ...latestSnapshot,
       online: false,
       checkedAt: Date.now(),
       errorCode: "NETWORK_ERROR",
@@ -3287,466 +3568,184 @@ async function refresh({ initial = false, silent = false } = {}) {
   return true;
 }
 
-function normalizeWindowModeResult(result, fallbackCollapsed, fallbackAnchor) {
-  if (typeof result === "boolean") {
-    return { collapsed: result, anchor: fallbackAnchor };
-  }
-  return {
-    collapsed: result?.collapsed ?? fallbackCollapsed,
-    anchor: result?.anchor && Number.isFinite(result.anchor.x) && Number.isFinite(result.anchor.y)
-      ? result.anchor
-      : fallbackAnchor
-  };
-}
-
-function getCollapseButtonAnchor() {
-  const bounds = elements.collapseButton.getBoundingClientRect();
-  return {
-    x: Math.round(bounds.left + bounds.width / 2),
-    y: Math.round(bounds.top + bounds.height / 2)
-  };
-}
-
-function applyWindowModeVisual(collapsed, anchor = windowModeAnchor) {
-  windowCollapsed = Boolean(collapsed);
-  windowModeAnchor = anchor || windowModeAnchor;
-  document.documentElement.style.setProperty("--orb-anchor-x", `${windowModeAnchor.x}px`);
-  document.documentElement.style.setProperty("--orb-anchor-y", `${windowModeAnchor.y}px`);
-  document.body.classList.toggle("is-window-collapsed", windowCollapsed);
-  startPresentationClock();
-}
-
-function applyTopDockState(state = {}) {
-  topDockEnabled = state.enabled === true;
-  topDockDocked = state.docked === true;
-  topDockRetracted = state.retracted === true;
-  elements.topDockToggle.setAttribute("aria-checked", String(topDockEnabled));
-  document.body.classList.toggle("is-top-dock-retracted", topDockRetracted);
-  document.body.classList.toggle("is-top-dock-docked", topDockDocked);
-  startPresentationClock();
-  if (topDockRetracted && Number.isSafeInteger(state.paintRequestId)) {
-    acknowledgeTopDockPaint(state.paintRequestId);
-  }
-}
-
-function acknowledgeTopDockPaint(paintRequestId) {
-  let acknowledged = false;
-  const finish = () => {
-    if (acknowledged || !topDockRetracted) return;
-    acknowledged = true;
-    clearTimeout(fallbackTimer);
-    const bounds = elements.topDockTab.getBoundingClientRect();
-    window.codexMonitor.confirmTopDockPaint(paintRequestId, {
-      x: bounds.x,
-      y: bounds.y,
-      width: bounds.width,
-      height: bounds.height
-    });
-  };
-  // requestAnimationFrame may pause while Windows is changing a transparent
-  // window's native region. The bounded timer keeps the painted tab handshake
-  // alive; the forced layout above still supplies its exact current bounds.
-  const fallbackTimer = setTimeout(finish, 96);
-  requestAnimationFrame(() => requestAnimationFrame(finish));
-}
-
-function clearTopDockLeaveTimer() {
-  if (!topDockLeaveTimer) return;
-  clearTimeout(topDockLeaveTimer);
-  topDockLeaveTimer = null;
-}
-
-function scheduleTopDockRetract() {
-  clearTopDockLeaveTimer();
-  if (!topDockEnabled || !topDockDocked || topDockRetracted || windowCollapsed) return;
-  topDockLeaveTimer = setTimeout(async () => {
-    topDockLeaveTimer = null;
-    const state = await window.codexMonitor.retractTopDock();
-    applyTopDockState(state);
-  }, 520);
-}
-
-async function revealTopDock() {
-  clearTopDockLeaveTimer();
-  if (!topDockRetracted || topDockRevealPending) return;
-  topDockRevealPending = true;
-  try {
-    const state = await window.codexMonitor.revealTopDock();
-    applyTopDockState(state);
-  } finally {
-    topDockRevealPending = false;
-  }
-}
-
-function waitForWindowModePaint() {
-  return new Promise(resolve => {
-    requestAnimationFrame(() => requestAnimationFrame(resolve));
-  });
-}
-
-async function collapseToFloatingOrb() {
-  if (windowModeChanging || windowCollapsed) return;
-  windowModeChanging = true;
-  windowModeAnchor = getCollapseButtonAnchor();
-  applyWindowModeVisual(true, windowModeAnchor);
-  await waitForWindowModePaint();
-
-  try {
-    const result = normalizeWindowModeResult(
-      await window.codexMonitor.setCollapsed(true, windowModeAnchor),
-      false,
-      windowModeAnchor
-    );
-    windowCollapsed = result.collapsed;
-    windowModeAnchor = result.anchor;
-    applyWindowModeVisual(windowCollapsed, windowModeAnchor);
-  } finally {
-    windowModeChanging = false;
-  }
-}
-
-async function expandFromFloatingOrb() {
-  if (windowModeChanging || !windowCollapsed) return;
-  windowModeChanging = true;
-
-  try {
-    const result = normalizeWindowModeResult(
-      await window.codexMonitor.setCollapsed(false, windowModeAnchor),
-      true,
-      windowModeAnchor
-    );
-    windowCollapsed = result.collapsed;
-    windowModeAnchor = result.anchor;
-    applyWindowModeVisual(windowCollapsed, windowModeAnchor);
-  } finally {
-    windowModeChanging = false;
-  }
-}
-
 async function initialize() {
-  renderMonitorUpdate(await window.codexMonitor.readMonitorUpdate?.());
-  window.codexMonitor.onMonitorUpdate?.(state => renderMonitorUpdate(state));
-  elements.monitorUpdateCheck.addEventListener("click", async () => renderMonitorUpdate(await window.codexMonitor.checkMonitorUpdate()));
-  elements.monitorUpdateInstall.addEventListener("click", async () => {
-    elements.monitorUpdateInstall.disabled = true;
-    try { await window.codexMonitor.installMonitorUpdate(); }
-    finally { elements.monitorUpdateInstall.disabled = false; }
-  });
   const settings = await window.codexMonitor.readSettings();
+  language = settings.language === "en" ? "en" : "zh";
+  alwaysOnTop = settings.alwaysOnTop === true;
+  backgroundDataUrl = settings.backgroundDataUrl || null;
+  backgroundOpacity = Number.isFinite(settings.backgroundOpacity) ? settings.backgroundOpacity : .34;
+  savedBackgroundOpacity = backgroundOpacity;
+  backgroundAppearance = { ...backgroundAppearance, ...settings.appearance };
+  savedAppearance = { ...backgroundAppearance };
+  elements.pinButton.checked = alwaysOnTop;
+  document.getElementById("closeBehavior").value = settings.closeBehavior === "quit" ? "quit" : "tray";
   if (typeof settings.monitorVersion === "string" && /^[0-9][a-zA-Z0-9.+-]{0,49}$/.test(settings.monitorVersion)) {
-    elements.appVersion.textContent = `CODEX PULSE V${settings.monitorVersion}`;
+    elements.appVersion.textContent = "V" + settings.monitorVersion;
+    document.getElementById("aboutVersion").textContent = "V" + settings.monitorVersion;
   }
-  language = settings.language;
-  alwaysOnTop = settings.alwaysOnTop;
-  positionLocked = settings.positionLocked;
-  windowCollapsed = settings.windowCollapsed === true;
-  windowModeAnchor = settings.windowModeAnchor || windowModeAnchor;
-  topDockEnabled = settings.topDockEnabled === true;
-  topDockDocked = settings.topDockDocked === true;
-  topDockRetracted = settings.topDockRetracted === true;
-  if (settings.appIconDataUrl) elements.floatingOrbIcon.src = settings.appIconDataUrl;
-  backgroundDataUrl = settings.backgroundDataUrl;
-  backgroundOpacity = settings.backgroundOpacity;
-  elements.pinButton.classList.toggle("is-active", positionLocked);
-  elements.app.classList.toggle("is-position-locked", positionLocked);
-  document.body.classList.toggle("is-position-locked", positionLocked);
-  applyWindowModeVisual(windowCollapsed, windowModeAnchor);
-  applyTopDockState({
-    enabled: topDockEnabled,
-    docked: topDockDocked,
-    retracted: topDockRetracted
-  });
-  applyLanguage();
-  applyBackground();
-  initializeCropper();
-  renderClientUpdate();
-  renderTokenUsage();
-  renderTokenCost();
-  renderActiveTasks();
-
-  elements.languageButton.addEventListener("click", async () => {
-    language = language === "zh" ? "en" : "zh";
-    await window.codexMonitor.setLanguage(language);
-    applyLanguage();
-  });
-  elements.topDockToggle.addEventListener("click", async () => {
-    const state = await window.codexMonitor.setTopDockEnabled(!topDockEnabled);
-    applyTopDockState(state);
-  });
-  elements.pinButton.addEventListener("click", async () => {
-    positionLocked = !positionLocked;
-    positionLocked = await window.codexMonitor.setPositionLocked(positionLocked);
-    elements.pinButton.classList.toggle("is-active", positionLocked);
-    elements.app.classList.toggle("is-position-locked", positionLocked);
-    document.body.classList.toggle("is-position-locked", positionLocked);
-    applyLanguage();
-  });
-  elements.collapseButton.addEventListener("click", collapseToFloatingOrb);
-  elements.floatingOrbOpen.addEventListener("click", expandFromFloatingOrb);
-  elements.floatingOrb.addEventListener("pointerdown", event => {
-    if (event.button !== 0 || !windowCollapsed || windowModeChanging) return;
-    event.preventDefault();
-    window.codexMonitor.beginOrbGesture();
-  });
-  elements.topDockTab.addEventListener("pointerenter", revealTopDock);
-  elements.topDockTab.addEventListener("pointermove", revealTopDock);
-  elements.topDockTab.addEventListener("click", revealTopDock);
-  document.documentElement.addEventListener("pointerenter", clearTopDockLeaveTimer);
-  document.documentElement.addEventListener("pointerleave", scheduleTopDockRetract);
-  elements.minimizeButton.addEventListener("click", () => window.codexMonitor.minimize());
-  elements.closeButton.addEventListener("click", () => window.codexMonitor.hide());
-  elements.refreshButton.addEventListener("click", () => refresh());
-  elements.connectionStatusButton.addEventListener("click", openConnectionStatus);
-  elements.connectionStatusDone.addEventListener("click", closeConnectionStatus);
-  elements.connectionStatusModal.addEventListener("click", event => {
-    if (event.target === elements.connectionStatusModal) closeConnectionStatus();
-  });
-  elements.connectionLabel.addEventListener("click", openSubscription);
-  elements.subscriptionClose.addEventListener("click", closeSubscription);
-  elements.subscriptionDone.addEventListener("click", closeSubscription);
-  elements.subscriptionModal.addEventListener("click", event => {
-    if (event.target === elements.subscriptionModal) closeSubscription();
-  });
-  elements.officialResetButton.addEventListener("click", openOfficialResetHistory);
-  elements.officialResetButton.addEventListener("keydown", event => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      openOfficialResetHistory();
+  const savedSort = window.Workbench.restore("cqm2.taskSort", "time");
+  elements.taskSort.value = ["time", "cost", "duration"].includes(savedSort) ? savedSort : "time";
+  window.Workbench.init({ t, onDiagnose: openConnectionStatus, onNavigate(route) {
+    closeTaskDrawer();
+    cancelAnimationFrame(tokenChartAnimationFrame); tokenChartAnimationActive = false;
+    hideTokenChartTooltip(false);
+    if (route.page === "tasks") {
+      elements.taskFilter.value = route.tab === "pending" ? "pending" : route.tab === "running" ? "running" : "all";
+      renderActiveTaskDetails();
     }
-  });
-  elements.officialResetHistoryClose.addEventListener("click", closeOfficialResetHistory);
-  elements.officialResetHistoryDone.addEventListener("click", closeOfficialResetHistory);
-  elements.officialResetHistoryModal.addEventListener("click", event => {
-    if (event.target === elements.officialResetHistoryModal) closeOfficialResetHistory();
-  });
-  elements.clientUpdateCard.addEventListener("click", openClientUpdateHistory);
-  elements.clientUpdateCard.addEventListener("keydown", event => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      openClientUpdateHistory();
-    }
-  });
-  elements.clientUpdateHistoryClose.addEventListener("click", closeClientUpdateHistory);
-  elements.clientUpdateHistoryDone.addEventListener("click", closeClientUpdateHistory);
-  elements.clientUpdateHistoryModal.addEventListener("click", event => {
-    if (event.target === elements.clientUpdateHistoryModal) closeClientUpdateHistory();
-  });
-  elements.tokenOverview.addEventListener("click", openTokenUsage);
-  elements.tokenOverview.addEventListener("keydown", event => {
-    if (event.target !== elements.tokenOverview) return;
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      openTokenUsage();
-    }
-  });
-  elements.tokenUsageClose.addEventListener("click", closeTokenUsage);
-  elements.tokenUsageDone.addEventListener("click", closeTokenUsage);
-  elements.tokenUsageModal.addEventListener("click", event => {
-    if (event.target === elements.tokenUsageModal) closeTokenUsage();
-  });
-  elements.resetCreditButton.addEventListener("click", openResetCredits);
-  elements.resetCreditButton.addEventListener("keydown", event => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      openResetCredits();
-    }
-  });
-  elements.resetCreditClose.addEventListener("click", closeResetCredits);
-  elements.resetCreditDone.addEventListener("click", closeResetCredits);
-  elements.resetCreditModal.addEventListener("click", event => {
-    if (event.target === elements.resetCreditModal) closeResetCredits();
-  });
-  elements.tokenCostHelp.addEventListener("click", event => {
-    event.stopPropagation();
-    closeStatScope(() => openTokenCost());
-  });
-  elements.fullCostScan.addEventListener("click", async () => {
-    if (elements.fullCostScan.disabled) return;
-    elements.fullCostScan.disabled = true;
-    try {
-      const cost = await window.codexMonitor.rescanCost();
-      if (latestSnapshot) latestSnapshot = { ...latestSnapshot, tokenCost: cost };
-      renderTokenCost(cost);
-    } catch {
-      elements.costScanProgress.textContent = t("costScanFailed");
-      elements.fullCostScan.disabled = false;
-    }
-  });
-  elements.tokenCostClose.addEventListener("click", closeTokenCost);
-  elements.tokenCostDone.addEventListener("click", closeTokenCost);
-  elements.tokenCostModal.addEventListener("click", event => {
-    if (event.target === elements.tokenCostModal) closeTokenCost();
-  });
-  elements.activeTaskCard.addEventListener("click", openActiveTasks);
-  elements.taskPerformance.addEventListener("click", openActiveTasks);
-  elements.taskPerformance.addEventListener("keydown", event => {
-    if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openActiveTasks(); }
-  });
-  elements.activeTaskCard.addEventListener("keydown", event => {
-    if (event.target !== elements.activeTaskCard) return;
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      openActiveTasks();
-    }
-  });
-  elements.activeTaskClose.addEventListener("click", closeActiveTasks);
-  elements.activeTaskDone.addEventListener("click", closeActiveTasks);
-  elements.activeTaskList.addEventListener("click", handlePendingTaskAction);
-  elements.confirmAllTasks.addEventListener("click", confirmAllCompletedTasks);
-  elements.taskFilter.addEventListener("change", renderActiveTaskDetails);
-  elements.taskSort.addEventListener("change", () => {
-    renderActiveTaskDetails();
-  });
-  elements.checkpointSignalSource.addEventListener("click", () => {
-    const commitment = currentCheckpointCommitment();
-    if (commitment) window.codexMonitor.openResetSource?.(commitment.sourceUrl);
-  });
-  elements.checkpointDashboardSource.addEventListener("click", () => window.codexMonitor.openResetSource?.(
-    latestCheckpoints?.probabilityMode === "source-experimental" ? "https://codex-reset.com/" : latestCheckpoints?.sourceUrl));
-  elements.resetProbabilityButton.addEventListener("click", () => openSecondaryModal(elements.resetProbabilityModal, elements.resetProbabilityClose));
-  const closeProbability = () => closeSecondaryModal(elements.resetProbabilityModal, elements.resetProbabilityButton);
-  elements.resetProbabilityClose.addEventListener("click", closeProbability);
-  elements.resetProbabilityDone.addEventListener("click", closeProbability);
-  elements.resetProbabilityModal.addEventListener("click", event => { if (event.target === elements.resetProbabilityModal) closeProbability(); });
-  elements.resetOfficialLink.addEventListener("click", () => closeSecondaryModal(elements.resetCreditModal, null, { onHidden: openOfficialResetHistory }));
-  elements.activeTaskModal.addEventListener("click", event => {
-    if (event.target === elements.activeTaskModal) closeActiveTasks();
-  });
-  elements.taskInterruptionDone.addEventListener("click", closeTaskInterruptionAlert);
-  document.querySelectorAll("[data-stat-scope]").forEach(button => {
-    button.addEventListener("click", event => {
-      event.preventDefault();
-      event.stopPropagation();
-      openStatScope(button);
+    requestAnimationFrame(() => {
+      if (window.Workbench.visible(elements.tokenUsageChart)) renderTokenUsageModal(false);
+      if (!elements.tokenCostModal.hidden) renderTokenCostDetails();
+      if (!elements.subscriptionModal.hidden) renderSubscriptionDetails();
+      drawTokenSparkline(); positionResetCalendars(); startPresentationClock();
     });
+  } });
+  workbenchReady = true;
+  applyLanguage(); applyBackground(); initializeCropper();
+  renderClientUpdate(); renderTokenUsage(); renderTokenCost(); renderActiveTasks();
+  const click = (id, callback) => document.getElementById(id).addEventListener("click", callback);
+  for (const [ids, close] of [
+    [["activeTaskClose","activeTaskDone"],closeActiveTasks],
+    [["tokenUsageClose","tokenUsageDone"],closeTokenUsage],
+    [["tokenCostClose","tokenCostDone"],closeTokenCost],
+    [["resetCreditClose","resetCreditDone"],closeResetCredits],
+    [["subscriptionClose","subscriptionDone"],closeSubscription],
+    [["officialResetHistoryClose","officialResetHistoryDone"],closeOfficialResetHistory],
+    [["clientUpdateHistoryClose","clientUpdateHistoryDone"],closeClientUpdateHistory],
+    [["resetProbabilityClose","resetProbabilityDone"],()=>window.Workbench.navigate("overview")],
+    [["settingsClose"],closeBackgroundPopover],
+    [["statScopeClose","statScopeDone"],()=>closeStatScope()],
+    [["taskDrawerClose"],closeTaskDrawer]
+  ]) for (const id of ids) click(id,()=>close());
+  for (const [id, open] of [["connectionStatusButton",openConnectionStatus],["connectionLabel",openSubscription],["resetCreditButton",openResetCredits],["officialResetButton",openOfficialResetHistory],["clientUpdateCard",openClientUpdateHistory],["tokenOverview",openTokenUsage],["activeTaskCard",openActiveTasks],["taskPerformance",openActiveTasks]]) {
+    click(id,open);
+    const node=document.getElementById(id);
+    if (node.tagName !== "BUTTON") node.addEventListener("keydown",event=>{
+      if(event.target===node && ["Enter"," "].includes(event.key)){event.preventDefault();open();}
+    });
+  }
+  click("languageButton",async()=>{ language=language === "zh"?"en":"zh"; await window.codexMonitor.setLanguage(language); applyLanguage(); });
+  elements.pinButton.addEventListener("change",async()=>{
+    try { alwaysOnTop=await window.codexMonitor.setAlwaysOnTop(elements.pinButton.checked); }
+    finally { elements.pinButton.checked=alwaysOnTop; }
   });
-  elements.statScopeClose.addEventListener("click", closeStatScope);
-  elements.statScopeDone.addEventListener("click", closeStatScope);
-  elements.statScopeModal.addEventListener("click", event => {
-    if (event.target === elements.statScopeModal) closeStatScope();
+  document.getElementById("closeBehavior").addEventListener("change",async event=>{
+    event.target.value=await window.codexMonitor.setCloseBehavior(event.target.value);
   });
-  elements.tokenPeriodSwitch.addEventListener("click", event => {
-    const button = event.target.closest("[data-token-period]");
-    if (!button || button.dataset.tokenPeriod === tokenPeriod) return;
-    tokenPeriod = button.dataset.tokenPeriod;
-    renderTokenUsageModal(true);
+  click("refreshButton",()=>refresh());
+  click("connectionStatusDone",closeConnectionStatus);
+  click("taskInterruptionDone",closeTaskInterruptionAlert);
+  click("resetProbabilityButton",()=>window.Workbench.navigate("quota","forecast"));
+  click("resetOfficialLink",openOfficialResetHistory);
+  click("checkpointSignalSource",()=>{ const commitment=currentCheckpointCommitment(); if(commitment)window.codexMonitor.openResetSource?.(commitment.sourceUrl); });
+  click("checkpointDashboardSource",()=>window.codexMonitor.openResetSource?.(latestCheckpoints?.probabilityMode === "source-experimental"?"https://codex-reset.com/":latestCheckpoints?.sourceUrl));
+  click("tokenCostHelp",event=>{ event.stopPropagation(); closeStatScope(()=>openTokenCost()); });
+  document.querySelectorAll("[data-stat-scope]").forEach(button=>button.addEventListener("click",event=>{event.preventDefault();event.stopPropagation();openStatScope(button);}));
+  click("confirmAllTasks",()=>{confirmAllCompletedTasks();syncWorkbench();});
+  elements.activeTaskList.addEventListener("click",event=>{
+    const detail=event.target.closest("[data-task-detail-id]");
+    if(detail){selectedTaskIdentity=detail.dataset.taskDetailId;renderTaskDrawer();elements.taskDetailDrawer.hidden=false;elements.taskDrawerClose.focus();return;}
+    handlePendingTaskAction(event);
   });
-  elements.tokenUsageChart.addEventListener("pointermove", updateTokenChartTooltip);
-  elements.tokenUsageChart.addEventListener("pointerleave", () => hideTokenChartTooltip());
-  elements.settingsButton.addEventListener("click", () => {
-    const shouldOpen = elements.settingsPopover.hidden;
-    elements.settingsPopover.hidden = !shouldOpen;
-    elements.settingsButton.classList.toggle("is-active", shouldOpen);
-    elements.backgroundError.hidden = true;
+  elements.taskFilter.addEventListener("change",renderActiveTaskDetails);
+  elements.taskSearch.addEventListener("input",renderActiveTaskDetails);
+  elements.taskSort.addEventListener("change",()=>{window.Workbench.remember("cqm2.taskSort",elements.taskSort.value);renderActiveTaskDetails();});
+  click("fullCostScan",async()=>{
+    if(elements.fullCostScan.disabled)return;elements.fullCostScan.disabled=true;
+    try{
+      const cost=await window.codexMonitor.rescanCost();
+      if(latestSnapshot)latestSnapshot={...latestSnapshot,tokenCost:cost,tokenUsage:window.TokenUsage.combineTokenUsage(latestSnapshot.tokenUsage,cost)};
+      renderTokenUsage(latestSnapshot?.tokenUsage);renderTokenCost(cost);
+    }catch{elements.costScanProgress.textContent=t("costScanFailed");elements.fullCostScan.disabled=false;}
   });
-  elements.settingsClose.addEventListener("click", closeBackgroundPopover);
-  const chooseBackgroundFile = async () => {
-    elements.backgroundError.hidden = true;
-    const result = await window.codexMonitor.chooseBackground();
-    if (result?.error === "FILE_TOO_LARGE") {
-      showBackgroundError("backgroundTooLarge");
-      return;
-    }
-    if (result?.error) {
-      showBackgroundError("unsupportedImage");
-      return;
-    }
-    if (!result?.canceled && result?.dataUrl) {
-      openCropper(result.dataUrl, result.name);
-    }
+  elements.tokenPeriodSwitch.addEventListener("click",event=>{
+    const button=event.target.closest("[data-token-period]");
+    if(!button || button.dataset.tokenPeriod===tokenPeriod)return;
+    tokenPeriod=button.dataset.tokenPeriod;renderTokenUsageModal(true);
+  });
+  elements.tokenUsageChart.addEventListener("pointermove",updateTokenChartTooltip);
+  elements.tokenUsageChart.addEventListener("pointerleave",()=>hideTokenChartTooltip());
+  const chooseBackgroundFile=async()=>{
+    elements.backgroundError.hidden=true;
+    try{const result=await window.codexMonitor.chooseBackground();
+      if(result?.error){showBackgroundError(result.error === "FILE_TOO_LARGE"?"backgroundTooLarge":"backgroundInvalidDimensions");return;}
+      if(result?.dataUrl)await importBackground(result.dataUrl);
+    }catch{showBackgroundError("unsupportedImage");}
   };
-  elements.chooseBackground.addEventListener("click", chooseBackgroundFile);
-  elements.backgroundDropZone.addEventListener("click", chooseBackgroundFile);
-  elements.backgroundDropZone.addEventListener("keydown", event => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      chooseBackgroundFile();
+  click("chooseBackground",chooseBackgroundFile);click("backgroundDropZone",chooseBackgroundFile);
+  elements.backgroundDropZone.addEventListener("keydown",event=>{if(["Enter"," "].includes(event.key)){event.preventDefault();chooseBackgroundFile();}});
+  for(const eventName of ["dragenter","dragover","dragleave","drop"])elements.backgroundDropZone.addEventListener(eventName,event=>{
+    event.preventDefault();event.stopPropagation();
+    elements.backgroundDropZone.classList.toggle("is-dragging",eventName === "dragenter" || eventName === "dragover");
+    if(eventName === "drop")readDroppedImage(event.dataTransfer?.files?.[0]);
+  });
+  document.addEventListener("dragover",event=>event.preventDefault());document.addEventListener("drop",event=>event.preventDefault());
+  click("editBackground",async()=>{const source=await window.codexMonitor.readBackgroundSource();if(source)openCropper(source);});
+  click("clearBackground",async()=>{await window.codexMonitor.clearBackground();backgroundDataUrl=null;applyBackground();});
+  elements.opacitySlider.addEventListener("input",event=>{backgroundOpacity=Number(event.target.value)/100;applyBackground();});
+  const bindings={backgroundX:"x",backgroundY:"y",backgroundZoom:"zoom",backgroundBlur:"blur",backgroundVeil:"veil",cardOpacity:"cardOpacity"};
+  for(const [id,key]of Object.entries(bindings))document.getElementById(id).addEventListener("input",event=>{backgroundAppearance[key]=Number(event.target.value);applyBackground();});
+  document.getElementById("backgroundFit").addEventListener("change",event=>{backgroundAppearance.fit=event.target.value;applyBackground();});
+  document.getElementById("allowBackgroundUpscale").addEventListener("change",event=>{backgroundAppearance.allowUpscale=event.target.checked;applyBackground();});
+  document.getElementById("reducedTransparency").addEventListener("change",event=>{backgroundAppearance.reducedTransparency=event.target.checked;applyBackground();});
+  click("applyAppearance",async()=>{
+    const button=document.getElementById("applyAppearance");button.disabled=true;
+    try{
+      backgroundAppearance=await window.codexMonitor.setAppearance(backgroundAppearance);
+      backgroundOpacity=await window.codexMonitor.setBackgroundOpacity(backgroundOpacity);
+      savedAppearance={...backgroundAppearance};savedBackgroundOpacity=backgroundOpacity;
+      applyBackground();document.getElementById("appearanceStatus").textContent=t("appearanceSaved");
+    }catch{document.getElementById("appearanceStatus").textContent=t("appearanceSaveFailed");}
+    finally{button.disabled=false;}
+  });
+  click("cancelAppearance",()=>{backgroundAppearance={...savedAppearance};backgroundOpacity=savedBackgroundOpacity;applyBackground();document.getElementById("appearanceStatus").textContent="";});
+  const update=await window.codexMonitor.readMonitorUpdate?.();renderMonitorUpdate(update);
+  click("monitorUpdateCheck",async()=>renderMonitorUpdate(await window.codexMonitor.checkMonitorUpdate()));
+  click("monitorUpdateInstall",async()=>{elements.monitorUpdateInstall.disabled=true;try{await window.codexMonitor.installMonitorUpdate();}finally{elements.monitorUpdateInstall.disabled=false;}});
+  rendererUnsubscribers.push(window.codexMonitor.onMonitorUpdate?.(renderMonitorUpdate));
+  rendererUnsubscribers.push(window.codexMonitor.onRefresh(()=>refresh()));
+  rendererUnsubscribers.push(window.codexMonitor.onAlwaysOnTop(enabled=>{alwaysOnTop=enabled;elements.pinButton.checked=enabled;}));
+  unsubscribeSnapshot=window.codexMonitor.onSnapshot?.(snapshot=>{if(!isRefreshing)applySnapshot(snapshot);});
+  unsubscribeTasks=window.codexMonitor.onTasks?.(result=>{
+    if(latestSnapshot?.activeTasks?.observedAt>result.observedAt)return;
+    if(latestSnapshot)latestSnapshot={...latestSnapshot,activeTasks:result};renderActiveTasks(result);
+  });
+  unsubscribeCheckpoints=window.codexMonitor.onCheckpoints?.(checkpoint=>{if(latestSnapshot)latestSnapshot={...latestSnapshot,resetCheckpoints:checkpoint};renderCheckpoints(checkpoint);});
+  rendererUnsubscribers.push(window.codexMonitor.onCost?.(cost=>{
+    if(latestSnapshot)latestSnapshot={...latestSnapshot,tokenCost:cost,tokenUsage:window.TokenUsage.combineTokenUsage(latestSnapshot.tokenUsage,cost)};
+    renderTokenUsage(latestSnapshot?.tokenUsage);renderTokenCost(cost);
+  }));
+  chartResizeObserver=new ResizeObserver(()=>{
+    requestAnimationFrame(()=>{if(window.Workbench.visible(elements.tokenUsageChart))renderTokenChart(false);drawTokenSparkline();layoutCropper(true);applyBackground();});
+  });
+  chartResizeObserver.observe(document.getElementById("workspaceContent"));chartResizeObserver.observe(elements.cropStage);
+  document.addEventListener("keydown",event=>{
+    if(event.key === "F5"){event.preventDefault();refresh();return;}
+    const modal=[...document.querySelectorAll('[aria-modal="true"]')].find(node=>!node.hidden && !node.inert);
+    if(event.key === "Tab" && modal){
+      const controls=[...modal.querySelectorAll('button,input,select,[tabindex="0"]')].filter(node=>!node.disabled && window.Workbench.visible(node));
+      const first=controls[0],last=controls.at(-1);
+      if(event.shiftKey && (document.activeElement===first || !modal.contains(document.activeElement))){event.preventDefault();last?.focus();}
+      else if(!event.shiftKey && (document.activeElement===last || !modal.contains(document.activeElement))){event.preventDefault();first?.focus();}
     }
+    if(event.key!=="Escape")return;
+    if(!elements.cropModal.hidden){if(!elements.cropApply.disabled)closeCropModal();}
+    else if(!elements.statScopeModal.hidden)closeStatScope();
+    else if(!elements.taskInterruptionModal.hidden)closeTaskInterruptionAlert();
+    else if(!elements.connectionStatusModal.hidden)closeConnectionStatus();
+    else if(!elements.taskDetailDrawer.hidden)closeTaskDrawer();
   });
-  for (const eventName of ["dragenter", "dragover"]) {
-    elements.backgroundDropZone.addEventListener(eventName, event => {
-      event.preventDefault();
-      event.stopPropagation();
-      elements.backgroundDropZone.classList.add("is-dragging");
-      if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
-    });
-  }
-  for (const eventName of ["dragleave", "drop"]) {
-    elements.backgroundDropZone.addEventListener(eventName, event => {
-      event.preventDefault();
-      event.stopPropagation();
-      elements.backgroundDropZone.classList.remove("is-dragging");
-      if (eventName === "drop") readDroppedImage(event.dataTransfer?.files?.[0]);
-    });
-  }
-  document.addEventListener("dragover", event => event.preventDefault());
-  document.addEventListener("drop", event => event.preventDefault());
-  elements.clearBackground.addEventListener("click", async () => {
-    await window.codexMonitor.clearBackground();
-    backgroundDataUrl = null;
-    applyBackground();
-  });
-  elements.opacitySlider.addEventListener("input", event => {
-    backgroundOpacity = Number(event.target.value) / 100;
-    applyBackground();
-  });
-  elements.opacitySlider.addEventListener("change", async () => {
-    backgroundOpacity = await window.codexMonitor.setBackgroundOpacity(backgroundOpacity);
-    applyBackground();
-  });
-  window.codexMonitor.onRefresh(() => refresh());
-  window.codexMonitor.onAlwaysOnTop(enabled => {
-    alwaysOnTop = enabled;
-  });
-  window.codexMonitor.onWindowModeChanged((collapsed, anchor) => {
-    applyWindowModeVisual(collapsed, anchor);
-    windowModeChanging = false;
-    if (!collapsed) renderTokenUsage(latestSnapshot?.tokenUsage);
-  });
-  window.codexMonitor.onTopDockChanged(state => applyTopDockState(state));
-  window.codexMonitor.notifyTopDockReady();
-  document.addEventListener("keydown", event => {
-    if (event.key !== "Escape") return;
-    if (!elements.statScopeModal.hidden) closeStatScope();
-    else if (!elements.taskInterruptionModal.hidden) closeTaskInterruptionAlert();
-    else if (!elements.subscriptionModal.hidden) closeSubscription();
-    else if (!elements.tokenCostModal.hidden) closeTokenCost();
-    else if (!elements.activeTaskModal.hidden) closeActiveTasks();
-    else if (!elements.tokenUsageModal.hidden) closeTokenUsage();
-    else if (!elements.resetCreditModal.hidden) closeResetCredits();
-    else if (!elements.clientUpdateHistoryModal.hidden) closeClientUpdateHistory();
-    else if (!elements.resetProbabilityModal.hidden) closeSecondaryModal(elements.resetProbabilityModal, elements.resetProbabilityButton);
-    else if (!elements.officialResetHistoryModal.hidden) closeOfficialResetHistory();
-    else if (!elements.settingsPopover.hidden) closeBackgroundPopover();
-  });
-
-  unsubscribeSnapshot = window.codexMonitor.onSnapshot?.(snapshot => {
-    if (!isRefreshing) applySnapshot(snapshot);
-  });
-  unsubscribeTasks = window.codexMonitor.onTasks?.(result => {
-    if (latestSnapshot?.activeTasks?.observedAt > result.observedAt) return;
-    if (latestSnapshot) latestSnapshot = { ...latestSnapshot, activeTasks: result };
-    renderActiveTasks(result);
-  });
-  unsubscribeCheckpoints = window.codexMonitor.onCheckpoints?.(checkpoint => {
-    if (latestSnapshot) latestSnapshot = { ...latestSnapshot, resetCheckpoints: checkpoint };
-    renderCheckpoints(checkpoint);
-  });
-  window.codexMonitor.onCost?.(cost => {
-    if (latestSnapshot) latestSnapshot = { ...latestSnapshot, tokenCost: cost };
-    renderTokenCost(cost);
-  });
-  document.addEventListener("visibilitychange", startPresentationClock);
-  window.addEventListener("online", () => refresh({ silent: true }));
-  window.addEventListener("offline", () => refresh({ silent: true }));
-  await refresh({ initial: true });
-  startPresentationClock();
+  for(const [node,close]of [[elements.connectionStatusModal,closeConnectionStatus],[elements.statScopeModal,()=>closeStatScope()],[elements.cropModal,()=>{if(!elements.cropApply.disabled)closeCropModal();}]])node.addEventListener("click",event=>{if(event.target===node)close();});
+  document.addEventListener("visibilitychange",()=>{if(document.hidden){cancelAnimationFrame(tokenChartAnimationFrame);tokenChartAnimationActive=false;}startPresentationClock();});
+  window.addEventListener("online",()=>refresh({silent:true}));window.addEventListener("offline",()=>refresh({silent:true}));
+  await refresh({initial:true});startPresentationClock();
 }
 
-window.addEventListener("DOMContentLoaded", initialize);
-window.addEventListener("beforeunload", () => {
-  clearTopDockLeaveTimer();
-  unsubscribeSnapshot?.(); unsubscribeTasks?.(); unsubscribeCheckpoints?.();
-  if (presentationFrame !== null) cancelAnimationFrame(presentationFrame);
-  cancelAnimationFrame(tokenChartAnimationFrame);
+window.addEventListener("DOMContentLoaded",()=>initialize().catch(()=>{
+  console.error("Workspace initialization failed");
+  elements.loadingLayer.classList.add("is-hidden");elements.connectionLabel.textContent=t("connectionDisconnectedLabel");
+}));
+window.addEventListener("beforeunload",()=>{
+  unsubscribeSnapshot?.();unsubscribeTasks?.();unsubscribeCheckpoints?.();rendererUnsubscribers.forEach(unsubscribe=>unsubscribe?.());
+  chartResizeObserver?.disconnect();if(presentationFrame!==null)cancelAnimationFrame(presentationFrame);cancelAnimationFrame(tokenChartAnimationFrame);
 });

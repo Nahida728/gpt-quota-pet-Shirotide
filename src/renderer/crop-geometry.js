@@ -1,6 +1,16 @@
 (function exposeCropGeometry(global) {
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
+  function backgroundSize(viewWidth, viewHeight, imageWidth, imageHeight, options = {}, pixelRatio = 1) {
+    if (![viewWidth, viewHeight, imageWidth, imageHeight].every(value => Number.isFinite(value) && value > 0)) return null;
+    const nativeScale = 1 / Math.max(1, Number.isFinite(pixelRatio) ? pixelRatio : 1);
+    const fitScale = options.fit === "cover" ? Math.max(viewWidth / imageWidth, viewHeight / imageHeight)
+      : options.fit === "actual" ? nativeScale : Math.min(viewWidth / imageWidth, viewHeight / imageHeight);
+    const zoom = Number.isFinite(options.zoom) ? clamp(options.zoom, 100, 200) / 100 : 1;
+    const scale = Math.min(fitScale * zoom, options.allowUpscale === true ? Infinity : nativeScale);
+    return { width: imageWidth * scale, height: imageHeight * scale };
+  }
+
   function containedImageRect(stageWidth, stageHeight, imageWidth, imageHeight) {
     if (![stageWidth, stageHeight, imageWidth, imageHeight].every(value => Number.isFinite(value) && value > 0)) {
       return null;
@@ -69,6 +79,7 @@
   }
 
   const api = {
+    backgroundSize,
     containedImageRect,
     initialCrop,
     moveCrop,

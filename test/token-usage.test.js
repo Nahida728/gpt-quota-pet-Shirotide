@@ -107,6 +107,20 @@ test("a fresh official account snapshot replaces an older higher cached value", 
   });
 });
 
+test("summary-only reads retain the complete account snapshot used for fee calibration", () => {
+  const first = normalizeTokenUsageResponse({ summary: { lifetimeTokens: 1000 },
+    dailyUsageBuckets: [{ startDate: "2026-10-28", tokens: 1000 }] }, {}, 1000);
+  const incomplete = normalizeTokenUsageResponse({ summary: { lifetimeTokens: 1200 } }, first.persistence, 2000);
+  assert.equal(incomplete.cached, true);
+  assert.equal(incomplete.lifetimeTokens, 1000);
+  assert.deepEqual(incomplete.dailyUsageBuckets, first.dailyUsageBuckets);
+  assert.deepEqual(incomplete.persistence, {});
+  const corrected = normalizeTokenUsageResponse({ summary: { lifetimeTokens: 0 }, dailyUsageBuckets: [] }, first.persistence, 3000);
+  assert.equal(corrected.cached, false);
+  assert.equal(corrected.lifetimeTokens, 0);
+  assert.deepEqual(corrected.dailyUsageBuckets, []);
+});
+
 test("aggregates token buckets by day, Monday-based week, and month with empty gaps", () => {
   const buckets = normalizeDailyBuckets([
     { startDate: "2026-06-30", tokens: 5 },

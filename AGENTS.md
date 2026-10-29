@@ -12,8 +12,8 @@ mode, or regression is discovered.
 ## Scope and packaging
 
 - This is a Windows x64 Electron desktop application, not a website.
-- The production UI uses one fixed 460 × 690 transparent, frameless liquid-glass
-  window whose visible region can be clipped to a 76 × 76 floating orb.
+- The production UI is a normal, resizable Windows desktop workspace with one
+  persistent frameless, opaque window. Its default size is 1360 × 900 DIP.
 - `AGENTS.md` is development-only. It must be committed to the repository but
   must never be included in portable, installer, unpacked, or ASAR output.
 - Keep `build.files` as an explicit allowlist containing only `src/**/*` and
@@ -85,24 +85,21 @@ The monitor must:
 - Support complete Chinese and English UI.
 - Support click-to-upload and drag-to-upload backgrounds, manual fixed-ratio
   cropping, and background opacity.
-- Support native window movement, position lock, always-on-top, tray hide/show,
-  manual refresh, event-driven synchronization and bounded low-frequency fallback checks.
-- Support optional single-window top-edge docking: after an unlocked card is
-  moved within a generous acquisition zone of a display's top edge, snap and
-  retract the same fixed surface above that display, leave one small
-  downward-arrow hit target, reveal on pointer approach, and allow the revealed
-  card to be deliberately dragged away without polling the cursor. Use hysteresis:
-  a docked card tolerates a substantially larger downward movement than an
-  undocked card needs to acquire the top edge.
-- Support immediate collapse to a freely movable floating orb and restoration to
-  the full card without a cross-window snapshot animation.
+- Support standard native movement, resizing, maximize/restore, system snapping,
+  taskbar access, optional always-on-top, tray hide/show and configurable close.
+- Use a white and sky-cyan palette with user images behind frosted white cards.
+- Provide six pages: overview, usage/cost, tasks, quotas/resets, client updates,
+  and settings. All existing data and history actions remain reachable.
+- Top docking, floating orb, fixed small-window mode and position locking were
+  explicitly retired by the user for 2.0. Do not restore their IPC or UI.
 
-Do not remove or weaken an existing function while implementing a visual change.
+Preserve data and business behavior during visual changes. The retired window
+modes above are the explicit user-authorized exception.
 
 ## Architecture
 
 - `src/main.js`
-  - Electron lifecycle, fixed window constraints, tray, native dialogs, settings
+  - Electron lifecycle, desktop window state, tray, native dialogs, settings
     IPC, background persistence.
 - `src/preload.js`
   - Minimal sandboxed bridge. Keep the exposed API narrow.
@@ -133,7 +130,7 @@ Do not remove or weaken an existing function while implementing a visual change.
 - `src/renderer/index.html`
   - Semantic UI structure.
 - `src/renderer/styles.css`
-  - Fixed-size liquid-glass layout, native drag regions, overflow behavior.
+  - Entry stylesheet importing the responsive white/cyan workbench styles.
 - `src/renderer/renderer.js`
   - i18n dictionaries, rendering, interactions, crop workflow, refresh state.
 - `src/renderer/crop-geometry.js`
@@ -153,257 +150,53 @@ Renderer security settings are non-negotiable:
 - No credentials, API keys, tokens, raw app-server payloads, or conversation
   content exposed to or logged by the renderer
 
-## Fixed window and dragging invariants
+## Desktop window and layout invariants (2.0)
 
-The app uses exactly one persistent 460 × 690 native window:
+- Keep one persistent normal BrowserWindow with frame: false, transparent: false,
+  resizable: true and maximizable: true. Never set a shape, fixed maximum size,
+  resize prevention, native mode-switch surfaces or pointer-driven bounds loops.
+- Use titleBarStyle: hidden and a native Windows titleBarOverlay for caption
+  buttons and snap/maximize behavior. Only the toolbar free space and brand use
+  native app-region: drag; every button, input and connection control is no-drag.
+  Keep native resize edges. No custom edge drag strips or orb gesture bridge. Keep single-instance protection, tray and
+  the bounded package-verified Codex focus handoff.
+- Restore normal bounds and maximize state from desktopWindow, separate from old
+  windowBounds. Clamp to valid display work areas including high-DPI and removed
+  monitors. Never save minimized bounds. Lower minimum dimensions for a smaller
+  work area instead of placing controls outside the screen.
+- First use targets 1360 × 900 DIP, with a usual minimum of 1000 × 680 DIP.
+  Work areas smaller than that remain usable with scrolling and compact navigation.
+- Migrate window/appearance settings only. Keep appId, userData, quota-state,
+  persistent model ledger, archive generations and business counters unchanged.
+- Six pages share one state/snapshot stream. Complex details are page panels or
+  a task drawer; diagnostics, coverage, background composition and abnormal-task
+  acknowledgement are bounded overlays with keyboard focus management.
+- Scope page selection to .workspace-page[data-page]. The body's current-page
+  metadata is not a page: hiding it during navigation blanks the whole app.
+- Keep the three independent quotas, reset histories, forecast limitations,
+  version timeline, subscription countdown, token accounting, model pricing,
+  task outcomes/confirmation and telemetry fields available in both languages.
+- Compress card padding and summary heights rather than reducing readable text.
+  Use shared SVG symbols with consistent stroke, viewBox and decorative semantics.
+- Sidebar and toolbar stay outside the scrolling content area. Wider windows
+  use multi-column grids; narrower ones reflow without shrinking text. Tables
+  may scroll inside their own container. Important copy never uses ellipsis.
+- User background remains continuous behind all pages, cards and drawers. Keep
+  readable foreground contrast independently from image strength. Bound blur
+  layers, stop hidden charts and respect reduced motion/transparency.
+- Resizing uses actual chart-container dimensions. Refreshes preserve navigation,
+  sort/filter state, scroll position, selected task and focus. UI actions must not
+  recalculate or clear retained numeric records.
+- Coverage markers remain in secondary usage/task analysis, not overview cards.
+  Model price catalogs display unavailable rates as unavailable rather than zero.
+- Offline is a remote-quota state. Local indexing or task activity cannot imply
+  online. Keep the last safe display and permanent histories available offline.
 
-- Width, height, minimum size, and maximum size remain 460 × 690 for the whole
-  lifetime.
-- Floating-orb mode clips that same native surface and hit-test region to a
-  76 × 76 rectangle at the saved anchor with `setShape()`. The renderer hides
-  the full card and draws an antialiased CSS circle inside that transparent
-  region. It does not create, hide, show, resize, or swap another BrowserWindow.
-- Do not create an orb BrowserWindow, transition BrowserWindow, capture renderer
-  snapshots, or interpolate native bounds. A bounded two-frame renderer paint
-  synchronization before applying a small native shape is allowed to prevent a
-  stale full-card frame from being clipped into the orb or top-dock tab.
-- Restore the full-card native region with `setShape([])`, the Electron reset
-  operation. Do not substitute a nominal 460 × 690 custom region: Windows may
-  retain that stale clipping region after rapid top-dock or orb transitions.
-- Keep `resizable: false`, `maximizable: false`, `fullscreenable: false`,
-  `frame: false`, `thickFrame: false`, and `hasShadow: false`.
-- Keep the native `will-resize` prevention as a final guard.
-- Never create transparent padding outside the visible rounded card.
-- Never add a system shadow or wrapper that produces an outer ring.
-
-Movement must use Electron/Chromium native `-webkit-app-region: drag` areas:
-
-- The title-bar free space and all four edge strips are drag regions.
-- Buttons, connection controls, popovers, dialogs, upload controls, crop controls,
-  status buttons, and scrollable lists are `no-drag`.
-- Keep `.titlebar` itself `no-drag`; its expanding `.brand` child owns the native
-  drag region and the sibling `.window-actions` remains `no-drag`. Making the
-  whole title bar draggable can swallow every action-button click while unlocked.
-- Keep the collapse control in the connection strip's ordinary `no-drag`
-  interaction area. The Windows title hit-test path is not reliable enough for
-  this mode-changing action while the card is movable.
-- When position is locked, every full-card drag region must be disabled together.
-  The floating orb remains movable so it can always be repositioned.
-- Crop, history, and Token analytics views must keep native drag access through
-  their free heading space and all four edge strips; their close and content
-  controls remain `no-drag`.
-- The floating orb's whole 76 × 76 surface starts one Windows native system-move
-  command through the narrow preload bridge. When that command returns, unchanged
-  native bounds restore the card and changed bounds retain the moved orb.
-- Collapse and expand share the collapse button's measured screen anchor.
-  Moving the orb changes where the full card is restored.
-- The orb uses the existing application icon and must have no `no-drag` hole.
-- Lock controls window movement only. It is not the always-on-top setting.
-- Outside the explicitly bounded orb gesture above, do not implement
-  pointer/mouse move loops that call `setBounds`, `setPosition`, or continually
-  calculate cursor deltas.
-- Do not use resize hit-testing as a substitute for movement.
-- Do not change edge-strip width or stacking without interactive verification.
-- Saving the final position may be debounced; moving the window may not be.
-- Tray show/focus must never synthesize or preserve a drag gesture.
-
-### Historical and recurring movement failures
-
-These regressions have occurred repeatedly and require manual testing after any
-change to main-process window options, CSS hit regions, overlays, or tray logic:
-
-1. The window could only be dragged from the title bar.
-2. Pressing an edge stretched the window indefinitely.
-3. An edge oscillated between resize and forced fixed size.
-4. Edge hover hit-testing became intermittent or impossible.
-5. The window began stretching only after movement started.
-6. Dragging became severely laggy due to per-frame JS movement or bound writes.
-7. Clicking the tray icon woke the window already attached to the mouse cursor,
-   blocking other mouse actions.
-8. Fixing lag accidentally made all drag regions stop working.
-9. A transparent or shadowed outer border appeared around the card.
-10. The visual card collapsed toward the window corner, then jumped sideways to
-    an orb because the animation and native bounds change used different anchors.
-11. Any separate restore hotspot inside the orb made “drag anywhere” false.
-12. Resizing the live renderer during collapse or expand caused flashing,
-    stuttering, and hard positional jumps. Keep one fixed 460 × 690 window and
-    change only its native shape.
-13. Snapshot transition overlays repeatedly caused click stalls, DWM flashes,
-    missed completion events, stale loading screenshots, and unclickable frames.
-    The overlay, capture pipeline, and transition renderer are retired.
-14. DOM-derived collapse anchors may contain fractional coordinates, which blur
-    the orb icon and misalign native clipping. Round the anchor and final window
-    positions, and always clear the mode-change guard in a `finally` block so one
-    failure cannot permanently disable collapse.
-15. Keeping two live windows visible, hiding/showing them, using native opacity
-    zero, and parking one offscreen all proved unreliable: Windows can recycle or
-    remount transparent surfaces and restore focus/z-order unexpectedly.
-16. Polling the cursor and calling `setPosition` every animation frame makes the
-    orb trail the pointer and then jump. Start one Windows system-move command and
-    compare the native bounds after it returns; never drive orb movement from a
-    JavaScript timer.
-17. Same-level `moveTop()` calls are not a reliable Windows z-order contract and
-    can leave the disabled full card above the orb. Do not use z-order swapping
-    as mode state.
-18. An opaque shaped orb produced a visible black 76 × 76 square on affected
-    Windows systems. Keep the orb and native window transparent, hide the full
-    card while collapsed, and load the orb before enabling the collapse control.
-19. A visually ambitious cross-window animation is not worth blocking the mode
-    switch. Do not reintroduce `capturePage`, transition IPC, animation waits, or
-    a third BrowserWindow without a native-compositor design and explicit user
-    approval.
-20. Multiple monitor processes can leave an old orb and a new full card visible
-    simultaneously, producing apparent flicker and stale behavior. Hold Electron's
-    single-instance lock for the whole app lifetime. A second launch restores the
-    existing instance instead of creating another window set.
-21. Electron drag regions intentionally ignore renderer pointer events. A center
-    `no-drag` expand control made dragging depend on where the user pressed, while
-    hooked non-client messages failed to deliver reliable click release events on
-    the transparent shaped window. Keep the whole orb `no-drag`, capture one
-    renderer `pointerdown`, and immediately hand movement to Windows with
-    `ReleaseCapture` plus the synchronous
-    `SendMessage(WM_SYSCOMMAND, SC_MOVE | HTCAPTION)` modal move loop. Sending a
-    synthetic `WM_NCLBUTTONDOWN` is not sufficient because Chromium can consume
-    it and return before movement begins. Electron's native handle Buffer stores
-    the HWND value; decode that value before passing it to Koffi and validate it
-    with `IsWindow` rather than passing the Buffer's memory address. Do not use
-    focus heuristics, delayed click timers, or JavaScript movement loops.
-22. Register the full card's `ready-to-show` listener before calling `loadFile`.
-    Fast local loads can otherwise emit the event first and leave a healthy
-    process with both live windows hidden.
-23. Some transparent-window starts may never emit `ready-to-show` despite a
-    successful renderer load. Use one idempotent initial-show function from both
-    `ready-to-show` and `webContents.did-finish-load`.
-24. Even an animation-free show/hide swap between two transparent BrowserWindows
-    can flash because DWM remounts a surface. Orb mode therefore uses `setShape`
-    on the existing full-size window and a pre-rendered in-page orb; mode changes
-    must not call native show/hide or switch compositor surfaces.
-25. Focus is not a click signal. Expanding on focus makes the orb open as soon as
-    the user presses it to drag, while blur/focusability toggles add latency. Keep
-    focus stable and classify native down/move/up for both lock states.
-26. A stale single-instance process can make every source restart appear to have
-    failed. Before manual verification, confirm the root Electron PID and creation
-    time changed; do not trust a launch command alone.
-27. A circular `setShape()` boundary exposes Windows' integer scanline aliasing,
-    and overscanning it exposes pieces of the full card beneath the orb. Use a
-    76 × 76 rectangular native region, hide the full card while collapsed, and
-    let the clipped CSS orb provide the only visible antialiased circle.
-28. Persistent data states must not reuse hover-like card backgrounds. Official
-    reset history is conveyed by copy and its positive status icon; hover styling
-    only appears while the pointer is actually over the card.
-29. `opacity: 0` and `pointer-events: none` do not disable an Electron native drag
-    region. The hidden orb must be explicitly `no-drag` in full-card mode, then
-    become `drag` only in collapsed mode; otherwise it silently covers part of
-    the language and connection controls.
-30. A hidden center `no-drag` control made the orb appear to fail randomly: center
-    presses could not move it while edge presses could. The expand control may
-    remain for keyboard accessibility, but in collapsed mode its whole surface is
-    part of the native drag region and has no pointer hit target.
-31. Top-dock reveal can emit synthetic move and pointer-leave events while the
-    native window moves from its off-screen tab position. Ignore the internal
-    move, do not re-run automatic retract for an already docked window, and
-    refuse renderer retract requests while the pointer is within the restored
-    full bounds or the reveal grace period is active.
-32. Applying the top-tab native shape before its renderer frame has painted can
-    remove the last visible and interactive pixels. Require a bounded two-frame
-    renderer acknowledgement carrying the tab's measured bounds before clipping;
-    add the native content-area inset instead of assuming the content and outer
-    bounds share an origin. If acknowledgement fails, keep the full card visible.
-    On reveal, move the still-clipped tab first, clear the native shape with
-    `setShape([])`, and only then expose the full card.
-33. On fractional Windows display scaling, repeated `setPosition()` calls around
-    shaped-window transitions can accumulate native width and height rounding,
-    moving the renderer tab away from its native region and progressively
-    clipping the restored card. Every programmatic top-dock/show reposition must
-    use one non-animated `setBounds()` call that reasserts 460 × 690. This is a
-    bounded transition correction, never a pointer-driven movement loop.
-34. A single small threshold for both top-dock acquisition and release makes the
-    card detach on a tiny movement yet remain difficult to snap back. Keep
-    separate hysteresis thresholds: acquire within 96 device-independent pixels,
-    retain docking until moved more than 160 pixels down, and evaluate only after
-    native movement settles. Do not clear dock state in the live `move` event.
-
-Do not call a dragging change complete from static inspection. Manually verify:
-
-- unlocked title drag;
-- unlocked top, right, bottom, and left edge drag;
-- smooth continuous movement for several seconds;
-- unchanged 460 × 690 bounds throughout full-card movement;
-- locked title and edge behavior;
-- immediate clipping to a 76 × 76 visible orb, smooth unlocked orb drag, click
-  restore, and unchanged 460 × 690 native bounds throughout;
-- locked orb behavior and restoration while locked;
-- controls near each edge remain clickable;
-- hide to tray, single-click restore, release the mouse, then use other controls;
-- no cursor capture, sticking, resize cursor, jitter, lag, or outer ring.
-
-## Layout and readability invariants
-
-- The three quotas share one compact glass surface with three columns and horizontal bars: 5-hour,
-  weekly and GPT Reserve. An unavailable Reserve bucket stays explicitly unavailable.
-- The three status cards immediately below it are reset management (available
-  credits and official resets), independent 24/48-hour reset odds, and client update.
-- The available-reset card is the entry point to a secondary detail view that
-  shows current credit details, permanent newly received history, and permanent
-  user-consumed history.
-- The Token overview sits below the three status cards and opens the full chart
-  dialog. The active-task card occupies the final content area below it and opens
-  a scrollable concurrent-task detail view.
-- Between quotas and status cards, show a compact latest-completed-turn board
-  with first-token latency, total tokens, peak/minimum/average output rates.
-  First-token latency must come from `time_to_first_token_ms`, never an invented
-  subtraction. Total tokens include input (already containing cached input) plus
-  output. Peak/minimum are rates between timestamped token-counter records;
-  whole-turn average includes tool/wait time. Label these as recorded intervals,
-  not decoder throughput. De-duplicate replayed counters; counter rollback,
-  uncovered output, missing timestamps or partial scans invalidate extrema.
-  Missing fields remain unavailable; partial token totals are lower bounds.
-  Disclose the bounded local population and exclusions in the task dialog.
-- The active-task card uses its full height: one compact title row, then a
-  left/right split. The left side is a 2 × 4 data table for running, pending,
-  longest duration, highest cost, average duration, average cost, total tasks,
-  and total elapsed time. The right side previews at most two running projects
-  with model, elapsed time, and cost. Pending completed/interrupted rows live in
-  the detail dialog rather than occupying the main-card preview. Additional
-  running tasks use a localized “more” count and remain available in details.
-- Keep only one refresh control: the refresh button in the connection strip.
-  The removed top-left refresh button must not return.
-- The footer and full-height active-task card remain unchanged in online and
-  offline states. Offline guidance is an overlay dialog and must never be inserted
-  into or squeeze the main layout.
-- Default body text must be comfortably readable at 460 × 690. Do not reduce text
-  merely to make a layout fit.
-- English strings must wrap or reflow. Do not use `text-overflow: ellipsis` for
-  status, quota, reset, update, or accessibility-critical copy.
-- Check real English text, not only placeholder dashes.
-- Keep the liquid-glass layers, translucency, blur, refraction, subtle borders,
-  and readable contrast over both light and dark custom backgrounds.
-- Secondary dialogs must remain translucent enough for the user's custom
-  background to stay visibly continuous behind them.
-- The task detail dialog may use nearly the full fixed window height. Give its
-  eight summary cards enough height for unbroken metric labels and values; wrap
-  only at word boundaries rather than splitting Chinese labels or English words.
-- Secondary dialogs enter and exit through one interruptible renderer-only
-  opacity/translate/scale state machine, including a bounded close fallback.
-  Entrance content may stagger, but all motion must honor reduced motion. Do not
-  resize, hide, or replace the native window to animate a dialog.
-
-### Reset-list capacity
-
-- Show each returned credit as its own row.
-- Current credit details live in the reset-credit secondary dialog, not on the
-  main card.
-- One through six rows must fit inside that dialog without moving the window
-  boundary.
-- Reset rows use a compact fixed height and must never stretch vertically just
-  because only one or two credits are available.
-- More than six rows must scroll inside the reset list.
-- Large counts must not stretch the window or squeeze the main quota and status
-  rows.
-- If the service returns a total count but temporarily omits some details, render
-  the known rows plus one localized missing-details row.
-- Newly received history has its own bounded scroll area in the same dialog so
-  current details and the close action remain reachable.
+After native window changes verify title movement, four-edge resizing, maximize/
+restore, minimize, system snapping, taskbar/tray restore and a second launch.
+Verify 1000 × 680 / 1360 × 900 and smaller work areas, 125/150/200% scaling,
+monitor removal and readable Chinese/English with light/dark custom backgrounds.
+Never claim native interaction verification from static source checks alone.
 
 ## Quota normalization
 
@@ -513,7 +306,7 @@ available reset credit. If the available count decreases across the same snapsho
 - The task dialog supports context/status filtering, persistent sorting and one
   action confirming all completed rows. Confirming does not alter numeric records
   or dismiss running/interrupted rows. Verify controls and close buttons in both
-  languages; movement/orb/window-size invariants remain mandatory.
+  languages; standard desktop movement/resizing and state recovery remain mandatory.
 - GPT-6.1 Sol pricing uses the official Standard card dated 2026-10-10:
   USD/million input 2, cached input 0.10, cache write 2.5, output 10; beyond
   272K input use 2x input classes and 1.5x output. Pricing-only changes must preserve compatible schema-6 and schema-7
@@ -564,7 +357,7 @@ client's visible “Update” button before installation. Do not regress to that
 
 - Read account usage only through the local app-server `account/usage/read`
   request with protocol `params: null`.
-- Use `summary.lifetimeTokens` as the cumulative account total. Derive cumulative
+- Keep `summary.lifetimeTokens` as the separate official account total. Derive cumulative
   work days deterministically from normalized non-zero `dailyUsageBuckets`; do
   not infer either value from local conversations or quota percentages.
 - Normalize `dailyUsageBuckets` by validated `YYYY-MM-DD` dates and non-negative
@@ -593,7 +386,7 @@ client's visible “Update” button before installation. Do not regress to that
   regular expressions so safe provider prefixes and routing/date suffixes do not
   hide a known model; never use a bare substring or price an unknown variant.
 - Codex++ reports third-party uncached input and cached input as disjoint counts.
-  Add them for displayed total input and cost splitting, and do not calibrate
+  Add disjoint counts for total input and cost splitting; explicit vendor cache fields or consistent total counters distinguish inclusive input. Do not calibrate
   recognized third-party usage against OpenAI account-usage buckets.
 - A Token usage endpoint failure must not make an otherwise successful quota read
   appear offline. Preserve and clearly identify the last normalized Token usage
@@ -603,12 +396,13 @@ client's visible “Update” button before installation. Do not regress to that
   content, or unrelated thread metadata.
 - `account/usage/read` does not expose a model breakdown. Model cost details come
   from a bounded scan of local Codex rollout JSONL files instead.
-- Persist raw model aggregates by validated event date, then cap each day's local
-  attributed-plus-unattributed input to that day's official account Token bucket
-  before displaying model totals or calculating API-equivalent cost. Scale down
-  local model/cache/output/call evidence proportionally for an overfull day;
-  never scale local evidence up to fill an official gap, and show both removed
-  replay Tokens and official Tokens without local model detail as coverage notes.
+- Persist raw model aggregates by validated event date. The user requests the
+  legacy pricing algorithm: use matching official daily buckets to cap native
+  OpenAI model allocation in the displayed cost statistics, with a factor no
+  larger than one. Keep third-party vendors independent. This is estimated
+  allocation, not evidence that every adjustment is a replay. Never persist
+  calibrated counters over the raw ledger. Remove confirmed duplicates only
+  from matching rollout identities and usage-counter evidence.
 - In model-cost details, `inputTokens` is total request input and already includes
   cached input. Label cached input as a subset and never present the two columns
   as additive or comparable to the official account lifetime Token total.
@@ -623,7 +417,7 @@ client's visible “Update” button before installation. Do not regress to that
   cumulative-plus-last Token signature remains a duplicate across turn-context
   records; equal per-call usage with different cumulative counters remains a
   distinct call.
-- Before parsing a rollout line, reject every record except `turn_context` and
+- Before parsing a rollout line, reject every record except `turn_context`, `token_usage_record` and
   `event_msg` records tagged `token_count`. From accepted records retain only the
   normalized model slug and Token counters. Never retain or expose prompts,
   messages, tool payloads, workspace paths, thread titles, or rollout filenames.
@@ -665,6 +459,10 @@ client's visible “Update” button before installation. Do not regress to that
   backend corrections, account changes, or scope changes can otherwise preserve
   an inflated total indefinitely. Use only the newest complete stored snapshot
   when the endpoint is unavailable.
+- A summary-only response without `dailyUsageBuckets` must not replace the
+  latest complete dated snapshot; doing so makes legacy fee calibration jump
+  back to inflated raw counters. An explicit valid empty/zero snapshot still
+  replaces an older higher value. Do not merge account maxima or date buckets.
 
 ### Subscription details
 
@@ -755,20 +553,26 @@ client's visible “Update” button before installation. Do not regress to that
 - The main-card and per-task elapsed time visually pulses only while at least one
   task is active. Respect the operating system's reduced-motion preference.
 
-## Background workflow
+## Background workflow (2.0)
 
-- Upload must work by both clicking the upload area/button and dragging a file
-  onto the upload zone.
-- Accept PNG, JPG/JPEG, WebP, and GIF inputs up to 20 MB.
-- Source width must be strictly greater than 460 pixels.
-- Source height must be strictly greater than 690 pixels.
-- Equal-size and undersized images must be rejected with localized feedback.
-- The user must manually position and resize a 460:690 crop frame.
-- The crop frame must remain inside the source image.
-- Export the stored background as 460 × 690 PNG.
-- Keep opacity adjustable within the established range.
-- Upload/crop/drop interactions must never start a window drag.
-- Background contrast must not make text or controls unreadable.
+- Click and drag/drop accept PNG, JPEG, WebP and GIF up to 20 MB. Validate encoded
+  dimensions before native decoding: positive sizes, at most 16000 per side and
+  40 megapixels. Decode GIF to a static frame. Validate IPC as untrusted input.
+- Never require 460 × 690 images or fixed portrait exports. Composition supports
+  current window, 16:9, 16:10 and original aspect, pointer and keyboard adjustment,
+  plus an explicit use-entire-image action. Bounds stay inside the source.
+- Retain a bounded normalized source and crop coordinates; keep the old asset
+  until its replacement and settings have saved successfully. Only remove known
+  application-owned background files inside userData, never arbitrary paths.
+- Background defaults to contain without upscaling, with pixel-ratio-aware sizes.
+  Never use unconditional cover or CSS transform scaling on small legacy images.
+  Keep the entire upload by default; reframing is an explicit action. Enlargement
+  requires an explicit allowUpscale choice, and every fit preserves aspect ratio.
+- Fit, focal position, zoom, blur, white overlay and card opacity preview live.
+  Apply commits appearance and Cancel restores it. Existing backgrounds continue
+  to load after migration; missing originals are not reconstructed or invented.
+- Changing window dimensions adapts layout/background without asking for recrop.
+  Keep decode/display work bounded; CSS blur must not affect text opacity.
 
 ## Internationalization
 
@@ -862,76 +666,17 @@ Historical language/readability failures:
 
 ## Testing matrix
 
-Run focused checks for the changed behavior; broaden only for an evidenced risk.
-Preserve existing coverage and add a small regression check when useful. Existing
-automated coverage includes:
+Run focused desktop-settings, background-boundary/geometry, localization, renderer
+navigation/layout and packaging checks for 2.0. Exercise real Chinese and English
+across pages, task filters/confirmation/drawer, charts, connection/coverage/crop
+modals, offline and missing quota states. Confirm navigation and acknowledgement
+leave token/cost/work-day/history counters unchanged. Do not re-run unrelated
+service tests unless a concrete failure or changed business code warrants it.
 
-- 5-hour and weekly duration-based identification;
-- missing/paused 5-hour window;
-- credit detail retention and six-plus overflow contract;
-- first-run baseline and newly received credit detection;
-- scheduled recovery versus early official reset;
-- both official-reset modes;
-- manual reset exclusion;
-- permanent history migration and de-duplication;
-- Store updater log parsing, pending persistence/clearing, and installed updates;
-- permanent client-version timeline append, migration, de-duplication, and
-  rollback exclusion;
-- periodic immutable state archives, corrupt-primary recovery, corrupt-archive
-  fallback, valid-but-reset primary repair, and permanent-history anti-rollback;
-- account lifetime Token and cumulative-work-day normalization, cached fallback, and
-  day/week/month aggregation;
-- bounded subscription-claim extraction without credential leakage, stale monthly
-  period projection, clickable plan details, and bilingual renewal countdown;
-- local model usage de-duplication, cached-input rate, unknown-model handling,
-  API-equivalent cost, long-context pricing, and persisted scan reuse;
-- exact task lifecycle classification, one-shot completion handoff, both
-  completion actions, concurrent active tasks, project-path sanitization,
-  task-level cost isolation, and monotonic performance-record recovery;
-- event coalescing, backpressure, worker recovery, and active/idle fallback checks;
-- crop containment, movement, resize, ratio, and source-to-output mapping;
-- three unified quota bars, the clickable reset entry in the three-card status
-  row, reset-detail/history dialog, the connection-status dialog, and the reserved
-  bottom area;
-- one-shot automatic offline-dialog display per app session, no eligibility reset
-  after connection flapping, manual reopening from the red breathing light, and
-  the green normal-status dialog;
-- bilingual key parity and dynamic accessibility labels;
-- development-file package exclusion.
-
-For UI or main-window changes, also run a full-card and floating-orb
-visual/manual matrix:
-
-- Chinese and English;
-- online and offline;
-- 5-hour present and paused;
-- zero credits, one credit, six credits, and more than six credits;
-- no official history and multiple history records;
-- current client, update ready, and update installed;
-- empty and multi-entry client update timelines, including a pending target;
-- Token data available/unavailable, day/week/month chart modes, and chart dialog
-  transitions in Chinese and English;
-- zero, one, and multiple active tasks; live timer pulse; completed-task actions;
-  persistent longest/highest records; task detail scrolling;
-- default background and light/dark custom backgrounds;
-- background popover, crop dialog, and reset-history dialog;
-- unlocked/locked title and four-edge movement;
-- instant collapse/restore, plus unlocked/locked orb movement;
-- enabled/disabled top docking, snap and retract on every display, arrow-hover
-  reveal, repeated reveal/retract cycles without a missing tab, no immediate
-  synthetic retraction, full hit testing after reveal, drag-away undocking, and
-  interaction with position lock and orb mode;
-- hide and single-click restore from tray.
-
-Verify:
-
-- no overflow beyond the active 460 × 690 or 76 × 76 boundary;
-- no clipped or ellipsized English;
-- footer remains visible;
-- reset list alone scrolls when needed;
-- no duplicate refresh button;
-- no outer ring or extra transparent border;
-- no movement lag, stretch, jitter, cursor capture, or tray sticking.
+Storage and monetary gates remain mandatory: preserve real ledger values through
+cold start and archive recovery; inspect ASAR and built source bytes, architecture,
+versions, SHA-256 and signature status. Test the new executable/process rather
+than assuming a launch replaced an older single-instance process.
 
 ## Build and release checklist
 
@@ -958,7 +703,7 @@ Verify:
 ## Change discipline
 
 - Prefer small, evidence-backed changes over rewrites.
-- Preserve established visual style and interaction behavior.
+- Use the approved 2.0 white/cyan desktop design; preserve business behavior.
 - Fix root causes; do not hide symptoms by shrinking text, forcing bounds every
   frame, expiring history, or suppressing state.
 - Keep pure detection/geometry logic independently testable.
@@ -1062,7 +807,7 @@ Verify:
 - The probability dialog is a forecast dashboard with commitment state, countdown,
   historical intervals/ranges, method and source freshness. Confirmed announcement
   history remains in reset management. Only changed clock text updates each second;
-  pause presentation while hidden, collapsed or dock-retracted.
+  pause presentation while the application is hidden.
 - Client version baselines may already be ahead of the permanent timeline after
   archive reconciliation. A fresh installed-version observation must repair an
   evidenced gap from the last recorded version even if it equals the baseline.
@@ -1120,7 +865,7 @@ Verify:
 - Calendar day targets are at least 12 CSS pixels with three-pixel gaps. Do not
   compress a whole year into six-pixel targets to avoid horizontal scrolling.
   Keep month labels aligned and scroll the selected cell into view on keyboard
-  navigation/year selection, within the existing fixed dialog.
+  navigation/year selection, within the current scrollable page.
 - Integer percentage readings can cross a rounding boundary after very little
   actual consumption. Never extrapolate a one-point weekly change from a
   two-point 5-hour change into a definite exhausted weekly quota. Require at
@@ -1130,3 +875,91 @@ Verify:
   the bounds still allow remaining quota. Explain both the observed deltas and
   the bounds in Chinese and English; these are not statistical confidence limits
   and do not remove the constant-consumption-ratio assumption.
+
+## Multi-instance usage adapter (1.3.52)
+
+- Discover the default home, CODEX_HOME/CODEX_SQLITE_HOME, bounded Codex++
+  codex-multi instance metadata, and explicitly configured CODEX_MONITOR_HOMES.
+  Resolve aliases and include each home's sessions and archived_sessions.
+  Refresh discovered roots and event watches when instances appear. Separate
+  SQLite homes supply only safe goal counters; never read conversation tables.
+- A root's position in the root list never means archived. Classify archive
+  roots by their actual role so additional running instances remain running.
+- token_usage_record usage/thread_token_usage and legacy token_count
+  last_token_usage/total_token_usage describe the same calls. Adapt both to one
+  signature, scoped to a rollout; paired records count once, equal counters in
+  independent sessions still count separately. Compact caches keep numeric
+  counters only, never response IDs, titles, contents or provider credentials.
+- Resumed logs can give the two formats different cumulative baselines. Exact
+  cumulative signatures alone then double-count mirrored calls. Adapter version
+  3 also requires two adjacent cross-format pairs with equal last usage,
+  constant counter offsets, and per-format increments equal to the next call.
+  Preserve the numeric first-pair correction across bounded reads and restarts;
+  correct Tokens, daily buckets, request counts and price units together. Equal
+  per-call counts with increments covering separate calls must still count.
+- Support explicit disjoint vendor cache-read/cache-write fields and standard
+  input/prompt/completion token aliases. Cache is a subset of normalized total
+  input; reasoning is a subset of output. Never trust a weighted or inconsistent
+  total_tokens as physical token volume. Unknown prices remain unpriced.
+- A valid official account snapshot supplies the main account total, chart and
+  work-day denominator, including a cached or downward-corrected snapshot. A
+  local multi-provider ledger must never overwrite it. Show local input
+  (including cache) plus output separately; only use explicitly labeled local
+  fallback when the account summary is unavailable. Never add the two
+  populations. Legacy native-model cost calibration is a separate display
+  projection, not a replacement for the account total. Cost averages use that
+  same projected local population's non-zero dates, never the account work-day
+  denominator. Undated usage stays in local
+  totals with averages unavailable rather than invented work days. Coverage
+  controls are secondary-only and state exclusions and rebuild limits.
+- Usage adapter versions 2 and 3 change counter semantics. Rebuild readable old
+  entries automatically in bounded background passes under a new generation,
+  retaining committed values until each replacement reaches EOF. This is a
+  counter migration, not a pricing refresh. Missing old entries stay retained
+  and explicitly unverified; they may contain old duplicates and must not be
+  presented as exact totals or lower-bound costs. Archives must not resurrect
+  corrected generations. Do not rewrite the installed monitor's ledger while
+  validating an isolated preview.
+- Restore legacy daily calibration and existing per-call pricing instead of
+  a second historical/base-rate estimate engine. Cost-page model Tokens and
+  amounts must come from the same projection. Preserve current model prices,
+  third-party usage, unlisted official dates and undated records; a missing
+  official date is not zero usage. Use deterministic integer allocation so
+  native input columns plus unattributed input exactly meet a matched daily
+  budget, with cache/write/output subset bounds retained.
+- Calibration scales an already-priced original call; it must not reclassify
+  a formerly long prompt as short because its allocated input is smaller.
+  Unknown model prices or unrecoverable tier weights stay pending under the
+  original pricing rules. Keep numeric archive evidence intact. Cached,
+  background and explicit refresh paths must all use the same newest complete
+  official account snapshot and never persist projected model counters.
+- Verify concurrent default/Codex++ tasks against live local logs, paired and
+  new-only records, archive copies, cold restart, partial ledger replacement,
+  input/cache semantics, and the same-denominator bilingual detail view.
+## Vendor pricing and numeric repricing (1.3.53)
+
+- Keep dated, first-party source URLs with the current Standard/global text
+  pricing catalog. Recognize only explicit model versions and bounded route,
+  snapshot and thinking aliases. Unknown model variants and unavailable cache
+  prices remain visibly pending; never borrow an adjacent model's rate.
+- Claude Fable/Mythos, Opus, Sonnet and Haiku use their own rates. Sonnet 5.5
+  cache reads are $0.10/MTok; Opus 5.5 reads are $0.20/MTok. Preserve separate
+  default-short and evidenced long-TTL cache-write counters. Missing TTL uses
+  the explicitly disclosed short-cache equivalent, never an inferred 1h charge.
+- Apply context tiers per request, including cached input and cache writes in
+  prompt length. Haiku 5.5 changes above 100,000 input Tokens, OpenAI above
+  272,000, Gemini 3.1 Pro above 200,000, Grok at 200,000, and MiniMax M3 above
+  512,000. Do not apply an OpenAI multiplier to every vendor or to a cumulative
+  model total. Current Claude 4.6+ non-Haiku models keep standard 1M pricing.
+- Persist only numeric pricing weights and the validated context-rule shape
+  alongside model counters. Compatible price updates revalue those weights or
+  provably linear aggregates without changing Tokens, ledger generation or
+  usage adapter version. Unrecoverable exact per-request tier weights stay
+  pending until an explicit full scan; do not invent a short/long distribution
+  or a second base-rate estimate to fill it. A price refresh cannot clear
+  compatible stored aggregates merely because their source directories are
+  unavailable.
+- Vendor Standard rates are API equivalents. DeepSeek uses its explicit peak
+  list basis; do not infer holiday discounts. Disclose regional, accelerated,
+  reseller, tool and timed-cache-storage exclusions. Unpublished cache rates
+  display unavailable, not zero. Show sufficient decimal precision for rates.

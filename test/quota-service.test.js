@@ -513,6 +513,9 @@ test("returns normalized account token usage and retains it when only the usage 
     costUsageReader: {
       read: async now => ({
         scanned: true,
+        schemaVersion: 7,
+        usageAdapterVersion: 3,
+        dailyUsage: [],
         pricingDate: "2026-09-07",
         models: [{
           model: "gpt-5.6-sol",
@@ -530,6 +533,8 @@ test("returns normalized account token usage and retains it when only the usage 
   const live = await service.read();
   assert.equal(live.online, true);
   assert.equal(live.tokenUsage.lifetimeTokens, 123456);
+  assert.equal(live.tokenUsage.localUsage.lifetimeTokens, 1050);
+  assert.equal(live.tokenUsage.scope, "account");
   assert.equal(live.tokenUsage.totalWorkDays, 1);
   assert.equal(live.tokenUsage.currentStreakDays, 9);
   assert.equal(live.tokenUsage.cached, false);
@@ -538,7 +543,7 @@ test("returns normalized account token usage and retains it when only the usage 
   assert.equal(live.subscription.expiresAt, Math.floor(Date.parse("2099-07-20T00:00:00Z") / 1000));
   assert.equal(live.subscription.projected, false);
   assert.equal(live.tokenCost.models[0].model, "gpt-5.6-sol");
-  assert.equal(live.tokenCost.estimatedCostUsd, 0.0025);
+  assert.equal(live.tokenCost.estimatedCostUsd, 0.00212);
   assert.equal(live.activeTasks.count, 1);
   assert.equal(live.activeTasks.tasks[0].projectName, "project-one");
 
@@ -546,6 +551,7 @@ test("returns normalized account token usage and retains it when only the usage 
   const cached = await service.read();
   assert.equal(cached.online, true);
   assert.equal(cached.tokenUsage.lifetimeTokens, 123456);
+  assert.equal(cached.tokenUsage.localUsage.lifetimeTokens, 1050);
   assert.equal(cached.tokenUsage.totalWorkDays, 1);
   assert.equal(cached.tokenUsage.cached, true);
   service.dispose();

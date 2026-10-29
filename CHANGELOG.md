@@ -1,5 +1,32 @@
 # Changelog / 更新日志
 
+## 2.0.0-beta.1 — 2026-10-28
+
+- 修复续接会话中新旧用量记录累计基线不同导致的重复入账；校验每次调用增量并同步纠正 Token、请求数和计价权重，支持断点扫描及存档恢复。首页保留官方账号统计，本机多开与第三方用量单列；无法重建的旧记录明确标为未核实。
+- 费用统计恢复老版官方日桶校准：OpenAI 原生模型的 Token 与金额同步分摊，第三方独立累计，官方缺失日期及未注明日期保留原记录。校准标为模型分摊估计，不覆盖原始账本与永久历史。摘要成功但日桶缺失时保留最新完整账号快照，避免费用页跳回旧计数。
+
+- 升级为无边框 Windows 大窗口工作台：可缩放、最大化、系统分屏、任务栏、托盘和安全的多屏位置恢复；移除吸顶、悬浮球、小窗口和位置锁定。
+- 白色与天青色磨砂玻璃界面，重构总览、用量费用、任务、额度重置、更新及设置六页；双语响应式布局，详情页面与任务抽屉保留全部原有业务入口。
+- 压缩侧栏、卡片、摘要与图表空白，统一共享 SVG 图标；无边框窗口保留原生窗口按钮与系统边缘缩放。
+- 背景默认保留完整图片，按屏幕像素密度显示，小图放大需要明确启用；支持横版/原图构图、完整显示、焦点、缩放、模糊、白色遮罩与卡片透明度；预览应用/取消，源图与原背景安全保留。
+- 保留多开实例与第三方用量适配、各家模型计价和永久历史；价目表可搜索并打开经白名单验证的官方来源。页面切换和任务确认不改变累计数值。
+- Replace the fixed transparent card with a frameless resizable Windows workspace. Add six responsive bilingual pages, white/cyan glass surfaces, retained-source backgrounds, a task drawer and a searchable public price catalog. Preserve ledger generations, usage accounting and all permanent histories.
+## 1.3.053 / 1.3.53 — 2026-10-28
+
+- 补全 Claude 当前各系列及历史 Sonnet、GPT-6.1 Terra、Gemini、Grok、DeepSeek、GLM、MiniMax 等已公开标准文本计价，识别厂商路由、日期快照及明确变体。
+- Claude 缓存读取、短期/长期写入分别计价；上下文阈值按厂商、型号和每次请求应用。单价显示保留六位小数，未公开的缓存单价不显示为免费。
+- 历史数值账本可直接重算线性模型金额，并保存每次请求定价权重供以后调价；Token 数、调用次数和账本代际保持不变。无法恢复分档信息的旧记录明确等待全量重算。
+- Add sourced vendor pricing, Claude cache TTL classes, per-request context tiers, safe numeric repricing and explicit Standard/global estimate scope. Preserve usage counters and the existing multi-instance adapter.
+
+## 1.3.052 / 1.3.52 — 2026-10-28
+
+- 修复 Token 与任务监测只覆盖默认 `.codex` 的问题，自动接入 `CODEX_HOME`、独立 SQLite 目录及 Codex++ 多开实例；运行与归档目录按角色识别。
+- 同时读取新版 `token_usage_record` 和旧版 `token_count`，同一调用的新旧镜像只记一次，独立会话分别计数。
+- 按输入（含缓存）加输出计算本机 Token，适配第三方独立缓存及标准输入/输出字段；停止用官方账号日桶缩减本机用量。官方账号累计保留为独立统计。
+- 旧版计数账本按有界后台批次重建，可跨重启恢复。日均使用相同来源的工作日，缺少日期时不编造日均。
+- Discover Codex++ and custom Codex homes for concurrent tasks and local usage. Deduplicate new/legacy usage mirrors, normalize provider cache fields, separate local physical Tokens from account totals, and resume counter migrations safely across restarts.
+
+
 ## 1.3.50 正式版 / Stable — 2026-10-13
 
 ### 中文

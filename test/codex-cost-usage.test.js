@@ -5,6 +5,7 @@ const os = require("node:os");
 const path = require("node:path");
 const {
   CodexCostUsageReader,
+  PRICING_DATE,
   calculateUsageCost,
   normalizeCodexCostUsageResult,
   reconcileCostSnapshots,
@@ -289,7 +290,14 @@ test("matches decorated Codex++ third-party model names and counts exclusive cac
     tokenCount({ input: 400, cached: 600, output: 20 }),
     turnContext("gateway/moonshot-kimi-k3-turbo"),
     tokenCount({ input: 500, cached: 500, output: 10 })
-  ] }]);
+  ].map(line => {
+    const record = JSON.parse(line);
+    if (record.payload?.info) {
+      delete record.payload.info.last_token_usage.total_tokens;
+      delete record.payload.info.total_token_usage.total_tokens;
+    }
+    return JSON.stringify(record);
+  }) }]);
 
   assert.deepEqual(
     result.models.map(model => model.model).sort(),
@@ -326,6 +334,7 @@ test("official account calibration does not discard Codex++ third-party usage", 
   const raw = {
     scanned: true,
     schemaVersion: 7,
+    usageAdapterVersion: 3,
     pricingDate: "2026-10-10",
     models: [openAiModel, glmModel],
     dailyUsage: [{ date: "2026-09-01", models: [openAiModel, glmModel] }],
@@ -341,12 +350,14 @@ test("official account calibration does not discard Codex++ third-party usage", 
   assert.equal(openAi.inputTokens, 500);
   assert.equal(glm.inputTokens, 1_000);
   assert.equal(normalized.calibratedInputTokens, 1_500);
-  assert.equal(normalized.replayExcludedInputTokens, 500);
+  assert.equal(normalized.calibrationAdjustedInputTokens, 500);
 });
 
 test("retains the last normalized local cost snapshot after a scan failure", () => {
   const live = normalizeCodexCostUsageResult({
     scanned: true,
+    schemaVersion: 7,
+    usageAdapterVersion: 3,
     pricingDate: "2026-10-10",
     estimatedCostUsd: 1,
     models: [{
@@ -374,7 +385,7 @@ test("retains the last normalized local cost snapshot after a scan failure", () 
   }, 200);
   assert.equal(cached.available, true);
   assert.equal(cached.cached, true);
-  assert.equal(cached.models[0].estimatedCostUsd, 0.305);
+  assert.equal(cached.models[0].estimatedCostUsd, 0.24);
 });
 
 test("reuses a recent persisted scan instead of repeatedly walking large rollout files", async () => {
@@ -384,7 +395,8 @@ test("reuses a recent persisted scan instead of repeatedly walking large rollout
   });
   const restored = await reader.read(1_000_000, {
     schemaVersion: 7,
-    pricingDate: "2026-10-10",
+    usageAdapterVersion: 2,
+    pricingDate: PRICING_DATE,
     estimatedCostUsd: 0.305,
     models: [{
       model: "gpt-5.6-sol",
@@ -656,11 +668,11 @@ test("does not merge incompatible archived aggregates into the current ledger", 
   assert.equal(reconciled.schemaVersion, 7);
   assert.equal(reconciled.models.length, 1);
   assert.equal(reconciled.models[0].model, "gpt-5.6-sol");
-  assert.equal(reconciled.estimatedCostUsd, 0.305);
+  assert.equal(reconciled.estimatedCostUsd, 0.24);
   assert.equal(reconciled.hasUnattributedUsage, false);
 });
 
-test("caps replay-inflated daily model usage to the official Token ledger", () => {
+test("legacy calibration adjusts native allocation while retaining raw ledger counters", () => {
   const model = {
     model: "gpt-5.6-sol",
     inputTokens: 200_000,
@@ -672,6 +684,7 @@ test("caps replay-inflated daily model usage to the official Token ledger", () =
   const result = normalizeCodexCostUsageResult({
     scanned: true,
     schemaVersion: 7,
+    usageAdapterVersion: 3,
     pricingDate: "2026-10-10",
     models: [model],
     dailyUsage: [{
@@ -688,8 +701,8 @@ test("caps replay-inflated daily model usage to the official Token ledger", () =
   assert.equal(result.models[0].inputTokens, 100_000);
   assert.equal(result.models[0].cachedInputTokens, 80_000);
   assert.equal(result.models[0].requestCount, 10);
-  assert.equal(result.estimatedCostUsd, 0.25);
-  assert.equal(result.replayExcludedInputTokens, 100_000);
+  assert.equal(result.estimatedCostUsd, 0.132);
+  assert.equal(result.calibrationAdjustedInputTokens, 100_000);
   assert.equal(result.officialUnmappedInputTokens, 0);
   assert.equal(result.persistence.tokenCostSnapshot.models[0].inputTokens, 200_000);
 });

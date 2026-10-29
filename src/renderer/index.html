@@ -1,553 +1,159 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:"><title>Codex监测台</title><link rel="stylesheet" href="./styles.css"></head>
-<body><svg class="icon-definitions" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><defs><symbol id="icon-overview" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol><symbol id="icon-usage" viewBox="0 0 24 24"><path d="M4 20h16M6 16v-6m6 6V4m6 12V7"/></symbol><symbol id="icon-tasks" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M9 8h6m-6 4h6m-6 4h4"/></symbol><symbol id="icon-quota" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></symbol><symbol id="icon-updates" viewBox="0 0 24 24"><path d="M4 8a8.5 8.5 0 1 1-.5 7M4 3v5h5"/></symbol><symbol id="icon-settings" viewBox="0 0 24 24"><path d="m9 3 1-1h4l1 1 .4 2 1.7 1 2-.6 2 3.4-1.6 1.4v2.8l1.6 1.4-2 3.4-2-.6-1.7 1-.4 2-1 1h-4l-1-1-.4-2-1.7-1-2 .6-2-3.4L4.5 13v-2.8L2.9 8.8l2-3.4 2 .6 1.7-1z"/><circle cx="12" cy="11.6" r="3"/></symbol><symbol id="icon-pulse" viewBox="0 0 24 24"><path d="M3 13h5l3-7 4 13 3-6h3"/></symbol><symbol id="icon-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4m8-4v4M4 11h16"/></symbol><symbol id="icon-reserve" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/></symbol><symbol id="icon-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6"/></symbol><symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol><symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M5 18v3h14v-3"/></symbol><symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></symbol><symbol id="icon-upload" viewBox="0 0 24 24"><path d="M12 16V3m-4 4 4-4 4 4M4 16v5h16v-5"/></symbol></defs></svg><div id="app" class="workbench">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:"><title>潮汐台</title><link rel="stylesheet" href="./styles.css"></head>
+<body><svg class="icon-definitions" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg"><defs>
+<symbol id="icon-overview" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+<symbol id="icon-usage" viewBox="0 0 24 24"><path d="M3 3v16a2 2 0 0 0 2 2h16M18 17V9M13 17V5M8 17v-3"/></symbol>
+<symbol id="icon-tasks" viewBox="0 0 24 24"><path d="m3 17 2 2 4-4M3 7l2 2 4-4M13 6h8M13 12h8M13 18h8"/></symbol>
+<symbol id="icon-quota" viewBox="0 0 24 24"><path d="m12 14 4-4M3.34 19a10 10 0 1 1 17.32 0"/></symbol>
+<symbol id="icon-updates" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8M3 3v5h5M12 7v5l4 2"/></symbol>
+<symbol id="icon-settings" viewBox="0 0 24 24"><path d="M20 7h-9M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></symbol>
+<symbol id="icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="icon-pulse" viewBox="0 0 24 24"><path d="M22 12h-2.5a2 2 0 0 0-1.9 1.5l-2.4 8.3a.25.25 0 0 1-.5 0L9.2 2.2a.25.25 0 0 0-.5 0l-2.3 8.3A2 2 0 0 1 4.5 12H2"/></symbol>
+<symbol id="icon-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4m8-4v4M4 11h16"/></symbol>
+<symbol id="icon-reserve" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/></symbol>
+<symbol id="icon-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8M21 3v5h-5M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16M8 16H3v5"/></symbol>
+<symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+<symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M5 18v3h14v-3"/></symbol>
+<symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></symbol>
+<symbol id="icon-upload" viewBox="0 0 24 24"><path d="M12 16V3m-4 4 4-4 4 4M4 16v5h16v-5"/></symbol>
+<symbol id="icon-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></symbol>
+<symbol id="icon-pencil" viewBox="0 0 24 24"><path d="M21.2 6.8a2.8 2.8 0 0 0-4-4L3.8 16.2a2 2 0 0 0-.5.8L2 21.4a.5.5 0 0 0 .6.6l4.4-1.3a2 2 0 0 0 .8-.5ZM15 5l4 4"/></symbol>
+<symbol id="icon-trash" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+<symbol id="icon-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+<symbol id="icon-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.7 9a1 1 0 0 1-.6 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.2-2.7a1.2 1.2 0 0 1 1.6 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1ZM9 12l2 2 4-4"/></symbol>
+<symbol id="icon-sigma" viewBox="0 0 24 24"><path d="M18 7V5a1 1 0 0 0-1-1H6.5a.5.5 0 0 0-.4.8l4.5 6a2 2 0 0 1 0 2.4l-4.5 6a.5.5 0 0 0 .4.8H17a1 1 0 0 0 1-1v-2"/></symbol>
+<symbol id="icon-ticket" viewBox="0 0 24 24"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2ZM13 5v2m0 4v2m0 4v2"/></symbol>
+<symbol id="icon-zap" viewBox="0 0 24 24"><path d="M4 14a1 1 0 0 1-.8-1.6l9.9-10.2a.5.5 0 0 1 .9.5l-1.9 6A1 1 0 0 0 13 10h7a1 1 0 0 1 .8 1.6l-9.9 10.2a.5.5 0 0 1-.9-.5l1.9-6A1 1 0 0 0 11 14Z"/></symbol>
+<symbol id="icon-pie" viewBox="0 0 24 24"><path d="M21 12c.6 0 1-.4 1-1a10 10 0 0 0-9-9c-.6 0-1 .4-1 1v8a1 1 0 0 0 1 1ZM21.2 15.9A10 10 0 1 1 8 2.8"/></symbol>
+<symbol id="icon-wand" viewBox="0 0 24 24"><path d="m21.6 3.6-1.2-1.2a1.2 1.2 0 0 0-1.8 0L2.4 18.6a1.2 1.2 0 0 0 0 1.8l1.2 1.2a1.2 1.2 0 0 0 1.8 0L21.6 5.4a1.2 1.2 0 0 0 0-1.8ZM14 7l3 3M5 6v4M19 14v4M10 2v2M7 8H3M21 16h-4M11 3H9"/></symbol>
+<symbol id="icon-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9l-.8-1.2A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+<symbol id="icon-mark" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M5.2 13.2c1.7-1.5 3.4-1.5 5 0s3.3 1.5 5 0 2.6-1.4 3.6-.6M7.5 16.8c1.2-.9 2.4-.9 3.5 0s2.4.9 3.5 0 2-.8 2.6-.3"/></symbol>
+</defs></svg><div id="app" class="workbench">
  <div class="ambient-background" aria-hidden="true"></div><div class="custom-background" id="customBackground" aria-hidden="true"></div><div class="background-veil" aria-hidden="true"></div>
- <aside class="sidebar"><div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-pulse"/></svg></span><div><strong data-i18n="title">Codex监测台</strong><small id="appVersion">CODEX PULSE</small></div></div>
- <nav data-label-key="mainNavigation"><button class="nav-item" type="button" data-route="overview" data-label-key="navOverview" title="navOverview"><span aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-overview"/></svg></span><strong data-i18n="navOverview"></strong></button><button class="nav-item" type="button" data-route="usage" data-label-key="navUsage" title="navUsage"><span aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-usage"/></svg></span><strong data-i18n="navUsage"></strong></button><button class="nav-item" type="button" data-route="tasks" data-label-key="navTasks" title="navTasks"><span aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-tasks"/></svg></span><strong data-i18n="navTasks"></strong></button><button class="nav-item" type="button" data-route="quota" data-label-key="navQuota" title="navQuota"><span aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-quota"/></svg></span><strong data-i18n="navQuota"></strong></button><button class="nav-item" type="button" data-route="updates" data-label-key="navUpdates" title="navUpdates"><span aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-updates"/></svg></span><strong data-i18n="navUpdates"></strong></button><button class="nav-item" id="settingsButton" type="button" data-route="settings" data-label-key="settingsOpen"><span aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-settings"/></svg></span><strong data-i18n="settingsTitle"></strong></button></nav>
- <div class="sidebar-foot"><span class="eyebrow">LOCAL WORKSPACE</span><strong id="sourceCount"></strong><small data-i18n="localDataHint"></small></div></aside>
- <div class="workspace"><header class="workspace-toolbar" id="titlebar"><div class="page-identity"><h1 id="pageTitle" tabindex="-1" data-i18n="navOverview"></h1><span id="pageSubtitle" data-i18n="overviewSubtitle"></span></div><section class="connection-strip" id="connectionStrip"><div class="connection-state"><button class="connection-status-button" id="connectionStatusButton" type="button" disabled><span class="status-dot" id="statusDot"></span></button><button class="connection-label" id="connectionLabel" type="button" disabled data-i18n="checking"></button></div><span id="lastChecked" data-i18n="waiting"></span></section><button class="glass-button language-button" id="languageButton" type="button">EN</button><button class="glass-button primary refresh-button" id="refreshButton" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-refresh"/></svg><span data-i18n="refreshNow"></span></button></header>
+ <aside class="sidebar"><div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-mark"/></svg></span><div><strong data-i18n="brandName">潮汐台</strong><small id="appVersion">TIDEMARK</small></div></div>
+ <nav data-label-key="mainNavigation"><button class="nav-item" type="button" data-route="overview" data-label-key="navOverview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-overview"/></svg><strong data-i18n="navOverview"></strong></button><button class="nav-item" type="button" data-route="usage" data-label-key="navUsage"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-usage"/></svg><strong data-i18n="navUsage"></strong></button><button class="nav-item" type="button" data-route="tasks" data-label-key="navTasks"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-tasks"/></svg><strong data-i18n="navTasks"></strong></button><button class="nav-item" type="button" data-route="quota" data-label-key="navQuota"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-quota"/></svg><strong data-i18n="navQuota"></strong></button><button class="nav-item" type="button" data-route="updates" data-label-key="navUpdates"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-updates"/></svg><strong data-i18n="navUpdates"></strong></button><button class="nav-item" id="settingsButton" type="button" data-route="settings" data-label-key="settingsOpen"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-settings"/></svg><strong data-i18n="settingsTitle"></strong></button></nav>
+ <button class="sidebar-foot" type="button" data-route="settings" data-tab="sources"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-folder"/></svg><span id="sourceCount"></span></button></aside>
+ <div class="workspace"><header class="workspace-toolbar" id="titlebar"><div class="page-identity"><h1 id="pageTitle" tabindex="-1" data-i18n="navOverview"></h1></div><section class="connection-strip" id="connectionStrip"><button class="connection-status-button" id="connectionStatusButton" type="button" disabled><span class="status-dot" id="statusDot"></span></button><div class="connection-copy"><button class="connection-label" id="connectionLabel" type="button" disabled data-i18n="checking"></button><span class="connection-meta"><span id="lastChecked" data-i18n="waiting"></span><span aria-hidden="true">·</span><span id="autoRefreshLabel" data-i18n="autoRefresh"></span></span></div></section><button class="glass-button language-button" id="languageButton" type="button">EN</button><button class="glass-button primary refresh-button" id="refreshButton" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-refresh"/></svg><span data-i18n="refreshNow"></span></button></header>
  <main id="workspaceContent" class="workspace-content">
   <section class="workspace-page overview-page" data-page="overview" aria-labelledby="pageTitle">
    <section class="quota-section" id="quotaSection" aria-label="额度">
-        <article class="quota-panel" id="fiveHourPanel">
-          <div class="quota-heading">
-            <div class="quota-icon mint"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-quota"/></svg></div>
-            <div class="quota-name" data-i18n="fiveHour">5 小时额度</div>
-            <div class="quota-number" id="fiveHourNumber"><span>--</span><small>%</small></div>
-          </div>
-          <div class="quota-reset" id="fiveHourReset">--</div>
-          <div class="progress-track" id="fiveHourTrack">
-            <div class="progress-glow mint-progress" id="fiveHourProgress"></div>
-          </div>
-          <div class="quota-caption">
-            <span data-i18n="remaining">剩余</span>
-            <span id="fiveHourUsed">--</span>
-          </div>
-        </article>
-
-        <article class="quota-panel weekly-panel" id="weeklyPanel">
-          <div class="quota-heading">
-            <div class="quota-icon violet"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-calendar"/></svg></div>
-            <div class="quota-name"><span data-i18n="weekly">1 周额度</span><small id="weeklyProjectionNote" class="weekly-projection-note">预测采样中</small></div>
-            <div class="quota-number" id="weeklyNumber"><span>--</span><small>%</small></div>
-          </div>
-          <div class="quota-reset" id="weeklyReset">--</div>
-          <div class="progress-track weekly-track">
-            <div class="progress-glow violet-progress" id="weeklyProgress"></div>
-            <span id="weeklyProjectionMarker" class="weekly-projection-marker" hidden aria-hidden="true"></span>
-          </div>
-          <div class="quota-caption">
-            <span data-i18n="remaining">剩余</span>
-            <span id="weeklyUsed">--</span>
-          </div>
-        </article>
-        <article class="quota-panel reserve-panel" id="reservePanel">
-          <div class="quota-heading">
-            <div class="quota-icon violet" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-reserve"/></svg></div>
-            <div class="quota-name" data-i18n="reserve">GPT Reserve</div>
-            <div class="quota-number" id="reserveNumber"><span>--</span><small>%</small></div>
-          </div>
-          <div class="quota-reset" id="reserveReset">--</div>
-          <div class="progress-track" id="reserveTrack">
-            <div class="progress-glow violet-progress" id="reserveProgress"></div>
-          </div>
-          <div class="quota-caption">
-            <span data-i18n="remaining">剩余</span>
-            <span id="reserveUsed">--</span>
-          </div>
-        </article>
-      </section><section class="token-overview no-drag is-expanded" id="tokenOverview" role="button" tabindex="0" aria-label="查看 Token 使用趋势">
-        <div class="token-overview-heading">
-          <span class="eyebrow">TOKEN PULSE</span>
-          <strong id="tokenOverviewTitle" data-i18n="tokenUsageTitle">Token 使用量</strong>
-        </div>
-        <div class="token-stat">
-          <span id="tokenLifetimeLabel" data-i18n="lifetimeTokens">累计 Token</span>
-          <strong id="lifetimeTokenValue">--</strong>
-        </div>
-        <div class="token-stat token-work-stat">
-          <span data-i18n="totalWorkDays">累计工作</span>
-          <strong id="totalWorkDaysValue">--</strong>
-        </div>
-        <div class="token-stat token-cost-stat">
-          <span class="token-cost-label">
-            <span data-i18n="estimatedApiCostShort">API 等价金额</span>
-          </span>
-          <strong id="estimatedCostValue">--</strong>
-        </div>
-        
-        
-      <div class="token-stat home-running"><span data-i18n="activeTaskRunningMetric"></span><strong id="homeRunningValue">—</strong></div></section>
-   <div class="overview-main-grid"><section class="dashboard-panel trend-panel"><div class="panel-heading"><h2 data-i18n="overviewTrend"></h2><button class="text-button" data-route="usage" data-i18n="viewAll"></button></div><p data-i18n="overviewTrendHint"></p><canvas id="tokenSparkline" class="token-sparkline" role="img" data-label-key="tokenChartLabel"></canvas><span class="overview-chart-empty" id="overviewChartEmpty" data-i18n="tokenChartEmpty" hidden></span></section><section class="active-task-card no-drag" id="activeTaskCard" role="button" tabindex="0" aria-label="查看进行中任务详情">
-        <div class="active-task-heading">
-          <div class="active-task-title">
-            <span class="eyebrow">LIVE TASKS</span>
-            <strong data-i18n="activeTasksTitle">进行中任务</strong>
-          </div>
-          <div class="active-task-heading-actions">
-            <span class="active-task-more" id="activeTaskMoreIndicator" hidden></span>
-            <svg class="active-task-arrow" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-chevron"/></svg>
-          </div>
-        </div>
-        <div class="active-task-metrics">
-          <div class="active-task-metric active-task-metric-count">
-            <span data-i18n="activeTaskRunningMetric">进行中</span>
-            <strong id="activeTaskCount">--</strong>
-          </div>
-          <div class="active-task-metric active-task-metric-pending">
-            <span data-i18n="activeTaskPendingMetric">待处理</span>
-            <strong id="activeTaskPending">--</strong>
-          </div>
-          <div class="active-task-metric active-task-metric-longest">
-            <span data-i18n="activeTaskLongestLabel">最长耗时</span>
-            <strong id="activeTaskElapsed">--</strong>
-          </div>
-          <div class="active-task-metric active-task-metric-cost">
-            <span data-i18n="activeTaskTotalCostLabel">最高消费</span>
-            <strong id="activeTaskTotalCost">--</strong>
-          </div>
-          <div class="active-task-metric active-task-metric-average-time">
-            <span data-i18n="activeTaskAverageTimeLabel">平均时间</span>
-            <strong id="activeTaskAverageTime">--</strong>
-          </div>
-          <div class="active-task-metric active-task-metric-average-cost">
-            <span data-i18n="activeTaskAverageCostLabel">平均消费</span>
-            <strong id="activeTaskAverageCost">--</strong>
-          </div>
-          <div class="active-task-metric active-task-metric-total-count">
-            <span data-i18n="activeTaskTotalCountLabel">总任务数</span>
-            <strong id="activeTaskTotalCount">--</strong>
-          </div>
-          <div class="active-task-metric active-task-metric-total-time">
-            <span data-i18n="activeTaskTotalTimeLabel">总耗时</span>
-            <strong id="activeTaskTotalElapsed">--</strong>
-          </div>
-        </div>
-        <div class="active-task-preview-list" id="activeTaskPreviewList" aria-live="polite"></div>
-      </section></div>
-   <div class="overview-secondary-grid"><section class="dashboard-panel"><div class="panel-heading"><h2 data-i18n="overviewModelCosts"></h2><button class="text-button" data-route="usage" data-tab="cost" data-i18n="openCostDetails"></button></div><div id="overviewModelList" class="overview-model-list"></div><p data-i18n="overviewCostHint"></p></section><section class="task-performance no-drag" id="taskPerformance" role="button" tabindex="0">
-        <div class="task-performance-heading"><div class="task-performance-title"><strong data-i18n="latestTaskTitle">最近任务</strong><span class="task-concurrency" id="taskConcurrency">并发：—</span></div><span id="latestTaskIdentity">—</span><small data-i18n="taskRateShort">区间输出，tok/s</small></div>
-        <div class="task-performance-grid">
-          <div><span data-i18n="taskFirstToken">首字响应</span><strong id="latestTaskFirstToken">—</strong></div>
-          <div><span data-i18n="taskTotalTokens">总 Tokens</span><strong id="latestTaskTokens">—</strong></div>
-          <div><span data-i18n="taskPeakRate">峰值 tok/s</span><strong id="latestTaskPeak">—</strong></div>
-          <div><span data-i18n="taskMinRate">最低 tok/s</span><strong id="latestTaskMin">—</strong></div>
-          <div><span data-i18n="taskAverageRate">平均 tok/s</span><strong id="latestTaskAverage">—</strong></div>
-          <div><span data-i18n="taskCacheHitRate">缓存命中率</span><strong id="latestTaskCacheHit">—</strong></div>
-        </div>
-      </section></div><section class="signals" id="statusSection" aria-label="状态提醒">
-        <article class="status-card reset-hub no-drag">
-          <span class="section-label" data-i18n="resetHubTitle">重置管理</span>
-          <button id="resetCreditButton" class="reset-hub-action" type="button">
-            <span class="signal-icon" id="resetCreditIcon" hidden></span>
-            <span data-i18n="resetAvailableShort">可用次数</span>
-            <strong class="status-count" id="resetStatusCount">--</strong>
-            <span id="resetCreditStatus" hidden>--</span>
-          </button>
-          <button id="officialResetButton" class="reset-hub-action official-action" type="button">
-            <span id="officialResetCheck" hidden></span>
-            <span data-i18n="officialResetQuestion">官方重置</span>
-            <strong id="officialResetStatus">--</strong>
-          </button>
-          <small id="resetCreditDetail" hidden></small>
-        </article>
-        <button class="status-card probability-card no-drag" id="resetProbabilityButton" type="button">
-          <span class="section-label" data-i18n="resetProbabilityTitle">重置概率</span>
-          <span class="probability-values" id="resetProbabilityBaseline"><span><small>24h</small><strong id="resetProbability24">—</strong></span><span><small>48h</small><strong id="resetProbability48">—</strong></span></span>
-          <span class="probability-promise" id="resetProbabilityPromise" hidden><span><strong id="resetProbabilitySignal">—</strong><small>Tibo</small></span><strong id="resetProbabilityCountdown">—</strong></span>
-          <small id="resetProbabilityStatus" data-i18n="checkpointUnavailable">等待检查站</small>
-        </button>
-        <article class="status-card status-card-button no-drag" id="clientUpdateCard" role="button" tabindex="0" aria-label="查看客户端版本更新时间线">
-          <div class="status-card-top">
-            <div class="signal-icon" id="clientUpdateIcon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-download"/></svg></div>
-            <div class="signal-check" id="clientUpdateCheck"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-check"/></svg></div>
-          </div>
-          <div class="signal-copy">
-            <span data-i18n="clientUpdateQuestion">Codex 客户端</span>
-            <strong id="clientUpdateStatus">--</strong>
-          </div>
-          <small class="status-card-detail" id="clientUpdateVersion">--</small>
-        </article>
-      </section>
+    <article class="quota-panel tone-cyan" id="fiveHourPanel"><div class="quota-heading"><span class="quota-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-clock"/></svg></span><span class="quota-name" data-i18n="fiveHour">5 小时额度</span><div class="quota-number" id="fiveHourNumber"><span>--</span><small>%</small></div></div><div class="progress-track" id="fiveHourTrack"><div class="progress-glow" id="fiveHourProgress"></div></div><div class="quota-caption"><span class="quota-reset" id="fiveHourReset">--</span><span class="quota-used" id="fiveHourUsed">--</span></div></article>
+    <article class="quota-panel tone-indigo weekly-panel" id="weeklyPanel"><div class="quota-heading"><span class="quota-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-calendar"/></svg></span><span class="quota-name"><span data-i18n="weekly">1 周额度</span><small id="weeklyProjectionNote" class="weekly-projection-note"></small></span><div class="quota-number" id="weeklyNumber"><span>--</span><small>%</small></div></div><div class="progress-track weekly-track"><div class="progress-glow" id="weeklyProgress"></div><span id="weeklyProjectionMarker" class="weekly-projection-marker" hidden aria-hidden="true"></span></div><div class="quota-caption"><span class="quota-reset" id="weeklyReset">--</span><span class="quota-used" id="weeklyUsed">--</span></div></article>
+    <article class="quota-panel tone-amber reserve-panel" id="reservePanel"><div class="quota-heading"><span class="quota-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-reserve"/></svg></span><span class="quota-name" data-i18n="reserve">GPT Reserve</span><div class="quota-number" id="reserveNumber"><span>--</span><small>%</small></div></div><div class="progress-track" id="reserveTrack"><div class="progress-glow" id="reserveProgress"></div></div><div class="quota-caption"><span class="quota-reset" id="reserveReset">--</span><span class="quota-used" id="reserveUsed">--</span></div></article>
+   </section>
+   <section class="ledger-strip" id="tokenOverview" role="group" aria-label="Token">
+    <h2 class="visually-hidden" id="tokenOverviewTitle" data-i18n="tokenUsageTitle"></h2>
+    <button class="ledger-tile is-official" type="button" data-route="usage" data-tab="ledger"><span class="ledger-tile-head"><span class="tile-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-shield"/></svg></span><span class="tile-title" data-i18n="ledgerOfficial"></span><span class="chip" id="ledgerOfficialChip"></span></span><span class="ledger-tile-body"><span class="ledger-metric is-lead"><small id="tokenLifetimeLabel" data-i18n="ledgerTokens"></small><strong id="lifetimeTokenValue">--</strong></span><span class="ledger-metric is-lead"><small data-i18n="ledgerInferredCost"></small><strong id="ledgerOfficialCost">--</strong></span><span class="ledger-metric"><small data-i18n="totalWorkDays"></small><strong id="totalWorkDaysValue">--</strong></span><span class="ledger-metric"><small data-i18n="ledgerDailyCost"></small><strong id="ledgerOfficialDaily">--</strong></span></span></button>
+    <button class="ledger-tile is-combined" type="button" data-route="usage" data-tab="ledger"><span class="ledger-tile-head"><span class="tile-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-sigma"/></svg></span><span class="tile-title" data-i18n="ledgerCombined"></span><span class="chip" id="ledgerCombinedChip"></span></span><span class="ledger-tile-body"><span class="ledger-metric is-lead"><small data-i18n="ledgerTokens"></small><strong id="ledgerCombinedTokens">--</strong></span><span class="ledger-metric is-lead"><small data-i18n="ledgerTotalCost"></small><strong id="ledgerCombinedCost">--</strong></span><span class="ledger-metric"><small data-i18n="ledgerCodexPart"></small><strong id="estimatedCostValue">--</strong></span><span class="ledger-metric"><small data-i18n="ledgerManualPart"></small><strong id="ledgerManualCost">--</strong></span></span></button>
+   </section>
+   <div class="overview-grid">
+    <section class="dashboard-panel trend-panel"><div class="panel-heading"><h2><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-usage"/></svg><span data-i18n="overviewTrend"></span></h2><span class="chip" data-i18n="overviewTrendRange"></span><button class="icon-link" type="button" data-route="usage" data-tab="trend" data-label-key="viewAll"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-chevron"/></svg></button></div><div class="sparkline-shell"><canvas id="tokenSparkline" class="token-sparkline" role="img" data-label-key="tokenChartLabel"></canvas><span class="overview-chart-empty" id="overviewChartEmpty" data-i18n="tokenChartEmpty" hidden></span></div></section>
+    <section class="dashboard-panel active-task-card" id="activeTaskCard" role="button" tabindex="0" aria-label="任务"><div class="panel-heading"><h2><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-tasks"/></svg><span data-i18n="activeTasksTitle"></span></h2><span class="live-pill" title=""><i aria-hidden="true"></i><span data-i18n="activeTaskRunningMetric"></span><strong id="activeTaskCount">--</strong></span><span class="chip"><span data-i18n="activeTaskPendingMetric"></span><strong id="activeTaskPending">--</strong></span><svg class="panel-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-chevron"/></svg></div>
+     <div class="active-task-metrics"><div><span data-i18n="activeTaskLongestLabel"></span><strong id="activeTaskElapsed">--</strong></div><div><span data-i18n="activeTaskTotalCostLabel"></span><strong id="activeTaskTotalCost">--</strong></div><div><span data-i18n="activeTaskTotalCountLabel"></span><strong id="activeTaskTotalCount">--</strong></div><div><span data-i18n="activeTaskAverageTimeLabel"></span><strong id="activeTaskAverageTime">--</strong></div><div><span data-i18n="activeTaskAverageCostLabel"></span><strong id="activeTaskAverageCost">--</strong></div><div><span data-i18n="activeTaskTotalTimeLabel"></span><strong id="activeTaskTotalElapsed">--</strong></div></div>
+     <div class="active-task-preview-list" id="activeTaskPreviewList" aria-live="polite"></div><span class="active-task-more" id="activeTaskMoreIndicator" hidden></span></section>
+    <section class="dashboard-panel composition-panel"><div class="panel-heading"><h2><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-pie"/></svg><span data-i18n="overviewModelCosts"></span></h2><button class="icon-link" type="button" data-route="usage" data-tab="ledger" data-label-key="openCostDetails"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-chevron"/></svg></button></div><div class="composition-bar" id="overviewCompositionBar" aria-hidden="true"></div><div id="overviewModelList" class="overview-model-list"></div></section>
+    <section class="dashboard-panel task-performance" id="taskPerformance" role="button" tabindex="0"><div class="panel-heading"><h2><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-zap"/></svg><span data-i18n="latestTaskTitle"></span></h2><span class="chip task-concurrency" id="taskConcurrency">—</span><svg class="panel-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-chevron"/></svg></div><div class="task-performance-meta"><span id="latestTaskIdentity">—</span><small data-i18n="taskRateShort"></small></div>
+     <div class="task-performance-grid"><div><span data-i18n="taskFirstToken"></span><strong id="latestTaskFirstToken">—</strong></div><div><span data-i18n="taskTotalTokens"></span><strong id="latestTaskTokens">—</strong></div><div><span data-i18n="taskCacheHitRate"></span><strong id="latestTaskCacheHit">—</strong></div><div><span data-i18n="taskPeakRate"></span><strong id="latestTaskPeak">—</strong></div><div><span data-i18n="taskMinRate"></span><strong id="latestTaskMin">—</strong></div><div><span data-i18n="taskAverageRate"></span><strong id="latestTaskAverage">—</strong></div></div></section>
+    <section class="signals" id="statusSection" aria-label="状态">
+     <article class="status-card reset-hub"><div class="status-card-head"><span class="tile-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-ticket"/></svg></span><span class="section-label" data-i18n="resetHubTitle"></span></div><div class="reset-hub-actions"><button id="resetCreditButton" class="reset-hub-action" type="button"><span class="signal-icon" id="resetCreditIcon" hidden></span><span data-i18n="resetAvailableShort"></span><strong class="status-count" id="resetStatusCount">--</strong><span id="resetCreditStatus" hidden>--</span></button><button id="officialResetButton" class="reset-hub-action" type="button"><span id="officialResetCheck" hidden></span><span data-i18n="officialResetQuestion"></span><strong id="officialResetStatus">--</strong></button></div><small id="resetCreditDetail" hidden></small></article>
+     <button class="status-card probability-card" id="resetProbabilityButton" type="button"><span class="status-card-head"><span class="tile-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-pulse"/></svg></span><span class="section-label" data-i18n="resetProbabilityTitle"></span></span><span class="probability-values" id="resetProbabilityBaseline"><span><small>24h</small><strong id="resetProbability24">—</strong></span><span><small>48h</small><strong id="resetProbability48">—</strong></span></span><span class="probability-promise" id="resetProbabilityPromise" hidden><span><strong id="resetProbabilitySignal">—</strong><small>Tibo</small></span><strong id="resetProbabilityCountdown">—</strong></span><small class="status-card-detail" id="resetProbabilityStatus" data-i18n="checkpointUnavailable"></small></button>
+     <article class="status-card status-card-button" id="clientUpdateCard" role="button" tabindex="0"><div class="status-card-head"><span class="tile-icon signal-icon" id="clientUpdateIcon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-download"/></svg></span><span class="section-label" data-i18n="clientUpdateQuestion"></span><span class="signal-check" id="clientUpdateCheck"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-check"/></svg></span></div><strong class="status-card-value" id="clientUpdateStatus">--</strong><small class="status-card-detail" id="clientUpdateVersion">--</small></article>
+    </section>
+   </div>
   </section>
-  <section class="workspace-page" data-page="usage" hidden><div class="page-tabs" role="tablist" data-label-key="pageSections"><button type="button" role="tab" data-route="usage" data-tab="trend" data-i18n="usageTrendTab" aria-selected="false"></button><button type="button" role="tab" data-route="usage" data-tab="cost" data-i18n="usageCostTab" aria-selected="false"></button><button type="button" role="tab" data-route="usage" data-tab="pricing" data-i18n="usagePricingTab" aria-selected="false"></button></div><section class="page-panel" id="tokenUsageModal" data-panel="usage:trend" hidden >
-        <div class="token-dialog">
-          <div class="history-heading">
-            <div>
-              <span class="eyebrow">TOKEN ANALYTICS</span>
-              <h2 id="tokenUsageModalTitle" data-i18n="tokenUsageTitle">Token 使用量</h2>
-            </div>
-            <button class="panel-back" id="tokenUsageClose" type="button" aria-label="关闭" data-i18n="backOverview">返回总览</button>
-          </div>
-          <div class="token-summary-grid">
-            <article>
-              <span class="stat-label"><span id="tokenModalLifetimeLabel" data-i18n="lifetimeTokens">累计 Token</span><button class="stat-scope-help no-drag" type="button" data-stat-scope="token-local" data-stat-label-key="lifetimeTokens">?</button></span>
-              <strong id="tokenModalLifetime">--</strong>
-            </article>
-            <article>
-              <span class="stat-label"><span data-i18n="averageDailyTokens">日均 Token</span><button class="stat-scope-help no-drag" type="button" data-stat-scope="token-local" data-stat-label-key="averageDailyTokens">?</button></span>
-              <strong id="tokenModalDailyAverage">--</strong>
-            </article>
-            <article>
-              <span class="stat-label">
-                <span data-i18n="averageDailyCost">日均消费</span>
-                <button class="stat-scope-help no-drag" type="button" data-stat-scope="token-daily-cost" data-stat-label-key="averageDailyCost">?</button>
-              </span>
-              <strong id="tokenModalDailyCost">--</strong>
-            </article>
-            <article>
-              <span class="stat-label"><span data-i18n="totalWorkDays">累计工作</span><button class="stat-scope-help no-drag" type="button" data-stat-scope="token-local" data-stat-label-key="totalWorkDays">?</button></span>
-              <strong id="tokenModalTotalWorkDays">--</strong>
-            </article>
-          </div>
-          <p id="tokenSourceNote" class="cost-explanation"></p>
-          <div class="token-chart-toolbar">
-            <div class="token-period-switch" id="tokenPeriodSwitch" role="group" aria-label="统计周期">
-              <button class="is-active" type="button" data-token-period="day" data-i18n="tokenPeriodDay">日</button>
-              <button type="button" data-token-period="week" data-i18n="tokenPeriodWeek">周</button>
-              <button type="button" data-token-period="month" data-i18n="tokenPeriodMonth">月</button>
-            </div>
-            <span id="tokenUsageFreshness">--</span>
-          </div>
-          <div class="token-chart-shell">
-            <canvas id="tokenUsageChart" role="img" aria-label="Token 使用量柱状图"></canvas>
-            <div class="token-chart-empty" id="tokenChartEmpty" hidden data-i18n="tokenChartEmpty">暂无 Token 历史数据</div>
-            <div class="token-chart-tooltip" id="tokenChartTooltip" role="tooltip" hidden>
-              <span id="tokenChartTooltipDate"></span>
-              <strong id="tokenChartTooltipValue"></strong>
-            </div>
-          </div>
-          <div class="token-chart-footer">
-            <span id="tokenChartRange">--</span>
-            <strong id="tokenChartLatest">--</strong>
-          </div>
-          <button class="glass-button primary token-chart-done" id="tokenUsageDone" type="button" data-i18n="backOverview">返回总览</button>
-        </div>
-      </section><section class="page-panel" id="tokenCostModal" data-panel="usage:cost" hidden >
-        <div class="cost-dialog">
-          <div class="history-heading">
-            <div>
-              <span class="eyebrow">API COST ESTIMATE</span>
-              <h2 id="tokenCostModalTitle" data-i18n="estimatedApiCost">API 等价金额</h2>
-            </div>
-            <button class="panel-back" id="tokenCostClose" type="button" aria-label="关闭" data-i18n="backOverview">返回总览</button>
-          </div>
-          <div class="cost-total-card">
-            <span data-i18n="estimatedTotalCost">本机可统计调用</span>
-            <strong id="tokenCostTotal">--</strong>
-            <small id="tokenCostCoverage">--</small>
-          </div>
-          <details class="scope-disclosure"><summary data-i18n="pricingScope"></summary><p class="cost-explanation" data-i18n="costEstimateHint">按各厂商公开标准文本 API 价格估算，不代表订阅或第三方账单。缓存有效期未记录时采用默认短期写入价；不含地区、加速与工具费用。包含已发现的多开实例与第三方接入；新旧用量记录按同一计数对去重，不按官方账号日桶缩减。总输入含缓存，不能重复相加。</p></details>
-          <div class="cost-scan-controls no-drag">
-            <button class="glass-button" id="fullCostScan" type="button" data-i18n="fullCostScan">全量扫描全部会话</button>
-            <span id="costScanProgress" role="status" aria-live="polite"></span>
-          </div>
-          <div class="model-cost-list" id="modelCostList"></div>
-          <button class="glass-button primary cost-done" id="tokenCostDone" type="button" data-i18n="backOverview">返回总览</button>
-        </div>
-      </section><section class="page-panel" data-panel="usage:pricing" hidden><h2 data-i18n="usagePricingTab"></h2><p data-i18n="costEstimateHint"></p><p data-i18n="pricingExplain"></p><div id="pricingCatalogSummary" class="info-surface"></div><button class="glass-button" data-route="usage" data-tab="cost" data-i18n="openCostDetails"></button></section></section>
-  <section class="workspace-page" data-page="tasks" hidden><div class="page-tabs" role="tablist" data-label-key="pageSections"><button type="button" role="tab" data-route="tasks" data-tab="running" data-i18n="activeTaskRunningSection" aria-selected="false"></button><button type="button" role="tab" data-route="tasks" data-tab="pending" data-i18n="activeTaskPendingSection" aria-selected="false"></button><button type="button" role="tab" data-route="tasks" data-tab="statistics" data-i18n="taskStatistics" aria-selected="false"></button></div><section class="page-panel" id="activeTaskModal" data-panel="tasks:all" hidden >
-        <div class="task-dialog">
-          <div class="history-heading">
-            <div>
-              <span class="eyebrow">LIVE TASKS</span>
-              <h2 id="activeTaskModalTitle" data-i18n="activeTasksTitle">进行中任务</h2>
-            </div>
-            <button class="panel-back" id="activeTaskClose" type="button" aria-label="关闭" data-i18n="backOverview">返回总览</button>
-          </div>
-          <div class="active-task-stat-grid">
-            <article>
-              <span class="stat-label">
-                <span data-i18n="activeTaskRunningMetric">进行中</span>
-                <button class="stat-scope-help no-drag" type="button" data-stat-scope="task-running" data-stat-label-key="activeTaskRunningMetric" hidden>?</button>
-              </span>
-              <strong id="activeTaskDetailRunning">--</strong>
-            </article>
-            <article>
-              <span class="stat-label">
-                <span data-i18n="activeTaskPendingMetric">待处理</span>
-                <button class="stat-scope-help no-drag" type="button" data-stat-scope="task-pending" data-stat-label-key="activeTaskPendingMetric">?</button>
-              </span>
-              <strong id="activeTaskDetailPending">--</strong>
-            </article>
-            <article>
-              <span class="stat-label">
-                <span data-i18n="activeTaskLongestLabel">最长耗时</span>
-                <button class="stat-scope-help no-drag" type="button" data-stat-scope="task-duration" data-stat-label-key="activeTaskLongestLabel">?</button>
-              </span>
-              <strong id="activeTaskDetailLongest">--</strong>
-            </article>
-            <article>
-              <span class="stat-label">
-                <span data-i18n="activeTaskTotalCostLabel">最高消费</span>
-                <button class="stat-scope-help no-drag" type="button" data-stat-scope="task-cost" data-stat-label-key="activeTaskTotalCostLabel">?</button>
-              </span>
-              <strong id="activeTaskDetailHighestCost">--</strong>
-            </article>
-            <article>
-              <span class="stat-label">
-                <span data-i18n="activeTaskAverageTimeLabel">平均时间</span>
-                <button class="stat-scope-help no-drag" type="button" data-stat-scope="task-duration" data-stat-label-key="activeTaskAverageTimeLabel">?</button>
-              </span>
-              <strong id="activeTaskDetailAverageTime">--</strong>
-            </article>
-            <article>
-              <span class="stat-label">
-                <span data-i18n="activeTaskAverageCostLabel">平均消费</span>
-                <button class="stat-scope-help no-drag" type="button" data-stat-scope="task-cost" data-stat-label-key="activeTaskAverageCostLabel">?</button>
-              </span>
-              <strong id="activeTaskDetailAverageCost">--</strong>
-            </article>
-            <article>
-              <span class="stat-label">
-                <span data-i18n="activeTaskTotalCountLabel">总任务数</span>
-                <button class="stat-scope-help no-drag" type="button" data-stat-scope="task-total-count" data-stat-label-key="activeTaskTotalCountLabel">?</button>
-              </span>
-              <strong id="activeTaskDetailTotalCount">--</strong>
-            </article>
-            <article>
-              <span class="stat-label">
-                <span data-i18n="activeTaskTotalTimeLabel">总耗时</span>
-                <button class="stat-scope-help no-drag" type="button" data-stat-scope="task-duration" data-stat-label-key="activeTaskTotalTimeLabel">?</button>
-              </span>
-              <strong id="activeTaskDetailTotalElapsed">--</strong>
-            </article>
-          </div>
-          <details class="scope-disclosure"><summary data-i18n="taskScope"></summary><p class="active-task-explanation" data-i18n="activeTaskDetailsHint">按本机 Codex 当前回合的 Token 使用量与标准 API 价格估算，不代表 Codex 订阅实际收费。</p>
-          <p class="active-task-explanation task-performance-scope" id="taskPerformanceScope"></p></details>
-          <div id="taskOutcomeTotals" class="task-outcome-totals"></div><div class="task-toolbar no-drag"><input id="taskSearch" type="search" data-label-key="taskSearch" placeholder="项目或模型">
-            <select id="taskFilter" data-label-key="taskFilterLabel"><option value="all" data-i18n="taskFilterAll">全部任务</option><option value="running" data-i18n="activeTaskRunningSection">运行中</option><option value="pending" data-i18n="activeTaskPendingSection">待确认</option><option value="goal" data-i18n="taskKindGoal">/goal</option><option value="subagent" data-i18n="taskKindSubagent">子代理</option></select>
-            <select id="taskSort" data-label-key="taskSortLabel"><option value="time" data-i18n="taskSortTime">按时间</option><option value="cost" data-i18n="taskSortCost">按金额</option><option value="duration" data-i18n="taskSortDuration">按时长</option></select>
-            <button class="glass-button primary" id="confirmAllTasks" type="button" data-i18n="confirmAllTasks">一键确认</button>
-          </div>
-          <div class="active-task-list" id="activeTaskList" aria-live="polite"></div>
-          <button class="glass-button primary active-task-done" id="activeTaskDone" type="button" data-i18n="backOverview">返回总览</button>
-        </div>
-      </section></section>
-  <section class="workspace-page" data-page="quota" hidden><div id="quotaPageBars" class="quota-section quota-page-bars"></div><div class="page-tabs" role="tablist" data-label-key="pageSections"><button type="button" role="tab" data-route="quota" data-tab="credits" data-i18n="resetCreditTitle" aria-selected="false"></button><button type="button" role="tab" data-route="quota" data-tab="subscription" data-i18n="subscriptionTitle" aria-selected="false"></button><button type="button" role="tab" data-route="quota" data-tab="official" data-i18n="officialResetHistoryTitle" aria-selected="false"></button><button type="button" role="tab" data-route="quota" data-tab="forecast" data-i18n="resetProbabilityTitle" aria-selected="false"></button></div><section class="page-panel" id="resetCreditModal" data-panel="quota:credits" hidden >
-        <div class="reset-dialog">
-          <div class="history-heading">
-            <div>
-              <span class="eyebrow">RESET CREDITS</span>
-              <h2 id="resetCreditModalTitle" data-i18n="resetCreditTitle">额度重置次数</h2>
-            </div>
-            <button class="panel-back" id="resetCreditClose" type="button" aria-label="关闭" data-i18n="backOverview">返回总览</button>
-          </div>
-          <div class="reset-detail-summary">
-            <span data-i18n="availableResetListTitle">当前可用</span>
-            <strong id="resetDetailCount">--</strong>
-          </div>
-          <h3 class="reset-detail-heading" data-i18n="availableResetListTitle">当前可用</h3>
-          <div class="reset-credit-list reset-detail-list" id="resetCreditList" aria-live="polite">
-            <div class="reset-credit-empty" data-i18n="noCredits">暂无可用次数</div>
-          </div>
-          <button class="glass-button reset-official-link" id="resetOfficialLink" type="button" data-i18n="openOfficialResetHistory">查看官方重置记录</button>
-          <div class="reset-history-stack">
-            <h3 class="reset-detail-heading received-heading" data-i18n="receivedResetHistoryTitle">收到记录</h3>
-            <div class="received-reset-history" id="receivedResetHistoryList"></div>
-            <h3 class="reset-detail-heading consumed-heading" data-i18n="consumedResetHistoryTitle">使用记录</h3>
-            <div class="consumed-reset-history" id="consumedResetHistoryList"></div>
-          </div>
-          <button class="glass-button primary reset-detail-done" id="resetCreditDone" type="button" data-i18n="backOverview">返回总览</button>
-        </div>
-      </section><section class="page-panel" id="subscriptionModal" data-panel="quota:subscription" hidden >
-        <div class="history-dialog subscription-dialog">
-          <div class="history-heading">
-            <div>
-              <span class="eyebrow">CODEX SUBSCRIPTION</span>
-              <h2 id="subscriptionModalTitle" data-i18n="subscriptionTitle">订阅详情</h2>
-            </div>
-            <button class="panel-back" id="subscriptionClose" type="button" aria-label="关闭" data-i18n="backOverview">返回总览</button>
-          </div>
-          <div class="subscription-plan-card">
-            <span data-i18n="subscriptionPlanLabel">当前订阅套餐</span>
-            <strong id="subscriptionPlan">--</strong>
-          </div>
-          <p class="subscription-assisted" id="subscriptionAssistedDays">订阅服务累计已协助开发 -- 天</p>
-          <div class="subscription-time-grid">
-            <article>
-              <span data-i18n="subscriptionExpiryLabel">订阅到期时间</span>
-              <strong id="subscriptionExpiry">--</strong>
-            </article>
-            <article class="subscription-countdown-card">
-              <span data-i18n="subscriptionCountdownLabel">距离下次续费还有：</span>
-              <strong id="subscriptionCountdown">--</strong>
-            </article>
-          </div>
-          <p class="subscription-note" id="subscriptionNote"></p>
-          <button class="glass-button primary history-done" id="subscriptionDone" type="button" data-i18n="backOverview">返回总览</button>
-        </div>
-      </section><section class="page-panel" id="officialResetHistoryModal" data-panel="quota:official" hidden >
-        <div class="history-dialog">
-          <div class="history-heading">
-            <div>
-              <span class="eyebrow">OFFICIAL RESET HISTORY</span>
-              <h2 id="officialResetHistoryTitle" data-i18n="officialResetHistoryTitle">官方重置记录</h2>
-            </div>
-            <button class="panel-back" id="officialResetHistoryClose" type="button" aria-label="关闭" data-i18n="backOverview">返回总览</button>
-          </div>
-          <p data-i18n="officialResetHistoryHint">仅显示社区检查站收录的官方重置公告，附原始来源；不再显示本机额度变化推断。</p>
-          <div class="official-reset-history" id="officialResetHistoryList"></div>
-          <button class="glass-button primary history-done" id="officialResetHistoryDone" type="button" data-i18n="backOverview">返回总览</button>
-        </div>
-      </section><section class="page-panel" id="resetProbabilityModal" data-panel="quota:forecast" hidden >
-        <div class="history-dialog checkpoint-dialog">
-          <div class="history-heading"><div><span class="eyebrow">RESET RADAR</span><h2 id="resetProbabilityTitle" data-i18n="resetProbabilityTitle">重置概率</h2></div><button class="panel-back" id="resetProbabilityClose" type="button" aria-label="关闭" data-i18n="backOverview">返回总览</button></div>
-          <div class="checkpoint-dashboard no-drag">
-            <article class="checkpoint-commitment" id="checkpointCommitment">
-              <span class="checkpoint-badge checkpoint-summary" id="checkpointSummary"></span>
-              <div class="checkpoint-lead"><strong id="checkpointSignalProbability">—</strong><span data-i18n="checkpointSignalLabel">承诺信号概率</span></div>
-              <strong class="checkpoint-clock" id="checkpointCountdown">—</strong>
-              <p id="checkpointTarget"></p>
-              <p id="checkpointSignalHint"></p>
-              <button class="checkpoint-source" id="checkpointSignalSource" type="button" hidden data-i18n="checkpointPromiseSource">查看承诺原文 ↗</button>
-            </article>
-            <h3 data-i18n="checkpointBaselineTitle">历史模型</h3>
-            <div class="checkpoint-odds-grid">
-              <article><span data-i18n="checkpoint24Label">未来 24 小时</span><strong id="checkpointOdds24">—</strong><small id="checkpointRange24"></small></article>
-              <article><span data-i18n="checkpoint48Label">未来 48 小时</span><strong id="checkpointOdds48">—</strong><small id="checkpointRange48"></small></article>
-            </div>
-            <dl class="checkpoint-stat-grid" id="checkpointStatistics"></dl>
-            <p id="checkpointMethod"></p>
-            <h3 data-i18n="checkpointDataTitle">数据来源与时效</h3>
-            <p id="checkpointFreshness"></p>
-            <button class="checkpoint-source" id="checkpointDashboardSource" type="button" data-i18n="checkpointSourceLink">查看来源 ↗</button>
-          </div>
-          <button class="glass-button primary history-done" id="resetProbabilityDone" type="button" data-i18n="backOverview">返回总览</button>
-        </div>
-      </section></section>
-  <section class="workspace-page" data-page="updates" hidden><section class="page-panel" id="clientUpdateHistoryModal" data-panel="updates:timeline" hidden >
-        <div class="history-dialog client-update-history-dialog">
-          <div class="history-heading">
-            <div>
-              <span class="eyebrow">CLIENT UPDATE TIMELINE</span>
-              <h2 id="clientUpdateHistoryTitle" data-i18n="clientUpdateHistoryTitle">版本更新时间线</h2>
-            </div>
-            <button class="panel-back" id="clientUpdateHistoryClose" type="button" aria-label="关闭" data-i18n="backOverview">返回总览</button>
-          </div>
-          <p data-i18n="clientUpdateHistoryHint">记录本机观察到的 Codex 客户端升级，包含历史缺口补记。时间为检测或补记时刻，不是安装时间。</p>
-          <div class="client-update-summary">
-            <article>
-              <span data-i18n="clientUpdateCurrentLabel">当前版本</span>
-              <strong id="clientUpdateHistoryCurrent">--</strong>
-            </article>
-            <article>
-              <span data-i18n="clientUpdatePendingLabel">待安装版本</span>
-              <strong id="clientUpdateHistoryPending">--</strong>
-            </article>
-          </div>
-          <div class="client-update-history-list" id="clientUpdateHistoryList"></div>
-          <button class="glass-button primary history-done" id="clientUpdateHistoryDone" type="button" data-i18n="backOverview">返回总览</button>
-        </div>
-      </section><section class="page-panel update-panel">        <div class="monitor-update-settings">
-          <strong data-i18n="monitorUpdateTitle">监测台更新</strong>
-          <span id="monitorUpdateStatus" role="status" aria-live="polite"></span>
-          <small data-i18n="monitorUpdateHint">自动检查并下载，任务空闲时重启监测台。Codex 任务不受影响。</small>
-          <div><button id="monitorUpdateCheck" class="glass-button" type="button" data-i18n="monitorUpdateCheck">检查更新</button><button id="monitorUpdateInstall" class="glass-button primary" type="button" hidden data-i18n="monitorUpdateInstall">重启并更新</button></div>
-        </div>
-</section></section>
-  <section class="workspace-page" data-page="settings" hidden><div class="page-tabs" role="tablist" data-label-key="pageSections"><button type="button" role="tab" data-route="settings" data-tab="general" data-i18n="appearanceAndGeneral" aria-selected="false"></button><button type="button" role="tab" data-route="settings" data-tab="sources" data-i18n="sourcesTitle" aria-selected="false"></button><button type="button" role="tab" data-route="settings" data-tab="diagnostics" data-i18n="connectionStatusTitleKey" aria-selected="false"></button><button type="button" role="tab" data-route="settings" data-tab="about" data-i18n="aboutTitle" aria-selected="false"></button></div><section class="page-panel" id="settingsPopover" data-panel="settings:general" hidden>
- <div class="history-heading"><div><span class="eyebrow">PREFERENCES</span><h2 data-i18n="settingsTitle"></h2></div><button class="panel-back" id="settingsClose" data-i18n="backOverview"></button></div>
- <div class="settings-list">
-  <label class="settings-row"><span class="settings-copy"><strong data-i18n="alwaysOnTopSetting"></strong><small data-i18n="alwaysOnTopHint"></small></span><input type="checkbox" id="pinButton" /></label>
-  <label class="settings-row"><span class="settings-copy"><strong data-i18n="closeBehaviorTitle"></strong><small data-i18n="closeBehaviorHint"></small></span><select id="closeBehavior" data-label-key="closeBehaviorTitle"><option value="tray" data-i18n="closeToTray"></option><option value="quit" data-i18n="closeToQuit"></option></select></label>
- </div>
- <h3 data-i18n="backgroundTitle"></h3><p data-i18n="backgroundHint"></p>
- <div class="appearance-layout">
- <div><div class="upload-zone" id="backgroundDropZone" role="button" tabindex="0" data-label-key="dropBackground"><span class="upload-mark" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-upload"/></svg></span><strong data-i18n="dropBackground"></strong><span data-i18n="backgroundRequirement"></span></div>
- <div class="background-actions"><button class="glass-button primary" id="chooseBackground" data-i18n="chooseBackground"></button><button class="glass-button" id="editBackground" data-i18n="editBackground"></button><button class="glass-button" id="clearBackground" data-i18n="clearBackground"></button></div><p class="background-error" id="backgroundError" hidden></p></div>
- <div class="appearance-controls">
- <label><span data-i18n="backgroundFit"></span><select id="backgroundFit"><option value="contain" data-i18n="backgroundContain"></option><option value="cover" data-i18n="backgroundCover"></option><option value="actual" data-i18n="backgroundActual"></option></select></label>
- <label class="opacity-control"><span data-i18n="backgroundOpacity"></span><output id="opacityValue">34%</output><input id="opacitySlider" type="range" min="8" max="85" value="34"></label>
- <label class="appearance-slider"><span data-i18n="backgroundPositionX"></span><output id="backgroundXValue">50</output><input id="backgroundX" type="range" min="0" max="100" value="50" data-label-key="backgroundPositionX"></label><label class="appearance-slider"><span data-i18n="backgroundPositionY"></span><output id="backgroundYValue">50</output><input id="backgroundY" type="range" min="0" max="100" value="50" data-label-key="backgroundPositionY"></label><label class="appearance-slider"><span data-i18n="backgroundZoom"></span><output id="backgroundZoomValue">100</output><input id="backgroundZoom" type="range" min="100" max="200" value="100" data-label-key="backgroundZoom"></label><label class="appearance-slider"><span data-i18n="backgroundBlur"></span><output id="backgroundBlurValue">0</output><input id="backgroundBlur" type="range" min="0" max="24" value="0" data-label-key="backgroundBlur"></label><label class="appearance-slider"><span data-i18n="backgroundVeil"></span><output id="backgroundVeilValue">18</output><input id="backgroundVeil" type="range" min="0" max="85" value="18" data-label-key="backgroundVeil"></label><label class="appearance-slider"><span data-i18n="cardOpacity"></span><output id="cardOpacityValue">80</output><input id="cardOpacity" type="range" min="60" max="100" value="80" data-label-key="cardOpacity"></label>
- <label class="settings-row"><span data-i18n="allowBackgroundUpscale"></span><input type="checkbox" id="allowBackgroundUpscale"></label><p class="background-scale-hint" data-i18n="backgroundScaleHint"></p><label class="settings-row"><span data-i18n="reducedTransparency"></span><input type="checkbox" id="reducedTransparency"></label>
- <div class="background-actions"><button class="glass-button primary" id="applyAppearance" data-i18n="applyAppearance"></button><button class="glass-button" id="cancelAppearance" data-i18n="cancel"></button></div><span id="appearanceStatus" role="status"></span>
- </div></div></section><section class="page-panel" data-panel="settings:sources" hidden><h2 data-i18n="sourcesTitle"></h2><p data-i18n="sourcesHint"></p><button class="glass-button" id="refreshSources" data-i18n="refreshSources"></button><div id="sourcesList" class="sources-list"></div><p id="sourceScanSummary" role="status"></p><button class="glass-button" data-route="usage" data-tab="cost" data-i18n="openCostDetails"></button></section><section class="page-panel" data-panel="settings:diagnostics" hidden><h2 data-i18n="connectionStatusTitleKey"></h2><p data-i18n="diagnosticsHint"></p><button class="glass-button primary" id="diagnoseConnection" data-i18n="openConnectionStatus"></button></section><section class="page-panel" data-panel="settings:about" hidden><span class="eyebrow">CODEX QUOTA MONITOR</span><h2 data-i18n="title"></h2><p data-i18n="aboutDescription"></p><p id="aboutVersion"></p><p data-i18n="localDataHint"></p><button class="glass-button" data-route="updates" data-i18n="monitorUpdateTitle"></button></section></section>
- </main><footer class="workspace-footer"><span data-i18n="workspaceFooter"></span><span id="autoRefreshLabel" data-i18n="autoRefresh"></span></footer></div>
- <section class="crop-modal" id="cropModal" hidden aria-modal="true" role="dialog" aria-labelledby="cropTitleLabel">
-        <div class="crop-dialog">
-          <div class="crop-heading">
-            <div>
-              <span class="eyebrow">BACKGROUND CROP</span>
-              <h2 id="cropTitleLabel" data-i18n="cropTitle">截取背景区域</h2>
-            </div>
-            <button class="popover-close" id="cropClose" type="button" aria-label="关闭">×</button>
-          </div>
-          <p data-i18n="cropHint">拖动选框调整位置，拖动右下角改变选区大小。</p>
-          <div class="crop-toolbar"><label><span data-i18n="cropAspect"></span><select id="cropAspect"><option value="window" data-i18n="cropCurrentWindow"></option><option value="1.7777777778">16:9</option><option value="1.6">16:10</option><option value="original" data-i18n="cropOriginal"></option></select></label><button class="glass-button" id="useWholeBackground" type="button" data-i18n="useWholeBackground"></button></div><div class="crop-stage" id="cropStage">
-            <img id="cropImage" alt="">
-            <div class="crop-box" id="cropBox" tabindex="0" data-label-key="cropHint">
-              <i></i><i></i><i></i><i></i>
-              <span class="crop-size" id="cropRatioLabel">16:10</span>
-              <button class="crop-resize-handle" id="cropResizeHandle" type="button" aria-label="调整裁剪区域"></button>
-            </div>
-          </div>
-          <div class="crop-source-info" id="cropSourceInfo"></div>
-          <div class="crop-actions">
-            <button class="glass-button" id="cropCancel" type="button" data-i18n="cancel">取消</button>
-            <button class="glass-button primary" id="cropApply" type="button" data-i18n="applyCrop">使用此区域</button>
-          </div>
-        </div>
-      </section><section class="history-modal connection-modal" id="connectionStatusModal" hidden aria-modal="true" role="dialog" aria-labelledby="connectionStatusTitle">
-        <div class="history-dialog connection-dialog">
-          <div class="history-heading">
-            <div>
-              <span class="eyebrow">CONNECTION STATUS</span>
-              <h2 id="connectionStatusTitle">连接断开</h2>
-            </div>
-            <div class="connection-dialog-indicator" aria-hidden="true">
-              <span></span>
-            </div>
-          </div>
-          <div class="connection-dialog-body">
-            <svg class="connection-dialog-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path class="connection-icon-offline" d="M12 9v4m0 3h.01M10.3 4.4 2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.4a2 2 0 0 0-3.4 0Z"></path>
-              <path class="connection-icon-online" d="m6.8 12.3 3.2 3.2 7.2-7.2"></path>
-            </svg>
-            <p id="connectionStatusMessage">无法连接到 OpenAI 服务器与 Codex 客户端，请排查以下问题：</p>
-          </div>
-          <ul class="connection-issue-list" id="connectionIssueList">
-            <li data-i18n="connectionIssueClient">Codex 客户端未安装、未启动、已崩溃，或正在更新、重启，本地 app-server 无法工作。</li>
-            <li data-i18n="connectionIssueAccount">Codex 未登录、登录已过期、账户授权异常，或当前 API Key 登录无法提供订阅额度。</li>
-            <li data-i18n="connectionIssueNetwork">网络中断，或 DNS、代理、路由异常，无法访问 OpenAI。</li>
-            <li data-i18n="connectionIssueVpn">中国大陆网络未开启 VPN，或 VPN 节点不可用、不稳定。</li>
-            <li data-i18n="connectionIssueSecurity">防火墙、安全软件或公司网络策略阻止了 Codex 进程或连接。</li>
-            <li data-i18n="connectionIssueServer">OpenAI 服务临时故障、维护，或请求持续超时。</li>
-          </ul>
-          <button class="glass-button primary connection-status-done" id="connectionStatusDone" type="button" data-i18n="connectionAcknowledge">我已知晓</button>
-        </div>
-      </section><section class="history-modal task-interruption-modal" id="taskInterruptionModal" hidden aria-modal="true" role="alertdialog" aria-labelledby="taskInterruptionTitle">
-        <div class="history-dialog task-interruption-dialog">
-          <div class="history-heading">
-            <div>
-              <span class="eyebrow">TASK INTERRUPTED</span>
-              <h2 id="taskInterruptionTitle" data-i18n="taskAbnormalTitle">任务异常中断</h2>
-            </div>
-          </div>
-          <div class="task-interruption-body">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 3 2.8 20h18.4L12 3Z"></path>
-              <path d="M12 9v5m0 3.2v.1"></path>
-            </svg>
-            <p id="taskInterruptionMessage">--</p>
-          </div>
-          <button class="glass-button primary task-interruption-done" id="taskInterruptionDone" type="button" data-i18n="acknowledge">我已知晓</button>
-        </div>
-      </section><section class="history-modal stat-scope-modal" id="statScopeModal" hidden aria-modal="true" role="dialog" aria-labelledby="statScopeTitle">
-        <div class="history-dialog stat-scope-dialog">
-          <div class="history-heading">
-            <div>
-              <span class="eyebrow">DATA COVERAGE</span>
-              <h2 id="statScopeTitle">统计口径说明</h2>
-            </div>
-            <button class="popover-close" id="statScopeClose" type="button" aria-label="关闭">×</button>
-          </div>
-          <p id="statScopeMessage">--</p>
-          <div class="stat-scope-actions">
-            <button class="glass-button" id="tokenCostHelp" type="button" data-i18n="openCostDetails" hidden>查看模型用量与 API 成本明细</button>
-            <button class="glass-button primary stat-scope-done" id="statScopeDone" type="button" data-i18n="acknowledge">我已知晓</button>
-          </div>
-        </div>
-      </section>
-<aside class="task-drawer" id="taskDetailDrawer" hidden role="dialog" aria-modal="false" aria-labelledby="taskDrawerTitle"><div class="drawer-heading"><h2 id="taskDrawerTitle"></h2><button class="popover-close" id="taskDrawerClose" data-label-key="close">×</button></div><div id="taskDrawerContent"></div></aside> <div class="loading-layer" id="loadingLayer"><div class="loading-pulse"></div><span data-i18n="reading"></span></div>
- </div><script src="./crop-geometry.js"></script><script src="../token-usage.js"></script><script src="../refresh-policy.js"></script><script src="./reset-calendar.js"></script><script src="./workbench.js"></script><script src="./renderer.js"></script></body></html>
+  <section class="workspace-page" data-page="usage" hidden><div class="page-tabs" role="tablist" data-label-key="pageSections"><button type="button" role="tab" data-route="usage" data-tab="ledger" data-i18n="usageLedgerTab" aria-selected="false"></button><button type="button" role="tab" data-route="usage" data-tab="trend" data-i18n="usageTrendTab" aria-selected="false"></button><button type="button" role="tab" data-route="usage" data-tab="cost" data-i18n="usageCostTab" aria-selected="false"></button><button type="button" role="tab" data-route="usage" data-tab="pricing" data-i18n="usagePricingTab" aria-selected="false"></button></div>
+   <section class="page-panel ledger-panel" data-panel="usage:ledger" hidden>
+    <div class="ledger-compare">
+     <article class="ledger-card is-official"><header class="ledger-card-head"><span class="tile-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-shield"/></svg></span><div><h2 data-i18n="ledgerOfficial"></h2><small data-i18n="ledgerOfficialBasis"></small></div><span class="chip" id="ledgerOfficialState"></span></header><div class="ledger-hero"><div><small data-i18n="ledgerTokens"></small><strong id="ledgerOfficialTokens">--</strong></div><div><small data-i18n="ledgerInferredCost"></small><strong id="ledgerOfficialCostDetail">--</strong></div></div><dl class="ledger-facts"><div><dt data-i18n="ledgerRate"></dt><dd id="ledgerOfficialRate">--</dd></div><div><dt data-i18n="totalWorkDays"></dt><dd id="ledgerOfficialDays">--</dd></div><div><dt data-i18n="ledgerDailyTokens"></dt><dd id="ledgerOfficialDailyTokens">--</dd></div><div><dt data-i18n="ledgerDailyCost"></dt><dd id="ledgerOfficialDailyCost">--</dd></div></dl></article>
+     <article class="ledger-card is-combined"><header class="ledger-card-head"><span class="tile-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-sigma"/></svg></span><div><h2 data-i18n="ledgerCombined"></h2><small data-i18n="ledgerCombinedBasis"></small></div><span class="chip" id="ledgerCombinedState"></span></header><div class="ledger-hero"><div><small data-i18n="ledgerTokens"></small><strong id="ledgerCombinedTokensDetail">--</strong></div><div><small data-i18n="ledgerTotalCost"></small><strong id="ledgerCombinedCostDetail">--</strong></div></div><dl class="ledger-facts"><div><dt data-i18n="ledgerInput"></dt><dd id="ledgerCombinedInput">--</dd></div><div><dt data-i18n="modelCostCached"></dt><dd id="ledgerCombinedCached">--</dd></div><div><dt data-i18n="modelCostOutput"></dt><dd id="ledgerCombinedOutput">--</dd></div><div><dt data-i18n="modelCostHitRate"></dt><dd id="ledgerCombinedHit">--</dd></div></dl><div class="ledger-split"><span class="ledger-split-bar" id="ledgerSplitBar"><i class="is-codex"></i><i class="is-manual"></i></span><span class="ledger-split-legend"><span><i class="is-codex"></i><span data-i18n="ledgerCodexPart"></span><strong id="ledgerCodexShare">--</strong></span><span><i class="is-manual"></i><span data-i18n="ledgerManualPart"></span><strong id="ledgerManualShare">--</strong></span></span></div></article>
+    </div>
+    <section class="manual-section"><header class="section-head"><h2 data-i18n="manualTitle"></h2><span class="chip" id="manualCount">0</span><div class="manual-defaults" role="group" data-label-key="manualDefaults"><label><span data-i18n="manualInputShare"></span><input id="manualDefaultInputShare" type="text" inputmode="decimal" maxlength="5"><em>%</em></label><label><span data-i18n="manualHitRate"></span><input id="manualDefaultHitRate" type="text" inputmode="decimal" maxlength="5"><em>%</em></label><button class="glass-button icon-button" id="manualUseMeasured" type="button" data-label-key="manualUseMeasured"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-wand"/></svg></button></div><button class="glass-button primary" id="manualAdd" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-plus"/></svg><span data-i18n="manualAdd"></span></button></header>
+     <div class="table-scroll"><table class="data-table manual-table"><thead><tr><th data-i18n="manualProvider"></th><th data-i18n="pricingModel"></th><th data-i18n="manualMode"></th><th class="num" data-i18n="ledgerInput"></th><th class="num" data-i18n="modelCostCached"></th><th class="num" data-i18n="modelCostOutput"></th><th class="num" data-i18n="manualAmount"></th><th class="actions"><span class="visually-hidden" data-i18n="manualActions"></span></th></tr></thead><tbody id="manualTableBody"></tbody></table></div><p class="empty-state" id="manualEmpty" data-i18n="manualEmpty"></p></section>
+   </section>
+   <section class="page-panel" id="tokenUsageModal" data-panel="usage:trend" hidden><div class="token-dialog"><div class="history-heading"><h2 id="tokenUsageModalTitle" data-i18n="tokenUsageTitle"></h2><button class="panel-back" id="tokenUsageClose" type="button" data-i18n="backOverview"></button></div>
+    <div class="token-summary-grid"><article><span class="stat-label"><span id="tokenModalLifetimeLabel" data-i18n="lifetimeTokens"></span><button class="stat-scope-help" type="button" data-stat-scope="token-local" data-stat-label-key="lifetimeTokens">?</button></span><strong id="tokenModalLifetime">--</strong></article><article><span class="stat-label"><span data-i18n="averageDailyTokens"></span><button class="stat-scope-help" type="button" data-stat-scope="token-local" data-stat-label-key="averageDailyTokens">?</button></span><strong id="tokenModalDailyAverage">--</strong></article><article><span class="stat-label"><span data-i18n="averageDailyCost"></span><button class="stat-scope-help" type="button" data-stat-scope="token-daily-cost" data-stat-label-key="averageDailyCost">?</button></span><strong id="tokenModalDailyCost">--</strong></article><article><span class="stat-label"><span data-i18n="totalWorkDays"></span><button class="stat-scope-help" type="button" data-stat-scope="token-local" data-stat-label-key="totalWorkDays">?</button></span><strong id="tokenModalTotalWorkDays">--</strong></article></div>
+    <div class="chart-panel"><div class="token-chart-toolbar"><div class="token-period-switch segmented" id="tokenPeriodSwitch" role="group"><button class="is-active" type="button" data-token-period="day" data-i18n="tokenPeriodDay"></button><button type="button" data-token-period="week" data-i18n="tokenPeriodWeek"></button><button type="button" data-token-period="month" data-i18n="tokenPeriodMonth"></button></div><span class="chip" id="tokenUsageFreshness">--</span></div>
+    <div class="token-chart-shell"><canvas id="tokenUsageChart" role="img"></canvas><div class="token-chart-empty" id="tokenChartEmpty" hidden data-i18n="tokenChartEmpty"></div><div class="token-chart-tooltip" id="tokenChartTooltip" role="tooltip" hidden><span id="tokenChartTooltipDate"></span><strong id="tokenChartTooltipValue"></strong></div></div>
+    <div class="token-chart-footer"><span id="tokenChartRange">--</span><strong id="tokenChartLatest">--</strong></div></div>
+    <p id="tokenSourceNote" class="panel-note"></p><button class="glass-button primary token-chart-done" id="tokenUsageDone" type="button" data-i18n="backOverview"></button></div></section>
+   <section class="page-panel" id="tokenCostModal" data-panel="usage:cost" hidden><div class="cost-dialog"><div class="history-heading"><h2 id="tokenCostModalTitle" data-i18n="estimatedApiCost"></h2><button class="panel-back" id="tokenCostClose" type="button" data-i18n="backOverview"></button></div>
+    <div class="cost-total-card"><span data-i18n="estimatedTotalCost"></span><strong id="tokenCostTotal">--</strong><small id="tokenCostCoverage">--</small></div>
+    <div class="cost-scan-controls"><button class="glass-button" id="fullCostScan" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-refresh"/></svg><span data-i18n="fullCostScan"></span></button><span id="costScanProgress" role="status" aria-live="polite"></span><details class="scope-disclosure"><summary data-i18n="pricingScope"></summary><p data-i18n="costEstimateHint"></p></details></div>
+    <div class="model-cost-list" id="modelCostList"></div><button class="glass-button primary cost-done" id="tokenCostDone" type="button" data-i18n="backOverview"></button></div></section>
+   <section class="page-panel" data-panel="usage:pricing" hidden><details class="scope-disclosure"><summary data-i18n="pricingScope"></summary><p data-i18n="pricingExplain"></p></details><div id="pricingCatalogSummary" class="info-surface"></div></section></section>
+  <section class="workspace-page" data-page="tasks" hidden><div class="page-tabs" role="tablist" data-label-key="pageSections"><button type="button" role="tab" data-route="tasks" data-tab="running" data-i18n="activeTaskRunningSection" aria-selected="false"></button><button type="button" role="tab" data-route="tasks" data-tab="pending" data-i18n="activeTaskPendingSection" aria-selected="false"></button><button type="button" role="tab" data-route="tasks" data-tab="statistics" data-i18n="taskStatistics" aria-selected="false"></button></div>
+   <section class="page-panel" id="activeTaskModal" data-panel="tasks:all" hidden><div class="task-dialog"><div class="history-heading"><h2 id="activeTaskModalTitle" data-i18n="activeTasksTitle"></h2><button class="panel-back" id="activeTaskClose" type="button" data-i18n="backOverview"></button></div>
+    <div class="active-task-stat-grid">
+     <article><span class="stat-label"><span data-i18n="activeTaskRunningMetric"></span><button class="stat-scope-help" type="button" data-stat-scope="task-running" data-stat-label-key="activeTaskRunningMetric" hidden>?</button></span><strong id="activeTaskDetailRunning">--</strong></article>
+     <article><span class="stat-label"><span data-i18n="activeTaskPendingMetric"></span><button class="stat-scope-help" type="button" data-stat-scope="task-pending" data-stat-label-key="activeTaskPendingMetric">?</button></span><strong id="activeTaskDetailPending">--</strong></article>
+     <article><span class="stat-label"><span data-i18n="activeTaskLongestLabel"></span><button class="stat-scope-help" type="button" data-stat-scope="task-duration" data-stat-label-key="activeTaskLongestLabel">?</button></span><strong id="activeTaskDetailLongest">--</strong></article>
+     <article><span class="stat-label"><span data-i18n="activeTaskTotalCostLabel"></span><button class="stat-scope-help" type="button" data-stat-scope="task-cost" data-stat-label-key="activeTaskTotalCostLabel">?</button></span><strong id="activeTaskDetailHighestCost">--</strong></article>
+     <article><span class="stat-label"><span data-i18n="activeTaskAverageTimeLabel"></span><button class="stat-scope-help" type="button" data-stat-scope="task-duration" data-stat-label-key="activeTaskAverageTimeLabel">?</button></span><strong id="activeTaskDetailAverageTime">--</strong></article>
+     <article><span class="stat-label"><span data-i18n="activeTaskAverageCostLabel"></span><button class="stat-scope-help" type="button" data-stat-scope="task-cost" data-stat-label-key="activeTaskAverageCostLabel">?</button></span><strong id="activeTaskDetailAverageCost">--</strong></article>
+     <article><span class="stat-label"><span data-i18n="activeTaskTotalCountLabel"></span><button class="stat-scope-help" type="button" data-stat-scope="task-total-count" data-stat-label-key="activeTaskTotalCountLabel">?</button></span><strong id="activeTaskDetailTotalCount">--</strong></article>
+     <article><span class="stat-label"><span data-i18n="activeTaskTotalTimeLabel"></span><button class="stat-scope-help" type="button" data-stat-scope="task-duration" data-stat-label-key="activeTaskTotalTimeLabel">?</button></span><strong id="activeTaskDetailTotalElapsed">--</strong></article>
+    </div>
+    <div id="taskOutcomeTotals" class="task-outcome-totals"></div>
+    <div class="task-toolbar"><input id="taskSearch" type="search" data-label-key="taskSearch"><select id="taskFilter" data-label-key="taskFilterLabel"><option value="all" data-i18n="taskFilterAll"></option><option value="running" data-i18n="activeTaskRunningSection"></option><option value="pending" data-i18n="activeTaskPendingSection"></option><option value="goal" data-i18n="taskKindGoal"></option><option value="subagent" data-i18n="taskKindSubagent"></option></select><select id="taskSort" data-label-key="taskSortLabel"><option value="time" data-i18n="taskSortTime"></option><option value="cost" data-i18n="taskSortCost"></option><option value="duration" data-i18n="taskSortDuration"></option></select><button class="glass-button primary" id="confirmAllTasks" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-check"/></svg><span data-i18n="confirmAllTasks"></span></button></div>
+    <div class="active-task-list" id="activeTaskList" aria-live="polite"></div>
+    <details class="scope-disclosure"><summary data-i18n="taskScope"></summary><p class="active-task-explanation" data-i18n="activeTaskDetailsHint"></p><p class="active-task-explanation task-performance-scope" id="taskPerformanceScope"></p></details>
+    <button class="glass-button primary active-task-done" id="activeTaskDone" type="button" data-i18n="backOverview"></button></div></section></section>
+  <section class="workspace-page" data-page="quota" hidden><div id="quotaPageBars" class="quota-section quota-page-bars"></div><div class="page-tabs" role="tablist" data-label-key="pageSections"><button type="button" role="tab" data-route="quota" data-tab="credits" data-i18n="resetCreditTitle" aria-selected="false"></button><button type="button" role="tab" data-route="quota" data-tab="subscription" data-i18n="subscriptionTitle" aria-selected="false"></button><button type="button" role="tab" data-route="quota" data-tab="official" data-i18n="officialResetHistoryTitle" aria-selected="false"></button><button type="button" role="tab" data-route="quota" data-tab="forecast" data-i18n="resetProbabilityTitle" aria-selected="false"></button></div>
+   <section class="page-panel" id="resetCreditModal" data-panel="quota:credits" hidden><div class="reset-dialog"><div class="history-heading"><h2 id="resetCreditModalTitle" data-i18n="resetCreditTitle"></h2><button class="panel-back" id="resetCreditClose" type="button" data-i18n="backOverview"></button></div>
+    <div class="reset-detail-summary"><span data-i18n="availableResetListTitle"></span><strong id="resetDetailCount">--</strong><button class="glass-button reset-official-link" id="resetOfficialLink" type="button" data-i18n="openOfficialResetHistory"></button></div>
+    <div class="reset-credit-list reset-detail-list" id="resetCreditList" aria-live="polite"><div class="reset-credit-empty" data-i18n="noCredits"></div></div>
+    <div class="reset-history-stack"><h3 class="reset-detail-heading received-heading" data-i18n="receivedResetHistoryTitle"></h3><div class="received-reset-history" id="receivedResetHistoryList"></div><h3 class="reset-detail-heading consumed-heading" data-i18n="consumedResetHistoryTitle"></h3><div class="consumed-reset-history" id="consumedResetHistoryList"></div></div>
+    <button class="glass-button primary reset-detail-done" id="resetCreditDone" type="button" data-i18n="backOverview"></button></div></section>
+   <section class="page-panel" id="subscriptionModal" data-panel="quota:subscription" hidden><div class="history-dialog subscription-dialog"><div class="history-heading"><h2 id="subscriptionModalTitle" data-i18n="subscriptionTitle"></h2><button class="panel-back" id="subscriptionClose" type="button" data-i18n="backOverview"></button></div>
+    <div class="subscription-plan-card"><span data-i18n="subscriptionPlanLabel"></span><strong id="subscriptionPlan">--</strong><small class="subscription-assisted" id="subscriptionAssistedDays"></small></div>
+    <div class="subscription-time-grid"><article><span data-i18n="subscriptionExpiryLabel"></span><strong id="subscriptionExpiry">--</strong></article><article class="subscription-countdown-card"><span data-i18n="subscriptionCountdownLabel"></span><strong id="subscriptionCountdown">--</strong></article></div>
+    <p class="panel-note" id="subscriptionNote"></p><button class="glass-button primary history-done" id="subscriptionDone" type="button" data-i18n="backOverview"></button></div></section>
+   <section class="page-panel" id="officialResetHistoryModal" data-panel="quota:official" hidden><div class="history-dialog"><div class="history-heading"><h2 id="officialResetHistoryTitle" data-i18n="officialResetHistoryTitle"></h2><button class="panel-back" id="officialResetHistoryClose" type="button" data-i18n="backOverview"></button></div>
+    <p class="panel-note" data-i18n="officialResetHistoryHint"></p><div class="official-reset-history" id="officialResetHistoryList"></div><button class="glass-button primary history-done" id="officialResetHistoryDone" type="button" data-i18n="backOverview"></button></div></section>
+   <section class="page-panel" id="resetProbabilityModal" data-panel="quota:forecast" hidden><div class="history-dialog checkpoint-dialog"><div class="history-heading"><h2 id="resetProbabilityTitle" data-i18n="resetProbabilityTitle"></h2><button class="panel-back" id="resetProbabilityClose" type="button" data-i18n="backOverview"></button></div>
+    <div class="checkpoint-dashboard">
+     <article class="checkpoint-commitment" id="checkpointCommitment"><span class="chip checkpoint-badge checkpoint-summary" id="checkpointSummary"></span><div class="checkpoint-lead"><strong id="checkpointSignalProbability">—</strong><span data-i18n="checkpointSignalLabel"></span></div><strong class="checkpoint-clock" id="checkpointCountdown">—</strong><p id="checkpointTarget"></p><p id="checkpointSignalHint"></p><button class="checkpoint-source" id="checkpointSignalSource" type="button" hidden data-i18n="checkpointPromiseSource"></button></article>
+     <div class="checkpoint-side"><h3 data-i18n="checkpointBaselineTitle"></h3><div class="checkpoint-odds-grid"><article><span data-i18n="checkpoint24Label"></span><strong id="checkpointOdds24">—</strong><small id="checkpointRange24"></small></article><article><span data-i18n="checkpoint48Label"></span><strong id="checkpointOdds48">—</strong><small id="checkpointRange48"></small></article></div><dl class="checkpoint-stat-grid" id="checkpointStatistics"></dl></div>
+     <div class="checkpoint-notes"><p id="checkpointMethod"></p><h3 data-i18n="checkpointDataTitle"></h3><p id="checkpointFreshness"></p><button class="checkpoint-source" id="checkpointDashboardSource" type="button" data-i18n="checkpointSourceLink"></button></div>
+    </div><button class="glass-button primary history-done" id="resetProbabilityDone" type="button" data-i18n="backOverview"></button></div></section></section>
+  <section class="workspace-page" data-page="updates" hidden>
+   <div class="updates-grid"><section class="page-panel" id="clientUpdateHistoryModal" data-panel="updates:timeline" hidden><div class="history-dialog client-update-history-dialog"><div class="history-heading"><h2 id="clientUpdateHistoryTitle" data-i18n="clientUpdateHistoryTitle"></h2><button class="panel-back" id="clientUpdateHistoryClose" type="button" data-i18n="backOverview"></button></div>
+    <div class="client-update-summary"><article><span data-i18n="clientUpdateCurrentLabel"></span><strong id="clientUpdateHistoryCurrent">--</strong></article><article><span data-i18n="clientUpdatePendingLabel"></span><strong id="clientUpdateHistoryPending">--</strong></article></div>
+    <p class="panel-note" data-i18n="clientUpdateHistoryHint"></p><div class="client-update-history-list" id="clientUpdateHistoryList"></div><button class="glass-button primary history-done" id="clientUpdateHistoryDone" type="button" data-i18n="backOverview"></button></div></section>
+   <section class="page-panel update-panel"><div class="monitor-update-settings"><div class="section-head"><span class="tile-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-mark"/></svg></span><h2 data-i18n="monitorUpdateTitle"></h2></div><span id="monitorUpdateStatus" role="status" aria-live="polite"></span><div><button id="monitorUpdateCheck" class="glass-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-refresh"/></svg><span data-i18n="monitorUpdateCheck"></span></button><button id="monitorUpdateInstall" class="glass-button primary" type="button" hidden data-i18n="monitorUpdateInstall"></button></div></div></section></div></section>
+  <section class="workspace-page" data-page="settings" hidden><div class="page-tabs" role="tablist" data-label-key="pageSections"><button type="button" role="tab" data-route="settings" data-tab="general" data-i18n="appearanceAndGeneral" aria-selected="false"></button><button type="button" role="tab" data-route="settings" data-tab="sources" data-i18n="sourcesTitle" aria-selected="false"></button><button type="button" role="tab" data-route="settings" data-tab="diagnostics" data-i18n="connectionStatusTitleKey" aria-selected="false"></button><button type="button" role="tab" data-route="settings" data-tab="about" data-i18n="aboutTitle" aria-selected="false"></button></div>
+   <section class="page-panel settings-panel" id="settingsPopover" data-panel="settings:general" hidden><div class="history-heading"><h2 data-i18n="settingsTitle"></h2><button class="panel-back" id="settingsClose" type="button" data-i18n="backOverview"></button></div>
+    <div class="settings-list"><label class="settings-row"><strong data-i18n="alwaysOnTopSetting"></strong><input class="switch" type="checkbox" id="pinButton"></label><label class="settings-row"><strong data-i18n="closeBehaviorTitle"></strong><select id="closeBehavior" data-label-key="closeBehaviorTitle"><option value="tray" data-i18n="closeToTray"></option><option value="quit" data-i18n="closeToQuit"></option></select></label></div>
+    <h3 data-i18n="backgroundTitle"></h3>
+    <div class="appearance-layout"><div><div class="upload-zone" id="backgroundDropZone" role="button" tabindex="0" data-label-key="dropBackground"><span class="upload-mark" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-upload"/></svg></span><strong data-i18n="dropBackground"></strong><span data-i18n="backgroundRequirement"></span></div>
+     <div class="background-actions"><button class="glass-button primary" id="chooseBackground" type="button" data-i18n="chooseBackground"></button><button class="glass-button" id="editBackground" type="button" data-i18n="editBackground"></button><button class="glass-button" id="clearBackground" type="button" data-i18n="clearBackground"></button></div><p class="background-error" id="backgroundError" hidden></p></div>
+     <div class="appearance-controls"><label class="appearance-select"><span data-i18n="backgroundFit"></span><select id="backgroundFit"><option value="contain" data-i18n="backgroundContain"></option><option value="cover" data-i18n="backgroundCover"></option><option value="actual" data-i18n="backgroundActual"></option></select></label>
+      <label class="appearance-slider"><span data-i18n="backgroundOpacity"></span><output id="opacityValue">34%</output><input id="opacitySlider" type="range" min="8" max="85" value="34"></label><label class="appearance-slider"><span data-i18n="backgroundPositionX"></span><output id="backgroundXValue">50</output><input id="backgroundX" type="range" min="0" max="100" value="50" data-label-key="backgroundPositionX"></label><label class="appearance-slider"><span data-i18n="backgroundPositionY"></span><output id="backgroundYValue">50</output><input id="backgroundY" type="range" min="0" max="100" value="50" data-label-key="backgroundPositionY"></label><label class="appearance-slider"><span data-i18n="backgroundZoom"></span><output id="backgroundZoomValue">100</output><input id="backgroundZoom" type="range" min="100" max="200" value="100" data-label-key="backgroundZoom"></label><label class="appearance-slider"><span data-i18n="backgroundBlur"></span><output id="backgroundBlurValue">0</output><input id="backgroundBlur" type="range" min="0" max="24" value="0" data-label-key="backgroundBlur"></label><label class="appearance-slider"><span data-i18n="backgroundVeil"></span><output id="backgroundVeilValue">18</output><input id="backgroundVeil" type="range" min="0" max="85" value="18" data-label-key="backgroundVeil"></label><label class="appearance-slider"><span data-i18n="cardOpacity"></span><output id="cardOpacityValue">80</output><input id="cardOpacity" type="range" min="60" max="100" value="80" data-label-key="cardOpacity"></label>
+      <label class="settings-row"><span data-i18n="allowBackgroundUpscale"></span><input class="switch" type="checkbox" id="allowBackgroundUpscale"></label><label class="settings-row"><span data-i18n="reducedTransparency"></span><input class="switch" type="checkbox" id="reducedTransparency"></label>
+      <div class="background-actions"><button class="glass-button primary" id="applyAppearance" type="button" data-i18n="applyAppearance"></button><button class="glass-button" id="cancelAppearance" type="button" data-i18n="cancel"></button><span id="appearanceStatus" role="status"></span></div></div></div></section>
+   <section class="page-panel" data-panel="settings:sources" hidden><div class="section-head"><h2 data-i18n="sourcesTitle"></h2><button class="glass-button" id="refreshSources" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-refresh"/></svg><span data-i18n="refreshSources"></span></button></div><p class="panel-note" data-i18n="sourcesHint"></p><div id="sourcesList" class="sources-list"></div><p class="panel-note" id="sourceScanSummary" role="status"></p></section>
+   <section class="page-panel" data-panel="settings:diagnostics" hidden><div class="section-head"><h2 data-i18n="connectionStatusTitleKey"></h2><button class="glass-button primary" id="diagnoseConnection" type="button" data-i18n="openConnectionStatus"></button></div></section>
+   <section class="page-panel about-panel" data-panel="settings:about" hidden><span class="brand-mark is-large" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-mark"/></svg></span><div><h2 data-i18n="title"></h2><p id="aboutVersion"></p><p data-i18n="aboutDescription"></p><p class="panel-note" data-i18n="localDataHint"></p></div></section></section>
+ </main></div>
+ <section class="crop-modal" id="cropModal" hidden aria-modal="true" role="dialog" aria-labelledby="cropTitleLabel"><div class="crop-dialog"><div class="crop-heading"><h2 id="cropTitleLabel" data-i18n="cropTitle"></h2><button class="popover-close" id="cropClose" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-x"/></svg></button></div>
+  <div class="crop-toolbar"><label><span data-i18n="cropAspect"></span><select id="cropAspect"><option value="window" data-i18n="cropCurrentWindow"></option><option value="1.7777777778">16:9</option><option value="1.6">16:10</option><option value="original" data-i18n="cropOriginal"></option></select></label><button class="glass-button" id="useWholeBackground" type="button" data-i18n="useWholeBackground"></button></div>
+  <div class="crop-stage" id="cropStage"><img id="cropImage" alt=""><div class="crop-box" id="cropBox" tabindex="0" data-label-key="cropHint"><i></i><i></i><i></i><i></i><span class="crop-size" id="cropRatioLabel">16:10</span><button class="crop-resize-handle" id="cropResizeHandle" type="button"></button></div></div>
+  <div class="crop-source-info" id="cropSourceInfo"></div><div class="crop-actions"><button class="glass-button" id="cropCancel" type="button" data-i18n="cancel"></button><button class="glass-button primary" id="cropApply" type="button" data-i18n="applyCrop"></button></div></div></section>
+ <section class="history-modal connection-modal" id="connectionStatusModal" hidden aria-modal="true" role="dialog" aria-labelledby="connectionStatusTitle"><div class="history-dialog connection-dialog"><div class="history-heading"><h2 id="connectionStatusTitle"></h2><div class="connection-dialog-indicator" aria-hidden="true"><span></span></div></div>
+  <div class="connection-dialog-body"><svg class="connection-dialog-icon" viewBox="0 0 24 24" aria-hidden="true"><path class="connection-icon-offline" d="M12 9v4m0 3h.01M10.3 4.4 2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.4a2 2 0 0 0-3.4 0Z"></path><path class="connection-icon-online" d="m6.8 12.3 3.2 3.2 7.2-7.2"></path></svg><p id="connectionStatusMessage"></p></div>
+  <ul class="connection-issue-list" id="connectionIssueList"><li data-i18n="connectionIssueClient"></li><li data-i18n="connectionIssueAccount"></li><li data-i18n="connectionIssueNetwork"></li><li data-i18n="connectionIssueVpn"></li><li data-i18n="connectionIssueSecurity"></li><li data-i18n="connectionIssueServer"></li></ul>
+  <button class="glass-button primary connection-status-done" id="connectionStatusDone" type="button" data-i18n="connectionAcknowledge"></button></div></section>
+ <section class="history-modal task-interruption-modal" id="taskInterruptionModal" hidden aria-modal="true" role="alertdialog" aria-labelledby="taskInterruptionTitle"><div class="history-dialog task-interruption-dialog"><div class="history-heading"><h2 id="taskInterruptionTitle" data-i18n="taskAbnormalTitle"></h2></div><div class="task-interruption-body"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2.8 20h18.4L12 3Z"></path><path d="M12 9v5m0 3.2v.1"></path></svg><p id="taskInterruptionMessage">--</p></div><button class="glass-button primary task-interruption-done" id="taskInterruptionDone" type="button" data-i18n="acknowledge"></button></div></section>
+ <section class="history-modal stat-scope-modal" id="statScopeModal" hidden aria-modal="true" role="dialog" aria-labelledby="statScopeTitle"><div class="history-dialog stat-scope-dialog"><div class="history-heading"><h2 id="statScopeTitle"></h2><button class="popover-close" id="statScopeClose" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-x"/></svg></button></div><p id="statScopeMessage">--</p><div class="stat-scope-actions"><button class="glass-button" id="tokenCostHelp" type="button" data-i18n="openCostDetails" hidden></button><button class="glass-button primary stat-scope-done" id="statScopeDone" type="button" data-i18n="acknowledge"></button></div></div></section>
+ <section class="history-modal manual-modal" id="manualModal" hidden aria-modal="true" role="dialog" aria-labelledby="manualModalTitle"><form class="history-dialog manual-dialog" id="manualForm" novalidate><div class="history-heading"><h2 id="manualModalTitle" data-i18n="manualAdd"></h2><button class="popover-close" id="manualClose" type="button" data-label-key="close"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-x"/></svg></button></div>
+  <div class="form-grid"><label class="field"><span data-i18n="manualProvider"></span><input id="manualProvider" type="text" list="manualProviderList" maxlength="60" autocomplete="off" required></label><label class="field"><span data-i18n="pricingModel"></span><input id="manualModel" type="text" list="manualModelList" maxlength="80" autocomplete="off" required></label></div>
+  <datalist id="manualProviderList"></datalist><datalist id="manualModelList"></datalist>
+  <div class="segmented manual-mode" role="radiogroup" data-label-key="manualMode"><label><input type="radio" name="manualMode" value="exact" checked><span data-i18n="manualModeExact"></span></label><label><input type="radio" name="manualMode" value="estimate"><span data-i18n="manualModeEstimate"></span></label></div>
+  <div class="form-grid is-three" data-manual-mode="exact"><label class="field"><span data-i18n="modelCostInput"></span><input id="manualInput" type="text" inputmode="decimal" autocomplete="off"></label><label class="field"><span data-i18n="modelCostCached"></span><input id="manualCached" type="text" inputmode="decimal" autocomplete="off" data-i18n-placeholder="manualCachedBlank"></label><label class="field"><span data-i18n="modelCostOutput"></span><input id="manualOutput" type="text" inputmode="decimal" autocomplete="off"></label></div>
+  <div class="form-grid is-three" data-manual-mode="estimate" hidden><label class="field"><span data-i18n="manualTotalTokens"></span><input id="manualTotal" type="text" inputmode="decimal" autocomplete="off"></label><label class="field"><span data-i18n="manualInputShare"></span><input id="manualShare" type="text" inputmode="decimal" autocomplete="off"></label><label class="field"><span data-i18n="manualHitRate"></span><input id="manualHit" type="text" inputmode="decimal" autocomplete="off"></label></div>
+  <div class="form-grid is-four"><label class="field"><span data-i18n="manualInputPrice"></span><input id="manualInputPrice" type="text" inputmode="decimal" autocomplete="off"></label><label class="field"><span data-i18n="manualCachedPrice"></span><input id="manualCachedPrice" type="text" inputmode="decimal" autocomplete="off"></label><label class="field"><span data-i18n="manualOutputPrice"></span><input id="manualOutputPrice" type="text" inputmode="decimal" autocomplete="off"></label><label class="field"><span data-i18n="manualRequests"></span><input id="manualRequests" type="text" inputmode="decimal" autocomplete="off"></label></div>
+  <div class="manual-preview" id="manualPreview" aria-live="polite"></div><p class="form-error" id="manualError" hidden></p>
+  <div class="dialog-actions"><button class="glass-button danger" id="manualDelete" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-trash"/></svg><span data-i18n="manualDelete"></span></button><button class="glass-button" id="manualCancel" type="button" data-i18n="cancel"></button><button class="glass-button primary" id="manualSave" type="submit" data-i18n="manualSave"></button></div></form></section>
+ <aside class="task-drawer" id="taskDetailDrawer" hidden role="dialog" aria-modal="false" aria-labelledby="taskDrawerTitle"><div class="drawer-heading"><h2 id="taskDrawerTitle"></h2><button class="popover-close" id="taskDrawerClose" type="button" data-label-key="close"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#icon-x"/></svg></button></div><div id="taskDrawerContent"></div></aside>
+ <div class="loading-layer" id="loadingLayer"><div class="splash"><svg class="splash-mark" viewBox="0 0 120 120" aria-hidden="true"><defs><clipPath id="splashClip"><circle cx="60" cy="60" r="44"/></clipPath><linearGradient id="splashWater" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5fd0e6"/><stop offset="1" stop-color="#0a7fa0"/></linearGradient></defs><circle class="splash-basin" cx="60" cy="60" r="44"/><g clip-path="url(#splashClip)"><g class="splash-tide"><path class="splash-wave is-back" d="M-80 8q15-8 30 0t30 0 30 0 30 0 30 0 30 0 30 0 30 0V140h-240Z"/><path class="splash-wave" d="M-80 12q15-9 30 0t30 0 30 0 30 0 30 0 30 0 30 0 30 0V140h-240Z"/></g></g><circle class="splash-ring" cx="60" cy="60" r="52" pathLength="100"/></svg><div class="splash-word"><strong data-i18n="brandName">潮汐台</strong><span>TIDEMARK</span></div><span class="splash-status" data-i18n="reading"></span></div></div>
+</div><script src="./crop-geometry.js"></script><script src="../token-usage.js"></script><script src="../usage-ledgers.js"></script><script src="../refresh-policy.js"></script><script src="./reset-calendar.js"></script><script src="./workbench.js"></script><script src="./renderer.js"></script></body></html>

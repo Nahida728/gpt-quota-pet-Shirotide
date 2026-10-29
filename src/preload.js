@@ -23,6 +23,8 @@ contextBridge.exposeInMainWorld("codexMonitor", {
   readSources: () => ipcRenderer.invoke("sources:read"),
   readPricing: () => ipcRenderer.invoke("pricing:read"),
   openPricingSource: url => ipcRenderer.invoke("pricing:openSource", url),
+  readManualUsage: () => ipcRenderer.invoke("manual-usage:read"),
+  saveManualUsage: value => ipcRenderer.invoke("manual-usage:save", value),
   chooseBackground: () => ipcRenderer.invoke("background:choose"),
   saveBackground: (dataUrl, crop) => ipcRenderer.invoke("background:save", dataUrl, crop),
   validateBackground: dataUrl => ipcRenderer.invoke("background:validate", dataUrl),

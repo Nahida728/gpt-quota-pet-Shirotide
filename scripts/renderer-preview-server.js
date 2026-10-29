@@ -30,6 +30,7 @@ http.createServer((request, response) => {
       .replace("./reset-calendar.js", "/src/renderer/reset-calendar.js")
       .replace("./crop-geometry.js", "/src/renderer/crop-geometry.js")
       .replace("../token-usage.js", "/src/token-usage.js")
+      .replace("../usage-ledgers.js", "/src/usage-ledgers.js")
       .replace("../refresh-policy.js", "/src/refresh-policy.js")
       .replace(
         '<script src="./renderer.js"></script>',

@@ -4,6 +4,59 @@ const i18n = {
     backgroundActual: "原始像素大小",
     backgroundScaleHint: "默认保留完整图片且不放大小图。勾选允许放大后，铺满或缩放才会超过原始像素。",
     pricingScope: "统计范围与计价说明",
+    brandName: "潮汐台",
+    ledgerOfficial: "官方口径",
+    ledgerCombined: "总量口径",
+    ledgerOfficialBasis: "账号累计 Token × 本机原生模型均价",
+    ledgerCombinedBasis: "Codex 本机记录 + 手动第三方用量",
+    ledgerTokens: "Token",
+    ledgerInferredCost: "推断金额",
+    ledgerTotalCost: "总金额",
+    ledgerRate: "推断均价",
+    ledgerDailyCost: "日均金额",
+    ledgerDailyTokens: "日均 Token",
+    ledgerInput: "输入（含缓存）",
+    ledgerRateValue: "{value} / 百万",
+    ledgerCodexPart: "Codex",
+    ledgerManualPart: "第三方",
+    ledgerAccount: "账号",
+    ledgerAccountCached: "缓存快照",
+    ledgerNoRate: "缺少均价",
+    ledgerPartial: "含未计价",
+    ledgerComplete: "已计价",
+    ledgerManualEntries: "{count} 条手动",
+    usageLedgerTab: "两种口径",
+    overviewTrendRange: "30 天",
+    manualTitle: "第三方用量",
+    manualAdd: "添加用量",
+    manualEdit: "编辑用量",
+    manualEmpty: "暂无手动记录",
+    manualProvider: "供应商",
+    manualMode: "数据方式",
+    manualModeExact: "精确数据",
+    manualModeEstimate: "按通用比例",
+    manualTotalTokens: "总 Token",
+    manualInputShare: "输入占比",
+    manualHitRate: "命中率",
+    manualInputPrice: "输入 $/百万",
+    manualCachedPrice: "缓存 $/百万",
+    manualOutputPrice: "输出 $/百万",
+    manualRequests: "调用次数",
+    manualCachedBlank: "留空按命中率",
+    manualAmount: "金额",
+    manualActions: "操作",
+    manualDefaults: "通用比例",
+    manualUseMeasured: "使用 Codex 实测比例",
+    manualSave: "保存",
+    manualDelete: "删除",
+    manualDeleteConfirm: "删除这条用量？",
+    manualRequired: "请填写供应商、模型和大于 0 的用量",
+    manualSaveFailed: "保存失败，原记录未改动",
+    manualPreview: "输入 {input} · 缓存 {cached} · 输出 {output} · {cost}",
+    manualUnpriced: "未填单价",
+    manualEstimated: "估算",
+    manualCacheAssumed: "缓存按输入价",
+    manualCatalogFilled: "已按价目表填入",
     taskScope: "任务统计与性能口径",
     navOverview: "总览",
     navUsage: "用量与费用",
@@ -19,14 +72,14 @@ const i18n = {
     overviewTrendHint: "近 30 天 · 本机输入（含缓存）加输出",
     overviewModelCosts: "模型费用构成",
     overviewCostHint: "沿用老版每日校准，模型 Token 与金额使用同一口径；详见费用页。",
-    viewAll: "查看全部 →",
+    viewAll: "查看全部",
     usageTrendTab: "用量趋势",
     usageCostTab: "模型费用",
     usagePricingTab: "模型价目表",
     taskStatistics: "累计统计",
     appearanceAndGeneral: "常规与外观",
     sourcesTitle: "实例与数据",
-    sourcesHint: "自动发现默认 Codex、Codex++ 多开目录和已配置的本机会话来源。目录可读表示能够读取日志，不代表远程额度账户在线。旧索引中不能可靠归属到实例的记录保留在累计总量中。",
+    sourcesHint: "目录可读只表示能读取本机日志，不代表远程账户在线；无法归属实例的旧记录仍计入总量。",
     sourcesUnavailable: "暂时无法读取实例目录，请稍后重试。",
     sourcesEmpty: "未发现可用的本机实例目录。",
     sourceReadable: "可读会话目录：{count} 类",
@@ -37,7 +90,7 @@ const i18n = {
     connectionStatusTitleKey: "连接诊断",
     diagnosticsHint: "点击连接指示灯或下方按钮查看诊断。只有成功取得远程额度才显示在线；本机任务和历史统计可以离线使用。",
     aboutTitle: "关于",
-    aboutDescription: "面向 Windows 的本地 AI 用量工作台，支持多实例任务、模型计价、额度与永久历史。",
+    aboutDescription: "Codex 额度、用量、任务与费用的本地数据总览。",
     localDataHint: "本地处理，不读取或保存对话正文。",
     workspaceFooter: "本机记录 · API 等价金额（USD）",
     alwaysOnTopSetting: "始终置顶",
@@ -172,8 +225,8 @@ const i18n = {
     taskGoalComplete: "目标已完成",
     taskIdentity: "回合 {id}；{time}",
     taskGoalBudget: "目标 Token {used} / {budget}",
-    appTitle: "Codex监测台",
-    title: "Codex监测台",
+    appTitle: "潮汐台",
+    title: "潮汐台",
     switchLanguage: "切换到英文",
     refreshNow: "立即刷新",
     quotaRegion: "额度",
@@ -469,6 +522,59 @@ const i18n = {
     backgroundActual: "Original pixel size",
     backgroundScaleHint: "Images remain complete and are not enlarged by default. Enable enlargement to fill or zoom beyond original pixels.",
     pricingScope: "Coverage and pricing rules",
+    brandName: "Tidemark",
+    ledgerOfficial: "Official basis",
+    ledgerCombined: "Combined basis",
+    ledgerOfficialBasis: "Account Tokens × local native-model average rate",
+    ledgerCombinedBasis: "Codex local ledger + manual third-party usage",
+    ledgerTokens: "Tokens",
+    ledgerInferredCost: "Inferred cost",
+    ledgerTotalCost: "Total cost",
+    ledgerRate: "Inferred rate",
+    ledgerDailyCost: "Daily cost",
+    ledgerDailyTokens: "Daily Tokens",
+    ledgerInput: "Input incl. cache",
+    ledgerRateValue: "{value} / M",
+    ledgerCodexPart: "Codex",
+    ledgerManualPart: "Third-party",
+    ledgerAccount: "Account",
+    ledgerAccountCached: "Cached snapshot",
+    ledgerNoRate: "No rate yet",
+    ledgerPartial: "Partly unpriced",
+    ledgerComplete: "Priced",
+    ledgerManualEntries: "{count} manual",
+    usageLedgerTab: "Two bases",
+    overviewTrendRange: "30 days",
+    manualTitle: "Third-party usage",
+    manualAdd: "Add usage",
+    manualEdit: "Edit usage",
+    manualEmpty: "No manual entries",
+    manualProvider: "Provider",
+    manualMode: "Data type",
+    manualModeExact: "Exact counts",
+    manualModeEstimate: "Typical ratios",
+    manualTotalTokens: "Total Tokens",
+    manualInputShare: "Input share",
+    manualHitRate: "Hit rate",
+    manualInputPrice: "Input $/M",
+    manualCachedPrice: "Cached $/M",
+    manualOutputPrice: "Output $/M",
+    manualRequests: "Requests",
+    manualCachedBlank: "Blank uses hit rate",
+    manualAmount: "Cost",
+    manualActions: "Actions",
+    manualDefaults: "Typical ratios",
+    manualUseMeasured: "Use measured Codex ratios",
+    manualSave: "Save",
+    manualDelete: "Delete",
+    manualDeleteConfirm: "Delete this entry?",
+    manualRequired: "Enter a provider, model and usage above 0",
+    manualSaveFailed: "Save failed; the previous entries are unchanged",
+    manualPreview: "Input {input} · Cached {cached} · Output {output} · {cost}",
+    manualUnpriced: "No rate",
+    manualEstimated: "Estimated",
+    manualCacheAssumed: "Cache at input rate",
+    manualCatalogFilled: "Filled from price list",
     taskScope: "Task and performance coverage",
     navOverview: "Overview",
     navUsage: "Usage & cost",
@@ -484,14 +590,14 @@ const i18n = {
     overviewTrendHint: "Last 30 days · local input (including cache) plus output",
     overviewModelCosts: "Cost by model",
     overviewCostHint: "Uses legacy daily calibration; model Tokens and cost share the same basis. See cost details.",
-    viewAll: "View all →",
+    viewAll: "View all",
     usageTrendTab: "Usage trend",
     usageCostTab: "Model costs",
     usagePricingTab: "Model prices",
     taskStatistics: "Lifetime statistics",
     appearanceAndGeneral: "General & appearance",
     sourcesTitle: "Instances & data",
-    sourcesHint: "Discovers the default Codex home, Codex++ instances and configured local session sources. Readable directories indicate local log access, not remote account connectivity. Older records without reliable instance attribution remain in the cumulative total.",
+    sourcesHint: "Readable means local logs can be read, not that the remote account is online. Older records without instance attribution stay in totals.",
     sourcesUnavailable: "Instance directories are temporarily unavailable. Try again later.",
     sourcesEmpty: "No local instance directories were found.",
     sourceReadable: "Readable session directory types: {count}",
@@ -502,7 +608,7 @@ const i18n = {
     connectionStatusTitleKey: "Connection diagnostics",
     diagnosticsHint: "Click the connection indicator or the button below for diagnostics. Online means a successful remote quota read. Local tasks and usage history remain available offline.",
     aboutTitle: "About",
-    aboutDescription: "A local Windows workspace for AI usage, concurrent instances, model pricing, quotas and permanent history.",
+    aboutDescription: "A local data overview of Codex quotas, usage, tasks and cost.",
     localDataHint: "Processed locally. Conversation text is never read or stored.",
     workspaceFooter: "Local records · API equivalents (USD)",
     alwaysOnTopSetting: "Always on top",
@@ -637,8 +743,8 @@ const i18n = {
     taskGoalComplete: "Goal complete",
     taskIdentity: "Turn {id}; {time}",
     taskGoalBudget: "Goal tokens {used} / {budget}",
-    appTitle: "Codex Quota Monitor",
-    title: "Quota Monitor",
+    appTitle: "Tidemark",
+    title: "Tidemark",
     switchLanguage: "Switch to Chinese",
     refreshNow: "Refresh now",
     quotaRegion: "Quotas",
@@ -989,7 +1095,17 @@ const elements = Object.fromEntries([
   "statScopeModal", "statScopeTitle", "statScopeMessage", "statScopeClose",
   "statScopeDone",
   "lastChecked", "autoRefreshLabel", "loadingLayer", 
-  
+  "ledgerOfficialChip", "ledgerOfficialCost", "ledgerOfficialDaily", "ledgerCombinedChip", "ledgerCombinedTokens",
+  "ledgerCombinedCost", "ledgerManualCost", "overviewCompositionBar", "overviewModelList",
+  "ledgerOfficialState", "ledgerOfficialTokens", "ledgerOfficialCostDetail", "ledgerOfficialRate", "ledgerOfficialDays",
+  "ledgerOfficialDailyTokens", "ledgerOfficialDailyCost", "ledgerCombinedState", "ledgerCombinedTokensDetail",
+  "ledgerCombinedCostDetail", "ledgerCombinedInput", "ledgerCombinedCached", "ledgerCombinedOutput", "ledgerCombinedHit",
+  "ledgerSplitBar", "ledgerCodexShare", "ledgerManualShare",
+  "manualCount", "manualDefaultInputShare", "manualDefaultHitRate", "manualUseMeasured", "manualAdd",
+  "manualTableBody", "manualEmpty", "manualModal", "manualForm", "manualModalTitle", "manualClose",
+  "manualProvider", "manualModel", "manualProviderList", "manualModelList", "manualInput", "manualCached",
+  "manualOutput", "manualTotal", "manualShare", "manualHit", "manualInputPrice", "manualCachedPrice",
+  "manualOutputPrice", "manualRequests", "manualPreview", "manualError", "manualDelete", "manualCancel", "manualSave"
 ].map(id => [id, document.getElementById(id)]));
 
 let language = "zh";
@@ -1193,6 +1309,9 @@ function applyLanguage() {
   renderMonitorUpdate();
   document.querySelectorAll("[data-i18n]").forEach(node => {
     node.textContent = t(node.dataset.i18n);
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(node => {
+    node.placeholder = t(node.dataset.i18nPlaceholder);
   });
   elements.languageButton.textContent = language === "zh" ? "EN" : "中";
   elements.languageButton.title = t("switchLanguage");
@@ -1464,6 +1583,8 @@ function formatResetTime(timestamp) {
 
 function setQuota(panel, reset, number, progress, used, quotaWindow, unavailable = false) {
   panel.classList.toggle("is-unavailable", unavailable);
+  const remaining = quotaWindow?.remainingPercent;
+  panel.dataset.level = unavailable || !Number.isFinite(remaining) ? "none" : remaining <= 10 ? "critical" : remaining <= 30 ? "low" : "ok";
   if (unavailable) {
     reset.textContent = panel === elements.fiveHourPanel ? t("quotaPausedShort") : t("noData");
     reset.title = panel === elements.fiveHourPanel ? t("unavailableDetail") : t("noData");
@@ -2470,12 +2591,8 @@ function renderTokenUsageModal(animate = false) {
 
 function renderTokenUsage(usage = {}) {
   elements.tokenOverviewTitle.textContent = t(usage.cached ? "tokenUsageCachedTitle" : "tokenUsageTitle");
-  elements.tokenLifetimeLabel.textContent = t(usage.scope === "local" ? "localLifetimeTokens" : "lifetimeTokens");
-  elements.lifetimeTokenValue.textContent = `${usage.truncated || usage.hasUnverifiedHistory ? "≈" : ""}${formatTokenCount(usage.lifetimeTokens)}`;
-  elements.totalWorkDaysValue.textContent = Number.isFinite(usage.totalWorkDays)
-    ? t("workDays", { count: formatTokenCount(usage.totalWorkDays) })
-    : t("tokenUnavailable");
   elements.tokenOverview.classList.toggle("is-unavailable", !usage.available);
+  renderLedgers();
   requestAnimationFrame(drawTokenSparkline);
   syncWorkbench();
   if (!elements.tokenUsageModal.hidden) requestAnimationFrame(() => renderTokenUsageModal(false));
@@ -2609,9 +2726,312 @@ function renderTokenCostDetails(cost = latestSnapshot?.tokenCost || {}) {
 }
 
 function renderTokenCost(cost = {}) {
-  elements.estimatedCostValue.textContent = formatApiEstimate(cost);
   if (!elements.tokenCostModal.hidden) renderTokenCostDetails(cost);
+  renderLedgers();
   syncWorkbench();
+}
+
+let manualLedger = { version: 1, defaults: { ...window.UsageLedgers.DEFAULTS }, entries: [] };
+let manualEditingId = null;
+let ledgerSignature = "";
+
+function formatPercent(value) {
+  return Number.isFinite(value) ? `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 }).format(value)}%` : t("tokenUnavailable");
+}
+
+function ledgerCost(value, partial) {
+  return Number.isFinite(value) ? `${partial ? "≥" : "≈"}${formatUsd(value)}` : t("tokenUnavailable");
+}
+
+function setChip(node, text, tone = "") {
+  node.textContent = text;
+  node.dataset.tone = tone;
+  node.hidden = !text;
+}
+
+// Both accounting bases render from one pure summary so overview and detail never disagree.
+function renderLedgers() {
+  const usage = latestSnapshot?.tokenUsage || {};
+  const cost = latestSnapshot?.tokenCost || {};
+  const summary = window.UsageLedgers.summarizeLedgers(usage, cost, manualLedger);
+  const signature = JSON.stringify([language, summary.official, summary.combined, summary.composition, summary.entries.map(entry => entry.estimatedCostUsd)]);
+  if (signature === ledgerSignature) return summary;
+  ledgerSignature = signature;
+  const { official, combined } = summary;
+  const tokens = value => Number.isFinite(value) ? formatTokenCount(value) : t("tokenUnavailable");
+  const officialState = !official.available ? "" : official.cached ? t("ledgerAccountCached") : t("ledgerAccount");
+  setChip(elements.ledgerOfficialChip, officialState, official.cached ? "warn" : "ok");
+  setChip(elements.ledgerOfficialState, official.ratePerMillion === null && official.available ? t("ledgerNoRate") : officialState, official.cached || official.ratePerMillion === null ? "warn" : "ok");
+  elements.tokenLifetimeLabel.textContent = t("ledgerTokens");
+  elements.lifetimeTokenValue.textContent = tokens(official.tokens);
+  elements.ledgerOfficialTokens.textContent = tokens(official.tokens);
+  elements.ledgerOfficialCost.textContent = ledgerCost(official.costUsd, false);
+  elements.ledgerOfficialCostDetail.textContent = ledgerCost(official.costUsd, false);
+  elements.ledgerOfficialRate.textContent = Number.isFinite(official.ratePerMillion)
+    ? t("ledgerRateValue", { value: formatUsd(official.ratePerMillion) }) : t("tokenUnavailable");
+  const days = Number.isFinite(official.workDays) ? t("workDays", { count: formatTokenCount(official.workDays) }) : t("tokenUnavailable");
+  elements.totalWorkDaysValue.textContent = days;
+  elements.ledgerOfficialDays.textContent = days;
+  elements.ledgerOfficialDailyTokens.textContent = Number.isFinite(official.dailyTokens) ? formatTokenCount(Math.round(official.dailyTokens)) : t("tokenUnavailable");
+  elements.ledgerOfficialDaily.textContent = ledgerCost(official.dailyCostUsd, false);
+  elements.ledgerOfficialDailyCost.textContent = ledgerCost(official.dailyCostUsd, false);
+
+  const combinedState = combined.manual.count ? t("ledgerManualEntries", { count: combined.manual.count })
+    : combined.available ? t(combined.partial ? "ledgerPartial" : "ledgerComplete") : "";
+  setChip(elements.ledgerCombinedChip, combinedState, combined.partial ? "warn" : "ok");
+  setChip(elements.ledgerCombinedState, combined.available ? t(combined.partial ? "ledgerPartial" : "ledgerComplete") : "", combined.partial ? "warn" : "ok");
+  const combinedTokens = combined.available ? tokens(combined.tokens) : t("tokenUnavailable");
+  elements.ledgerCombinedTokens.textContent = combinedTokens;
+  elements.ledgerCombinedTokensDetail.textContent = combinedTokens;
+  elements.ledgerCombinedCost.textContent = ledgerCost(combined.costUsd, combined.partial);
+  elements.ledgerCombinedCostDetail.textContent = ledgerCost(combined.costUsd, combined.partial);
+  elements.estimatedCostValue.textContent = formatApiEstimate(cost);
+  elements.ledgerManualCost.textContent = combined.manual.count ? ledgerCost(combined.manual.costUsd, combined.manual.unpriced > 0) : "—";
+  elements.ledgerCombinedInput.textContent = tokens(combined.inputTokens);
+  elements.ledgerCombinedCached.textContent = tokens(combined.cachedInputTokens);
+  elements.ledgerCombinedOutput.textContent = tokens(combined.outputTokens);
+  elements.ledgerCombinedHit.textContent = formatPercent(combined.hitRate);
+  const share = combined.tokens ? combined.manual.tokens / combined.tokens * 100 : 0;
+  elements.ledgerSplitBar.style.setProperty("--manual-share", `${share}%`);
+  elements.ledgerCodexShare.textContent = tokens(combined.codex.tokens);
+  elements.ledgerManualShare.textContent = tokens(combined.manual.tokens);
+
+  renderComposition(summary.composition);
+  renderManualTable(summary);
+  return summary;
+}
+
+function compositionStatus(row) {
+  if (Number.isFinite(row.costUsd)) return `${row.estimated ? "≈" : ""}${formatUsd(row.costUsd)}`;
+  if (row.kind === "manual") return t("manualUnpriced");
+  return t(row.status === "rate" ? "modelCostRateUnavailable" : row.status === "pending" ? "modelCostPricingPending" : "modelCostUnpriced");
+}
+
+function renderComposition(rows) {
+  const list = elements.overviewModelList;
+  const bar = elements.overviewCompositionBar;
+  list.replaceChildren(); bar.replaceChildren();
+  const priced = rows.filter(row => row.costUsd > 0);
+  const total = priced.reduce((sum, row) => sum + row.costUsd, 0);
+  priced.slice(0, 6).forEach((row, index) => {
+    const segment = document.createElement("i");
+    segment.dataset.series = String(index);
+    segment.style.setProperty("--share", `${row.costUsd / total * 100}%`);
+    bar.append(segment);
+  });
+  bar.hidden = !priced.length;
+  if (!rows.length) {
+    const empty = document.createElement("p"); empty.className = "empty-state"; empty.textContent = t("modelCostEmpty");
+    list.append(empty); return;
+  }
+  const maximum = Math.max(1, ...rows.map(row => row.costUsd || 0));
+  rows.slice(0, 5).forEach(row => {
+    const item = document.createElement("button");
+    item.type = "button"; item.className = "overview-model-row";
+    item.dataset.route = "usage"; item.dataset.tab = row.kind === "manual" ? "ledger" : "cost";
+    const pricedIndex = priced.indexOf(row);
+    item.dataset.series = pricedIndex >= 0 && pricedIndex < 6 ? String(pricedIndex) : "none";
+    const swatch = document.createElement("i"); swatch.className = "swatch"; swatch.setAttribute("aria-hidden", "true");
+    const name = document.createElement("span"); name.className = "model-name";
+    const strong = document.createElement("strong"); strong.textContent = row.label;
+    const group = document.createElement("small"); group.textContent = row.kind === "manual" ? `${row.group} · ${t("ledgerManualPart")}` : row.group;
+    name.append(strong, group);
+    const meter = document.createElement("span"); meter.className = "model-mini-bar";
+    meter.style.setProperty("--share", `${(row.costUsd || 0) / maximum * 100}%`);
+    const value = document.createElement("span"); value.className = "model-value";
+    value.textContent = compositionStatus(row);
+    value.classList.toggle("is-unpriced", !Number.isFinite(row.costUsd));
+    item.append(swatch, name, meter, value);
+    list.append(item);
+  });
+}
+
+function iconButton(icon, label, dataset) {
+  const button = document.createElement("button");
+  button.type = "button"; button.className = "icon-button ghost";
+  button.title = label; button.setAttribute("aria-label", label);
+  Object.assign(button.dataset, dataset);
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24"); svg.setAttribute("aria-hidden", "true");
+  const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+  use.setAttribute("href", `#icon-${icon}`);
+  svg.append(use); button.append(svg);
+  return button;
+}
+
+function renderManualTable(summary) {
+  const body = elements.manualTableBody;
+  body.replaceChildren();
+  elements.manualCount.textContent = String(summary.entries.length);
+  elements.manualEmpty.hidden = summary.entries.length > 0;
+  body.closest(".table-scroll").hidden = !summary.entries.length;
+  if (document.activeElement !== elements.manualDefaultInputShare) elements.manualDefaultInputShare.value = String(summary.defaults.inputShare);
+  if (document.activeElement !== elements.manualDefaultHitRate) elements.manualDefaultHitRate.value = String(summary.defaults.cacheHitRate);
+  elements.manualUseMeasured.disabled = !summary.measuredDefaults;
+  for (const entry of summary.entries) {
+    const row = document.createElement("tr");
+    const cells = [entry.provider, entry.model];
+    const modeCell = document.createElement("td");
+    const mode = document.createElement("span"); mode.className = "chip";
+    mode.dataset.tone = entry.estimated || entry.cacheEstimated ? "warn" : "ok";
+    mode.textContent = t(entry.estimated ? "manualModeEstimate" : "manualModeExact");
+    modeCell.append(mode);
+    for (const value of cells) { const td = document.createElement("td"); td.textContent = value; row.append(td); }
+    row.append(modeCell);
+    for (const [value, estimated] of [[entry.inputTokens, entry.estimated], [entry.cachedInputTokens, entry.cacheEstimated], [entry.outputTokens, entry.estimated]]) {
+      const td = document.createElement("td"); td.className = "num";
+      td.textContent = `${estimated ? "≈" : ""}${formatTokenCount(value)}`; row.append(td);
+    }
+    const amount = document.createElement("td"); amount.className = "num";
+    amount.textContent = entry.priced ? `${entry.estimated || entry.cacheEstimated ? "≈" : ""}${formatUsd(entry.estimatedCostUsd)}` : t("manualUnpriced");
+    amount.classList.toggle("is-unpriced", !entry.priced);
+    if (entry.cachedPriceAssumed) amount.title = t("manualCacheAssumed");
+    const actions = document.createElement("td"); actions.className = "actions";
+    actions.append(iconButton("pencil", t("manualEdit"), { manualEdit: entry.id }), iconButton("trash", t("manualDelete"), { manualRemove: entry.id }));
+    row.append(amount, actions);
+    body.append(row);
+  }
+}
+
+async function persistManualLedger(next) {
+  const saved = await window.codexMonitor.saveManualUsage(next);
+  manualLedger = window.UsageLedgers.normalizeManualLedger(saved);
+  ledgerSignature = "";
+  renderLedgers();
+  return manualLedger;
+}
+
+function manualMode() {
+  return elements.manualForm.querySelector('input[name="manualMode"]:checked')?.value === "estimate" ? "estimate" : "exact";
+}
+
+function readManualForm() {
+  const existing = manualLedger.entries.find(entry => entry.id === manualEditingId);
+  return {
+    id: manualEditingId || undefined, provider: elements.manualProvider.value, model: elements.manualModel.value, mode: manualMode(),
+    inputTokens: elements.manualInput.value, cachedInputTokens: elements.manualCached.value, outputTokens: elements.manualOutput.value,
+    totalTokens: elements.manualTotal.value, inputShare: elements.manualShare.value, cacheHitRate: elements.manualHit.value,
+    inputPrice: elements.manualInputPrice.value, cachedPrice: elements.manualCachedPrice.value, outputPrice: elements.manualOutputPrice.value,
+    requestCount: elements.manualRequests.value, createdAt: existing?.createdAt || Date.now(), updatedAt: Date.now()
+  };
+}
+
+function syncManualMode() {
+  const mode = manualMode();
+  elements.manualForm.querySelectorAll("[data-manual-mode]").forEach(node => { node.hidden = node.dataset.manualMode !== mode; });
+  elements.manualShare.placeholder = String(manualLedger.defaults.inputShare);
+  elements.manualHit.placeholder = String(manualLedger.defaults.cacheHitRate);
+  renderManualPreview();
+}
+
+function renderManualPreview() {
+  const entry = window.UsageLedgers.normalizeEntry(readManualForm());
+  if (!entry) { elements.manualPreview.textContent = ""; return; }
+  const resolved = window.UsageLedgers.resolveEntry(entry, manualLedger.defaults);
+  const prefix = resolved.estimated || resolved.cacheEstimated ? "≈" : "";
+  elements.manualPreview.textContent = t("manualPreview", {
+    input: prefix + formatTokenCount(resolved.inputTokens), cached: prefix + formatTokenCount(resolved.cachedInputTokens),
+    output: prefix + formatTokenCount(resolved.outputTokens),
+    cost: resolved.priced ? prefix + formatUsd(resolved.estimatedCostUsd) : t("manualUnpriced")
+  }) + (resolved.cachedPriceAssumed ? ` · ${t("manualCacheAssumed")}` : "");
+}
+
+function fillCatalogPrice() {
+  const name = elements.manualModel.value.trim().toLowerCase();
+  const price = window.Workbench.pricing?.models?.find(item => item.model.toLowerCase() === name);
+  if (!price) return;
+  if (!elements.manualProvider.value.trim()) elements.manualProvider.value = price.vendor || "";
+  for (const [node, value] of [[elements.manualInputPrice, price.input], [elements.manualCachedPrice, price.cachedInput], [elements.manualOutputPrice, price.output]]) {
+    if (!node.value.trim() && Number.isFinite(value)) node.value = String(value);
+  }
+  renderManualPreview();
+}
+
+function fillManualDatalists() {
+  const models = window.Workbench.pricing?.models || [];
+  const vendors = [...new Set([...models.map(item => item.vendor).filter(Boolean), ...manualLedger.entries.map(entry => entry.provider)])];
+  elements.manualProviderList.replaceChildren(...vendors.map(value => Object.assign(document.createElement("option"), { value })));
+  elements.manualModelList.replaceChildren(...models.map(item => Object.assign(document.createElement("option"), { value: item.model })));
+}
+
+function openManualDialog(id = null) {
+  manualEditingId = id;
+  const entry = manualLedger.entries.find(item => item.id === id) || null;
+  const value = (field) => entry && entry[field] !== null && entry[field] !== undefined ? String(entry[field]) : "";
+  elements.manualModalTitle.textContent = t(entry ? "manualEdit" : "manualAdd");
+  elements.manualProvider.value = value("provider"); elements.manualModel.value = value("model");
+  elements.manualForm.querySelector(`input[name="manualMode"][value="${entry?.mode === "estimate" ? "estimate" : "exact"}"]`).checked = true;
+  elements.manualInput.value = value("inputTokens"); elements.manualCached.value = value("cachedInputTokens"); elements.manualOutput.value = value("outputTokens");
+  elements.manualTotal.value = value("totalTokens"); elements.manualShare.value = value("inputShare"); elements.manualHit.value = value("cacheHitRate");
+  elements.manualInputPrice.value = value("inputPrice"); elements.manualCachedPrice.value = value("cachedPrice"); elements.manualOutputPrice.value = value("outputPrice");
+  elements.manualRequests.value = value("requestCount");
+  elements.manualDelete.hidden = !entry; elements.manualError.hidden = true;
+  fillManualDatalists(); syncManualMode();
+  openSecondaryModal(elements.manualModal, elements.manualProvider);
+}
+
+function closeManualDialog() {
+  closeSecondaryModal(elements.manualModal, elements.manualAdd, { onHidden: () => { manualEditingId = null; } });
+}
+
+async function submitManualDialog(event) {
+  event.preventDefault();
+  const entry = window.UsageLedgers.normalizeEntry(readManualForm());
+  const showError = key => { elements.manualError.textContent = t(key); elements.manualError.hidden = false; };
+  if (!entry) { showError("manualRequired"); return; }
+  const entries = manualLedger.entries.filter(item => item.id !== manualEditingId);
+  const index = manualLedger.entries.findIndex(item => item.id === manualEditingId);
+  entries.splice(index >= 0 ? index : entries.length, 0, { ...entry, id: manualEditingId || `m-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}` });
+  elements.manualSave.disabled = true;
+  try { await persistManualLedger({ ...manualLedger, entries }); closeManualDialog(); }
+  catch { showError("manualSaveFailed"); }
+  finally { elements.manualSave.disabled = false; }
+}
+
+async function removeManualEntry(id) {
+  if (!id || !window.confirm(t("manualDeleteConfirm"))) return;
+  try { await persistManualLedger({ ...manualLedger, entries: manualLedger.entries.filter(entry => entry.id !== id) }); }
+  catch { elements.manualError.textContent = t("manualSaveFailed"); }
+}
+
+async function saveManualDefaults(defaults) {
+  const next = window.UsageLedgers.normalizeDefaults({ ...manualLedger.defaults, ...defaults });
+  if (JSON.stringify(next) === JSON.stringify(manualLedger.defaults)) { renderLedgers(); return; }
+  try { await persistManualLedger({ ...manualLedger, defaults: next }); } catch { ledgerSignature = ""; renderLedgers(); }
+}
+
+function initializeManualLedger() {
+  elements.manualAdd.addEventListener("click", () => openManualDialog());
+  elements.manualTableBody.addEventListener("click", event => {
+    const edit = event.target.closest("[data-manual-edit]");
+    if (edit) { openManualDialog(edit.dataset.manualEdit); return; }
+    const remove = event.target.closest("[data-manual-remove]");
+    if (remove) removeManualEntry(remove.dataset.manualRemove);
+  });
+  elements.manualForm.addEventListener("submit", submitManualDialog);
+  elements.manualForm.addEventListener("input", event => {
+    elements.manualError.hidden = true;
+    if (event.target.name === "manualMode") syncManualMode(); else renderManualPreview();
+  });
+  elements.manualModel.addEventListener("change", fillCatalogPrice);
+  elements.manualCancel.addEventListener("click", closeManualDialog);
+  elements.manualClose.addEventListener("click", closeManualDialog);
+  elements.manualDelete.addEventListener("click", async () => {
+    const id = manualEditingId;
+    if (!id || !window.confirm(t("manualDeleteConfirm"))) return;
+    try { await persistManualLedger({ ...manualLedger, entries: manualLedger.entries.filter(entry => entry.id !== id) }); closeManualDialog(); }
+    catch { elements.manualError.textContent = t("manualSaveFailed"); elements.manualError.hidden = false; }
+  });
+  for (const [node, key] of [[elements.manualDefaultInputShare, "inputShare"], [elements.manualDefaultHitRate, "cacheHitRate"]]) {
+    node.addEventListener("change", () => saveManualDefaults({ [key]: node.value }));
+  }
+  elements.manualUseMeasured.addEventListener("click", () => {
+    const measured = window.UsageLedgers.summarizeLedgers(latestSnapshot?.tokenUsage, latestSnapshot?.tokenCost, manualLedger).measuredDefaults;
+    if (measured) saveManualDefaults(measured);
+  });
+  window.codexMonitor.readManualUsage?.().then(value => {
+    manualLedger = window.UsageLedgers.normalizeManualLedger(value); ledgerSignature = ""; renderLedgers();
+  }).catch(() => {});
 }
 
 function openTokenCost(event) {
@@ -2912,6 +3332,7 @@ function renderActiveTaskClock() {
   });
 }
 
+const ACTIVE_TASK_PREVIEW_LIMIT = 2;
 function renderActiveTaskPreview() {
   elements.activeTaskPreviewList.replaceChildren();
   const previewTasks = activeTasks.map(task => ({ task, pending: false }));
@@ -2927,7 +3348,7 @@ function renderActiveTaskPreview() {
     return;
   }
 
-  previewTasks.slice(0, 3).forEach(({ task, pending }, index) => {
+  previewTasks.slice(0, ACTIVE_TASK_PREVIEW_LIMIT).forEach(({ task, pending }, index) => {
     const row = document.createElement("div");
     row.className = [
       "active-task-preview-row",
@@ -3240,7 +3661,7 @@ function renderActiveTasks(result = {}) {
   );
   renderStatScopeButtons();
   renderActiveTaskRecords();
-  const hiddenTaskCount = Math.max(0, activeTasks.length - 3);
+  const hiddenTaskCount = Math.max(0, activeTasks.length - ACTIVE_TASK_PREVIEW_LIMIT);
   elements.activeTaskMoreIndicator.hidden = hiddenTaskCount === 0;
   elements.activeTaskMoreIndicator.textContent = hiddenTaskCount
     ? t("activeTaskMore", { count: hiddenTaskCount })
@@ -3274,7 +3695,7 @@ async function handlePendingTaskAction(event) {
   pendingTasks.splice(index, 1);
   renderActiveTaskPreview();
   renderActiveTaskDetails();
-  const hiddenTaskCount = Math.max(0, activeTasks.length - 3);
+  const hiddenTaskCount = Math.max(0, activeTasks.length - ACTIVE_TASK_PREVIEW_LIMIT);
   elements.activeTaskMoreIndicator.hidden = hiddenTaskCount === 0;
   elements.activeTaskMoreIndicator.textContent = hiddenTaskCount
     ? t("activeTaskMore", { count: hiddenTaskCount })
@@ -3563,9 +3984,27 @@ async function refresh({ initial = false, silent = false } = {}) {
   } finally {
     isRefreshing = false;
     elements.refreshButton.classList.remove("is-spinning");
-    elements.loadingLayer.classList.add("is-hidden");
   }
   return true;
+}
+
+const splashStartedAt = performance.now();
+let splashDismissed = false;
+// The intro plays for a bounded time, then dissolves into a staggered card entrance.
+function dismissSplash(immediate = false) {
+  if (splashDismissed) return;
+  splashDismissed = true;
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const wait = immediate || reduced ? 0 : Math.max(0, 1400 - (performance.now() - splashStartedAt));
+  setTimeout(() => {
+    elements.loadingLayer.classList.add("is-leaving");
+    elements.app.classList.add("is-revealed");
+    window.Workbench.playEntrance(document.querySelector(".workspace-page:not([hidden])"));
+    setTimeout(() => {
+      elements.loadingLayer.classList.add("is-hidden");
+      elements.loadingLayer.classList.remove("is-leaving");
+    }, reduced ? 0 : 520);
+  }, wait);
 }
 
 async function initialize() {
@@ -3617,7 +4056,7 @@ async function initialize() {
     [["statScopeClose","statScopeDone"],()=>closeStatScope()],
     [["taskDrawerClose"],closeTaskDrawer]
   ]) for (const id of ids) click(id,()=>close());
-  for (const [id, open] of [["connectionStatusButton",openConnectionStatus],["connectionLabel",openSubscription],["resetCreditButton",openResetCredits],["officialResetButton",openOfficialResetHistory],["clientUpdateCard",openClientUpdateHistory],["tokenOverview",openTokenUsage],["activeTaskCard",openActiveTasks],["taskPerformance",openActiveTasks]]) {
+  for (const [id, open] of [["connectionStatusButton",openConnectionStatus],["connectionLabel",openSubscription],["resetCreditButton",openResetCredits],["officialResetButton",openOfficialResetHistory],["clientUpdateCard",openClientUpdateHistory],["activeTaskCard",openActiveTasks],["taskPerformance",openActiveTasks]]) {
     click(id,open);
     const node=document.getElementById(id);
     if (node.tagName !== "BUTTON") node.addEventListener("keydown",event=>{
@@ -3633,6 +4072,7 @@ async function initialize() {
     event.target.value=await window.codexMonitor.setCloseBehavior(event.target.value);
   });
   click("refreshButton",()=>refresh());
+  initializeManualLedger();
   click("connectionStatusDone",closeConnectionStatus);
   click("taskInterruptionDone",closeTaskInterruptionAlert);
   click("resetProbabilityButton",()=>window.Workbench.navigate("quota","forecast"));
@@ -3730,20 +4170,21 @@ async function initialize() {
     }
     if(event.key!=="Escape")return;
     if(!elements.cropModal.hidden){if(!elements.cropApply.disabled)closeCropModal();}
+    else if(!elements.manualModal.hidden)closeManualDialog();
     else if(!elements.statScopeModal.hidden)closeStatScope();
     else if(!elements.taskInterruptionModal.hidden)closeTaskInterruptionAlert();
     else if(!elements.connectionStatusModal.hidden)closeConnectionStatus();
     else if(!elements.taskDetailDrawer.hidden)closeTaskDrawer();
   });
-  for(const [node,close]of [[elements.connectionStatusModal,closeConnectionStatus],[elements.statScopeModal,()=>closeStatScope()],[elements.cropModal,()=>{if(!elements.cropApply.disabled)closeCropModal();}]])node.addEventListener("click",event=>{if(event.target===node)close();});
+  for(const [node,close]of [[elements.connectionStatusModal,closeConnectionStatus],[elements.statScopeModal,()=>closeStatScope()],[elements.manualModal,closeManualDialog],[elements.cropModal,()=>{if(!elements.cropApply.disabled)closeCropModal();}]])node.addEventListener("click",event=>{if(event.target===node)close();});
   document.addEventListener("visibilitychange",()=>{if(document.hidden){cancelAnimationFrame(tokenChartAnimationFrame);tokenChartAnimationActive=false;}startPresentationClock();});
   window.addEventListener("online",()=>refresh({silent:true}));window.addEventListener("offline",()=>refresh({silent:true}));
-  await refresh({initial:true});startPresentationClock();
+  await refresh({initial:true});dismissSplash();startPresentationClock();
 }
 
 window.addEventListener("DOMContentLoaded",()=>initialize().catch(()=>{
   console.error("Workspace initialization failed");
-  elements.loadingLayer.classList.add("is-hidden");elements.connectionLabel.textContent=t("connectionDisconnectedLabel");
+  dismissSplash(true);elements.connectionLabel.textContent=t("connectionDisconnectedLabel");
 }));
 window.addEventListener("beforeunload",()=>{
   unsubscribeSnapshot?.();unsubscribeTasks?.();unsubscribeCheckpoints?.();rendererUnsubscribers.forEach(unsubscribe=>unsubscribe?.());

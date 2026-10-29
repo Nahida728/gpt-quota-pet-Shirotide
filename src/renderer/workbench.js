@@ -1,8 +1,8 @@
 (function exposeWorkbench(global) {
-  const routes = Object.freeze({ overview: ["main"], usage: ["trend", "cost", "pricing"], tasks: ["running", "pending", "statistics"], quota: ["credits", "subscription", "official", "forecast"], updates: ["timeline"], settings: ["general", "sources", "diagnostics", "about"] });
+  const routes = Object.freeze({ overview: ["main"], usage: ["ledger", "trend", "cost", "pricing"], tasks: ["running", "pending", "statistics"], quota: ["credits", "subscription", "official", "forecast"], updates: ["timeline"], settings: ["general", "sources", "diagnostics", "about"] });
   const titleKeys = { overview: "navOverview", usage: "navUsage", tasks: "navTasks", quota: "navQuota", updates: "navUpdates", settings: "settingsTitle" };
   let current = { page: "overview", tab: "main" };
-  let options = {}, modelsSignature = "", sources = [], pricing = null, pricingLanguage = null;
+  let options = {}, sources = [], pricing = null, pricingLanguage = null;
   const scrolls = new Map();
   const rememberedTabs = {};
   const get = id => document.getElementById(id);
@@ -14,17 +14,25 @@
     const t = options.t;
     if (!t) return;
     get("pageTitle").textContent = t(titleKeys[current.page]);
-    get("pageSubtitle").textContent = t(current.page === "overview" ? "overviewSubtitle" : "pageSubtitle");
-    for (const item of document.querySelectorAll(".nav-item")) item.title = t(item.dataset.labelKey || titleKeys[item.dataset.route]);
+    for (const item of document.querySelectorAll(".nav-item")) item.title = t(titleKeys[item.dataset.route]);
     get("sourceCount").textContent = t("sourceCount", { count: sources.length });
     drawSources();
     if (pricing && pricingLanguage !== document.documentElement.lang) drawPricing();
+  }
+
+  // Replays the staggered entrance only for the page or tab that just appeared.
+  function playEntrance(node) {
+    if (!node || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    node.classList.remove("is-entering");
+    void node.offsetWidth;
+    node.classList.add("is-entering");
   }
 
   function navigate(page, tab, { focus = true } = {}) {
     if (!routes[page]) return;
     const selected = routes[page].includes(tab) ? tab : rememberedTabs[page] || routes[page][0];
     const content = get("workspaceContent");
+    const changed = current.page !== page || current.tab !== selected;
     scrolls.set(current.page + ":" + current.tab, content.scrollTop);
     current = { page, tab: selected };
     rememberedTabs[page] = selected;
@@ -50,6 +58,10 @@
     localize();
     options.onNavigate?.(current);
     content.scrollTop = scrolls.get(page + ":" + selected) || 0;
+    if (changed) {
+      const pageNode = document.querySelector('.workspace-page[data-page="' + page + '"]');
+      playEntrance(current.page === page && pageNode.querySelector("[data-panel]:not([hidden])") || pageNode);
+    }
     if (focus) get("pageTitle").focus({ preventScroll: true });
   }
 
@@ -133,9 +145,8 @@
     search.addEventListener("input", draw); draw();
   }
 
-  function sync(snapshot, format) {
+  function sync(snapshot) {
     const cost = snapshot?.tokenCost || {};
-    get("homeRunningValue").textContent = get("activeTaskCount").textContent;
     const source = get("quotaSection");
     const signature = source.innerHTML;
     const mirror = get("quotaPageBars");
@@ -146,24 +157,8 @@
       }));
       mirror.dataset.signature = signature;
     }
-    const models = (cost.models || []).filter(model => model.model !== "unknown").slice().sort((a,b) => (b.estimatedCostUsd || 0) - (a.estimatedCostUsd || 0)).slice(0,4);
-    const nextSignature = JSON.stringify([document.documentElement.lang, cost.available, models]);
-    if (nextSignature !== modelsSignature) {
-      modelsSignature = nextSignature;
-      const list = get("overviewModelList"); list.replaceChildren();
-      const maximum = Math.max(1, ...models.map(model => model.estimatedCostUsd || 0));
-      for (const model of models) {
-        const row = document.createElement("button"); row.className = "overview-model-row"; row.dataset.route = "usage"; row.dataset.tab = "cost";
-        const name = document.createElement("strong"); name.textContent = model.model;
-        const bar = document.createElement("span"); bar.className = "model-mini-bar"; bar.style.setProperty("--share", (model.estimatedCostUsd || 0) / maximum * 100 + "%");
-        const value = document.createElement("span"); value.textContent = model.priced ? format.usd(model.estimatedCostUsd)
-          : options.t(model.missingPriceComponents?.length ? "modelCostRateUnavailable" : model.pricingPending ? "modelCostPricingPending" : "modelCostUnpriced");
-        row.append(name, bar, value); list.append(row);
-      }
-      if (!models.length) list.textContent = options.t("modelCostEmpty");
-    }
     get("sourceScanSummary").textContent = options.t("sourceScanSummary", { count: cost.filesScanned || 0, state: options.t(cost.truncated ? "tokenLocalPartial" : "tokenLocalComplete") });
   }
 
-  global.Workbench = { init, navigate, localize, sync, visible, remember, restore, get current() { return { ...current }; } };
+  global.Workbench = { init, navigate, localize, sync, visible, remember, restore, playEntrance, get pricing() { return pricing; }, get current() { return { ...current }; } };
 })(window);

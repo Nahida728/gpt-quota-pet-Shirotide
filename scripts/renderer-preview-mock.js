@@ -26,6 +26,12 @@ const previewBackground = params.get("bg") === "1"
     `)}`
   : null;
 const tokenStart = new Date();
+let previewManualUsage = params.get("manual") === "0" ? { entries: [] } : { defaults: { inputShare: 75, cacheHitRate: 50 }, entries: [
+  { id: "preview-kimi", provider: "Moonshot", model: "kimi-k2.5", mode: "exact", inputTokens: 42000000, cachedInputTokens: 30000000,
+    outputTokens: 2600000, inputPrice: 0.6, cachedPrice: 0.15, outputPrice: 2.5, createdAt: Date.now() - 86400000 },
+  { id: "preview-glm", provider: "OpenRouter", model: "glm-5", mode: "estimate", totalTokens: 18000000,
+    inputPrice: 1, outputPrice: 3.2, createdAt: Date.now() - 3600000 }
+] };
 tokenStart.setDate(tokenStart.getDate() - 19);
 
 const credits = Array.from({ length: creditCount }, (_, index) => ({
@@ -192,7 +198,7 @@ const snapshot = {
       cacheHitRate: 95.72,
       estimatedCostUsd: 374.507444,
       priced: true,
-      pricing: { input: 5, cachedInput: 0.5, cacheWrite: 6.25, output: 30 }
+      pricing: { input: 5, cachedInput: 0.5, cacheWrite: 6.25, output: 30, vendor: "OpenAI" }
     }, {
       model: "gpt-5.6-terra",
       inputTokens: 3974484,
@@ -205,7 +211,7 @@ const snapshot = {
       cacheHitRate: 84.77,
       estimatedCostUsd: 2.809104,
       priced: true,
-      pricing: { input: 2.5, cachedInput: 0.25, cacheWrite: 3.125, output: 15 }
+      pricing: { input: 2.5, cachedInput: 0.25, cacheWrite: 3.125, output: 15, vendor: "OpenAI" }
     }, {
       model: "deepseek-v4-pro",
       inputTokens: 714873,
@@ -289,6 +295,8 @@ const snapshot = {
 
 window.codexMonitor = {
   readQuota: async () => snapshot,
+  readManualUsage: async () => previewManualUsage,
+  saveManualUsage: async value => { previewManualUsage = window.UsageLedgers.normalizeManualLedger(value); return previewManualUsage; },
   readSources: async () => [{name:"default",sessions:2},{name:"work-instance",sessions:1}],
   readPricing: async () => ({date:"2026-10-28",models:[{model:"gpt-6.1-terra",vendor:"OpenAI",input:1,cachedInput:.05,cacheWrite:1.25,output:5,source:"https://developers.openai.com/api/docs/pricing"},{model:"claude-sonnet-5-5",vendor:"Anthropic",input:3,cachedInput:.1,cacheWrite:3.75,output:15,source:"https://platform.claude.com/docs/en/about-claude/pricing"}]}),
   openPricingSource: async () => true,

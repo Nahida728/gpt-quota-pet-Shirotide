@@ -4,7 +4,8 @@ const path = require("node:path");
 const { QuotaService } = require("./quota-service");
 const { RealtimeSync } = require("./realtime-sync");
 const { MonitorUpdater } = require("./monitor-updater");
-const { JsonStore } = require("./store");
+const { JsonStore, writeJsonAtomically } = require("./store");
+const { normalizeManualLedger } = require("./usage-ledgers");
 const { combineTokenUsage } = require("./token-usage");
 const { focusCodexWindow } = require("./codex-window-focus");
 const crypto = require("node:crypto");
@@ -20,6 +21,8 @@ let isAppHidden = false;
 let alwaysOnTopYielded = false;
 let windowPositionSaveTimer = null;
 const APP_NAME = "Codex监测台";
+// Display brand only. APP_NAME/appId stay unchanged so userData and archives keep their identity.
+const DISPLAY_NAME = Object.freeze({ zh: "潮汐台", en: "Tidemark" });
 const hasSingleInstanceLock = app.requestSingleInstanceLock();
 if (!hasSingleInstanceLock) app.quit();
 
@@ -28,7 +31,33 @@ function isChinese() {
 }
 
 function getLocalizedAppName() {
-  return isChinese() ? APP_NAME : "Codex Quota Monitor";
+  return isChinese() ? DISPLAY_NAME.zh : DISPLAY_NAME.en;
+}
+
+function manualUsagePath() {
+  return path.join(app.getPath("userData"), "manual-usage.json");
+}
+
+// User-entered third-party usage. A damaged file is moved aside rather than
+// silently replaced, and each save keeps the previous generation as .bak.
+function readManualUsage() {
+  const filename = manualUsagePath();
+  try {
+    if (!fs.existsSync(filename)) return normalizeManualLedger({});
+    if (fs.statSync(filename).size > 4 * 1024 * 1024) throw new RangeError("Manual usage file too large");
+    return normalizeManualLedger(JSON.parse(fs.readFileSync(filename, "utf8")));
+  } catch {
+    try { fs.renameSync(filename, filename + ".corrupt-" + Date.now()); } catch {}
+    return normalizeManualLedger({});
+  }
+}
+
+function saveManualUsage(value) {
+  const filename = manualUsagePath();
+  const next = normalizeManualLedger(value);
+  try { if (fs.existsSync(filename)) fs.copyFileSync(filename, filename + ".bak"); } catch {}
+  writeJsonAtomically(filename, next);
+  return next;
 }
 
 function createTrayIcon() {
@@ -80,9 +109,9 @@ function createWindow() {
   const saved = store.get("desktopWindow", null);
   const bounds = restoreDesktopWindow(saved, screen.getAllDisplays(), screen.getPrimaryDisplay());
   window = new BrowserWindow({
-    ...bounds, frame: false, transparent: false, backgroundColor: "#f3f8fc",
+    ...bounds, frame: false, transparent: false, backgroundColor: "#f5fafd",
     titleBarStyle: "hidden",
-    titleBarOverlay: { color: "#f3f8fc", symbolColor: "#245466", height: 52 },
+    titleBarOverlay: { color: "#f5fafd", symbolColor: "#12313f", height: 56 },
     icon: getWindowIconPath(), title: getLocalizedAppName(),
     resizable: true, movable: true, maximizable: true, fullscreenable: true,
     alwaysOnTop: store.get("alwaysOnTop", false), show: false,
@@ -284,6 +313,8 @@ function focusCodexFromMonitor() {
 function registerIpc() {
   ipcMain.handle("pricing:read", () => ({ date: PRICING_DATE, models: Object.entries(MODEL_PRICING).map(([model, price]) => ({ model, ...price, vendor: price.vendor || "OpenAI", source: price.source || SOURCES.OpenAI })) }));
   ipcMain.handle("pricing:openSource", (_event, url) => Object.values(SOURCES).includes(url) ? shell.openExternal(url) : false);
+  ipcMain.handle("manual-usage:read", () => readManualUsage());
+  ipcMain.handle("manual-usage:save", (_event, value) => saveManualUsage(value));
   ipcMain.handle("monitor-update:read", () => monitorUpdater?.snapshot());
   ipcMain.handle("monitor-update:check", () => monitorUpdater?.check());
   ipcMain.handle("monitor-update:install", () => monitorUpdater?.install());

@@ -4,7 +4,9 @@ function tokenUsageInfo(record) {
   if (record?.type === "event_msg" && record.payload?.type === "token_count") return record.payload.info;
   if (record?.type === "token_usage_record") return {
     last_token_usage: record.payload?.usage,
-    total_token_usage: record.payload?.thread_token_usage
+    total_token_usage: record.payload?.thread_token_usage,
+    streaming_duration_ms: record.payload?.streaming_duration_ms ?? record.payload?.stream_duration_ms,
+    service_tier: record.payload?.service_tier ?? record.payload?.serviceTier
   };
   return null;
 }

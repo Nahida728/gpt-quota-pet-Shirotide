@@ -4,8 +4,8 @@ const { restoreDesktopWindow, normalizeAppearance, migrateDesktopSettings } = re
 const { imageDimensions, decodeDataUrl, normalizeCrop } = require("../src/background-image");
 const primary = { workArea: { x:0, y:0, width:1920, height:1040 } };
 
-test("first desktop launch centers a usable normal window", () => {
-  assert.deepEqual(restoreDesktopWindow(null,[primary]),{x:280,y:70,width:1360,height:900,minWidth:1000,minHeight:680});
+test("first desktop launch centers the user's fixed 1200 by 800 window", () => {
+  assert.deepEqual(restoreDesktopWindow(null,[primary]),{x:360,y:120,width:1200,height:800,minWidth:1200,minHeight:800,maxWidth:1200,maxHeight:800});
 });
 test("small work areas lower the minimum and keep all window controls on screen", () => {
   const display={workArea:{x:0,y:0,width:960,height:600}};
@@ -20,11 +20,12 @@ test("removed monitors and invalid saved geometry recover on the primary display
     assert.ok(result.x>=0&&result.y>=0&&result.x+result.width<=1920&&result.y+result.height<=1040);
   }
 });
-test("negative-coordinate secondary monitors retain normal bounds",()=>{
+test("negative-coordinate secondary monitors retain position and discard old large sizes",()=>{
   const second={workArea:{x:-1920,y:0,width:1920,height:1040}};
   const saved={x:-1700,y:50,width:1400,height:900};
   const result=restoreDesktopWindow(saved,[primary,second],primary);
-  for(const key of Object.keys(saved))assert.equal(result[key],saved[key]);
+  assert.equal(result.x,saved.x);assert.equal(result.y,saved.y);
+  assert.equal(result.width,1200);assert.equal(result.height,800);
 });
 test("settings migration preserves user preferences and never promotes old small bounds",()=>{
   const data={language:"en",alwaysOnTop:true,backgroundPath:"old.png",windowBounds:{x:2,y:-600},windowCollapsed:true};

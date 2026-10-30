@@ -5,7 +5,7 @@ const os = require("node:os");
 const path = require("node:path");
 const readline = require("node:readline");
 const { readGoalContexts, normalizeTaskContext } = require("./codex-task-context");
-const { normalizeTaskTelemetry, summarizeTaskTelemetry } = require("./task-telemetry");
+const { normalizeTaskTelemetry, summarizeTaskTelemetry, normalizeServiceTier } = require("./task-telemetry");
 const { configuredSessionRoots, discoverCodexSources } = require("./codex-sources");
 const { tokenUsageInfo, compactUsage, USAGE_RECORD_PATTERN } = require("./usage-record");
 
@@ -104,6 +104,10 @@ function parseRelevantRecord(line) {
           ? record.payload.duration_ms : null,
         firstTokenMs: Number.isFinite(record.payload.time_to_first_token_ms) && record.payload.time_to_first_token_ms >= 0
           ? record.payload.time_to_first_token_ms : null,
+        streamingDurationMs: Number.isFinite(record.payload.streaming_duration_ms ?? record.payload.stream_duration_ms) &&
+          (record.payload.streaming_duration_ms ?? record.payload.stream_duration_ms) >= 0
+          ? (record.payload.streaming_duration_ms ?? record.payload.stream_duration_ms) : null,
+        serviceTier: normalizeServiceTier(record.payload.service_tier ?? record.payload.serviceTier),
         completedAtExplicit: Number.isFinite(record.payload.completed_at),
         reason,
         turnId: normalizeTurnId(record.payload.turn_id),
@@ -236,11 +240,21 @@ function compactTaskLines(lines) {
     try {
       const record = JSON.parse(line);
       if (record.type === "turn_context") {
-        compact.push(JSON.stringify({ type: record.type, timestamp: record.timestamp, payload: { model: record.payload?.model } }));
+        compact.push(JSON.stringify({ type: record.type, timestamp: record.timestamp, payload: { model: record.payload?.model,
+          service_tier: normalizeServiceTier(record.payload?.service_tier ?? record.payload?.serviceTier) } }));
       } else if (tokenUsageInfo(record)) {
         const info = tokenUsageInfo(record);
-        compact.push(JSON.stringify({ type: "event_msg", timestamp: record.timestamp, payload: { type: "token_count",
-          info: { total_token_usage: compactUsage(info.total_token_usage), last_token_usage: compactUsage(info.last_token_usage) } } }));
+        const safeInfo = { total_token_usage: compactUsage(info.total_token_usage), last_token_usage: compactUsage(info.last_token_usage),
+          streaming_duration_ms: typeof (info.streaming_duration_ms ?? info.stream_duration_ms) === "number"
+            ? (info.streaming_duration_ms ?? info.stream_duration_ms) : undefined,
+          service_tier: normalizeServiceTier(info.service_tier ?? info.serviceTier) };
+        // Keep the format identity: resumed threads can have different cumulative
+        // baselines. The shared mirror adapter needs both original record types.
+        compact.push(JSON.stringify({ type: record.type, timestamp: record.timestamp,
+          payload: record.type === "token_usage_record"
+            ? { usage: safeInfo.last_token_usage, thread_token_usage: safeInfo.total_token_usage,
+                streaming_duration_ms: safeInfo.streaming_duration_ms, service_tier: safeInfo.service_tier }
+            : { type: "token_count", info: safeInfo } }));
       } else {
         const relevant = parseRelevantRecord(line);
         if (!relevant) continue;
@@ -248,7 +262,8 @@ function compactTaskLines(lines) {
           ? { type: "response_item", timestamp: record.timestamp, payload: { role: "assistant", phase: "final_answer" } }
           : { type: "event_msg", timestamp: record.timestamp, payload: { type: relevant.kind, turn_id: relevant.turnId,
               root_turn_id: relevant.rootTurnId, started_at: relevant.startedAt, completed_at: record.payload?.completed_at,
-              duration_ms: relevant.durationMs ?? undefined, time_to_first_token_ms: relevant.firstTokenMs ?? undefined, reason: relevant.reason } }));
+              duration_ms: relevant.durationMs ?? undefined, time_to_first_token_ms: relevant.firstTokenMs ?? undefined,
+              streaming_duration_ms: relevant.streamingDurationMs ?? undefined, service_tier: relevant.serviceTier ?? undefined, reason: relevant.reason } }));
       }
     } catch {}
   }
@@ -280,7 +295,10 @@ function summarizeTaskCost(lines, now) {
   const cost = summarizeRolloutLines([{ lines }], now);
   return {
     estimatedCostUsd: cost.estimatedCostUsd,
-    hasUnpricedModels: cost.hasUnpricedModels,
+    hasUnpricedModels: cost.hasUnpricedModels || cost.hasUnattributedUsage,
+    unattributedInputTokens: cost.unattributedInputTokens,
+    unattributedCachedInputTokens: cost.unattributedCachedInputTokens,
+    unattributedOutputTokens: cost.unattributedOutputTokens,
     models: normalizeCostModels(cost.models)
   };
 }

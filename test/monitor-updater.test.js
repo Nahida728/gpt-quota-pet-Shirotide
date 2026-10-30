@@ -6,8 +6,9 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const { selectPortableUpdate, downloadVerified, MonitorUpdater, REPOSITORY } = require('../src/monitor-updater');
+const { ASSET_PREFIX } = require('../src/brand');
 function release(version, options={}) {
-  const name=`codex-quota-monitor-${version}-portable-x64.exe`;
+  const name=`${ASSET_PREFIX}-${version}-portable-x64.exe`;
   return {tag_name:`v${version}`,draft:false,prerelease:version.includes('-'),assets:[{name,size:5,digest:'sha256:'+'a'.repeat(64),browser_download_url:`https://github.com/${REPOSITORY}/releases/download/v${version}/${name}`}],...options};
 }
 test('update selection pins repository, x64 asset, checksum, channel and strictly newer SemVer',()=>{
@@ -19,6 +20,9 @@ test('update selection pins repository, x64 asset, checksum, channel and strictl
   assert.equal(selectPortableUpdate([foreign],'1.3.0'),null);
   const missingDigest=release('2.0.0');delete missingDigest.assets[0].digest;
   assert.equal(selectPortableUpdate([missingDigest],'1.3.0'),null);
+  assert.equal(REPOSITORY, 'Nahida728/gpt-quota-pet-Shirotide');
+  assert.equal(selectPortableUpdate([release('2.0.0-rc.2')],'2.0.0-beta.2').version,'2.0.0-rc.2');
+  assert.equal(selectPortableUpdate([release('2.0.0-rc.2')],'1.3.50'),null);
 });
 test('streamed downloads reject tampering and retain the previous verified file',async t=>{
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'quota-update-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));

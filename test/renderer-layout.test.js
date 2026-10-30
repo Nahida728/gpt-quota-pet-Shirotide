@@ -22,11 +22,14 @@ test("desktop shell contains six independent pages and one refresh action",()=>{
  assert.match(shell,/querySelectorAll\("\.workspace-page\[data-page\]"\)/);
  assert.doesNotMatch(html,/floating-orb|top-dock-tab|drag-edge|collapseButton/);
 });
-test("frameless resizable desktop window keeps native caption controls and no shaping",()=>{
- assert.match(main,/frame: false, transparent: false/);assert.match(main,/resizable: true, movable: true, maximizable: true/);
- assert.match(main,/titleBarStyle: "hidden"/);assert.match(main,/titleBarOverlay:/);
+test("fixed frameless desktop window keeps caption controls and a bounded rounded outline",()=>{
+ assert.match(main,/frame: false, transparent: true, backgroundColor: "#00000000", hasShadow: false/);assert.match(main,/resizable: false, movable: true, maximizable: false/);
+ assert.doesNotMatch(main,/titleBarOverlay:/);
+ assert.match(html,/id="windowMinimize"/);assert.match(html,/id="windowClose"/);
  assert.match(css,/-webkit-app-region:\s*drag/);assert.match(css,/-webkit-app-region:\s*no-drag/);
- assert.doesNotMatch(main,/setShape|will-resize|setMaximumSize|startSystemWindowMove|isTopDock/);
+ assert.doesNotMatch(main,/startSystemWindowMove|isTopDock/);
+ assert.match(main,/installWindowCorners\(window\)/);
+ assert.match(main,/window\.on\("will-resize", event => event.preventDefault\(\)\)/);
  assert.match(main,/getNormalBounds\(\)/);assert.match(main,/isMinimized\(\)/);
  assert.match(main,/requestSingleInstanceLock\(\)/);
  assert.doesNotMatch(preload,/setCollapsed|revealTopDock|setPositionLocked|beginOrbGesture/);
@@ -40,7 +43,7 @@ test("quota, token, task and permanent history views remain reachable",()=>{
 test("shared state keeps accounting denominators and completion outcomes",()=>{
  assert.match(renderer,/usage\.lifetimeTokens\s*\/\s*workDays/);assert.match(renderer,/cost\.estimatedCostUsd\s*\/\s*costWorkDays/);
  assert.match(renderer,/function confirmAllCompletedTasks/);assert.match(renderer,/completedTaskCount/);assert.match(renderer,/manualInterruptedTaskCount/);assert.match(renderer,/abnormalInterruptedTaskCount/);
- assert.match(renderer,/function syncWorkbench/);assert.match(renderer,/function renderTaskDrawer/);assert.match(renderer,/noMatchingTasks/);
+ assert.match(renderer,/function syncWorkbench/);assert.match(renderer,/function renderTaskDetail/);assert.match(renderer,/noMatchingTasks/);
 });
 test("charts resize to their container and respect reduced motion",()=>{
  assert.match(renderer,/getBoundingClientRect\(\)/);assert.match(renderer,/new ResizeObserver/);

@@ -4,8 +4,8 @@ const path = require("node:path");
 const { QuotaService } = require("./quota-service");
 const { RealtimeSync } = require("./realtime-sync");
 const { MonitorUpdater } = require("./monitor-updater");
-const { JsonStore, writeJsonAtomically } = require("./store");
-const { normalizeManualLedger } = require("./usage-ledgers");
+const { JsonStore } = require("./store");
+const { readManualUsage, saveManualUsage, changeManualUsage } = require("./manual-usage-store");
 const { combineTokenUsage } = require("./token-usage");
 const { focusCodexWindow } = require("./codex-window-focus");
 const crypto = require("node:crypto");
@@ -14,15 +14,27 @@ const { MAX_BYTES: MAX_BACKGROUND_BYTES, imageDimensions, decodeDataUrl, normali
 const { discoverCodexSources } = require("./codex-sources");
 const { MODEL_PRICING, PRICING_DATE } = require("./codex-cost-usage");
 const { SOURCES } = require("./model-pricing-catalog");
+const { PetController } = require("./pet-controller");
+const { saveAppearanceSettings } = require("./appearance-store");
+const { installWindowCorners } = require("./window-shape");
+const { taskbarIconPath, applyWindowBranding } = require("./window-branding");
 
-let window, tray, quotaService, realtimeSync, monitorUpdater, store;
+// Branding must never select a fresh data directory. Explicit isolated profiles
+// remain supported for development/release probes and are never migrated.
+if (app.isPackaged && !app.commandLine.hasSwitch("user-data-dir")) {
+  app.setPath("userData", path.join(app.getPath("appData"), "codex-quota-monitor"));
+}
+
+let window, tray, quotaService, realtimeSync, monitorUpdater, store, petController;
 let isQuitting = false;
 let isAppHidden = false;
 let alwaysOnTopYielded = false;
 let windowPositionSaveTimer = null;
+let refreshWindowCorners = null;
+let nativeIconPath = null;
 const APP_NAME = "Codex监测台";
 // Display brand only. APP_NAME/appId stay unchanged so userData and archives keep their identity.
-const DISPLAY_NAME = Object.freeze({ zh: "潮汐台", en: "Tidemark" });
+const { DISPLAY_NAME } = require("./brand");
 const hasSingleInstanceLock = app.requestSingleInstanceLock();
 if (!hasSingleInstanceLock) app.quit();
 
@@ -38,30 +50,8 @@ function manualUsagePath() {
   return path.join(app.getPath("userData"), "manual-usage.json");
 }
 
-// User-entered third-party usage. A damaged file is moved aside rather than
-// silently replaced, and each save keeps the previous generation as .bak.
-function readManualUsage() {
-  const filename = manualUsagePath();
-  try {
-    if (!fs.existsSync(filename)) return normalizeManualLedger({});
-    if (fs.statSync(filename).size > 4 * 1024 * 1024) throw new RangeError("Manual usage file too large");
-    return normalizeManualLedger(JSON.parse(fs.readFileSync(filename, "utf8")));
-  } catch {
-    try { fs.renameSync(filename, filename + ".corrupt-" + Date.now()); } catch {}
-    return normalizeManualLedger({});
-  }
-}
-
-function saveManualUsage(value) {
-  const filename = manualUsagePath();
-  const next = normalizeManualLedger(value);
-  try { if (fs.existsSync(filename)) fs.copyFileSync(filename, filename + ".bak"); } catch {}
-  writeJsonAtomically(filename, next);
-  return next;
-}
-
 function createTrayIcon() {
-  const filename = nativeTheme.shouldUseDarkColors
+  const filename = nativeTheme.shouldUseDarkColorsForSystemIntegratedUI
     ? "tray-icon-on-dark.png"
     : "tray-icon-on-light.png";
   const iconPath = app.isPackaged
@@ -74,9 +64,14 @@ function createTrayIcon() {
 }
 
 function getWindowIconPath() {
-  return app.isPackaged
+  const source = app.isPackaged
     ? path.join(process.resourcesPath, "icon.ico")
     : path.join(__dirname, "..", "assets", "icon.ico");
+  if (!nativeIconPath) {
+    try { nativeIconPath = taskbarIconPath(source, app.getPath("userData")); }
+    catch { nativeIconPath = source; }
+  }
+  return nativeIconPath;
 }
 
 function saveWindowPosition(target = window) {
@@ -85,7 +80,7 @@ function saveWindowPosition(target = window) {
   windowPositionSaveTimer = null;
   const bounds = target.getNormalBounds();
   if ([bounds.x, bounds.y, bounds.width, bounds.height].every(Number.isFinite)) {
-    store.set("desktopWindow", { ...bounds, maximized: target.isMaximized() });
+    store.set("desktopWindow", { ...bounds, maximized: false });
   }
 }
 
@@ -98,22 +93,26 @@ function reconcileDisplayBounds() {
   if (!window || window.isDestroyed()) return;
   const bounds = window.getNormalBounds();
   const next = restoreDesktopWindow(bounds, screen.getAllDisplays(), screen.getPrimaryDisplay());
-  window.setMinimumSize(next.minWidth, next.minHeight);
+  const minimum = window.getMinimumSize(), maximum = window.getMaximumSize();
+  if (minimum[0] !== next.minWidth || minimum[1] !== next.minHeight || maximum[0] !== next.maxWidth || maximum[1] !== next.maxHeight) {
+    window.setMinimumSize(0, 0);
+    window.setMaximumSize(next.maxWidth, next.maxHeight);
+    window.setMinimumSize(next.minWidth, next.minHeight);
+  }
   if (!window.isMaximized() && !window.isMinimized() &&
-      ["x", "y", "width", "height"].some(key => bounds[key] !== next[key])) {
+      (["x", "y"].some(key => bounds[key] !== next[key]) || ["width", "height"].some(key => Math.abs(bounds[key] - next[key]) > 2))) {
     window.setBounds({ x: next.x, y: next.y, width: next.width, height: next.height });
   }
+  refreshWindowCorners?.();
 }
 
 function createWindow() {
   const saved = store.get("desktopWindow", null);
   const bounds = restoreDesktopWindow(saved, screen.getAllDisplays(), screen.getPrimaryDisplay());
   window = new BrowserWindow({
-    ...bounds, frame: false, transparent: false, backgroundColor: "#f5fafd",
-    titleBarStyle: "hidden",
-    titleBarOverlay: { color: "#f5fafd", symbolColor: "#12313f", height: 56 },
+    ...bounds, frame: false, transparent: true, backgroundColor: "#00000000", hasShadow: false,
     icon: getWindowIconPath(), title: getLocalizedAppName(),
-    resizable: true, movable: true, maximizable: true, fullscreenable: true,
+    resizable: false, movable: true, maximizable: false, fullscreenable: false, thickFrame: false,
     alwaysOnTop: store.get("alwaysOnTop", false), show: false,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"), contextIsolation: true,
@@ -121,31 +120,30 @@ function createWindow() {
     }
   });
   window.setMenuBarVisibility(false);
+  refreshWindowCorners = installWindowCorners(window);
   let shown = false;
   const showInitialWindow = () => {
     if (shown || !window || window.isDestroyed()) return;
     shown = true;
-    if (saved?.maximized) window.maximize();
     isAppHidden = false;
-    window.show();
+    if (store.get("petMode", false)) enterPetMode().then(entered => { if (!entered && !window?.isDestroyed()) window?.show(); });
+    else window.show();
   };
   window.once("ready-to-show", showInitialWindow);
   window.webContents.once("did-finish-load", showInitialWindow);
   window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   window.webContents.on("will-navigate", event => event.preventDefault());
   window.loadFile(path.join(__dirname, "renderer", "index.html"));
-  for (const event of ["move", "resize", "maximize", "unmaximize"]) window.on(event, scheduleWindowPositionSave);
-  window.on("moved", () => {
-    const area = screen.getDisplayMatching(window.getBounds()).workArea;
-    window.setMinimumSize(Math.min(1000, Math.max(320, area.width - 24)), Math.min(680, Math.max(240, area.height - 24)));
-  });
+  for (const event of ["move", "resize"]) window.on(event, scheduleWindowPositionSave);
+  window.on("will-resize", event => event.preventDefault());
+  window.on("moved", reconcileDisplayBounds);
   window.on("close", event => {
     if (isQuitting) return;
     event.preventDefault();
     if (store.get("closeBehavior", "tray") === "quit") app.quit();
     else hideAppWindows();
   });
-  window.on("closed", () => { window = null; });
+  window.on("closed", () => { window = null; refreshWindowCorners = null; });
   window.on("show", updateTray);
   window.on("hide", updateTray);
   window.on("focus", () => {
@@ -155,6 +153,9 @@ function createWindow() {
   });
   screen.on("display-removed", reconcileDisplayBounds);
   screen.on("display-metrics-changed", reconcileDisplayBounds);
+  for (const event of ["display-removed", "display-metrics-changed"]) screen.on(event, () => {
+    if (petController?.active) petController.position(petController.layout?.anchor);
+  });
   if (process.argv.includes("--dev")) window.webContents.openDevTools({ mode: "detach" });
 }
 
@@ -229,8 +230,10 @@ function buildTrayMenu() {
   return Menu.buildFromTemplate([
     {
       label: !isAppHidden ? (zh ? "隐藏窗口" : "Hide window") : (zh ? "显示窗口" : "Show window"),
-      click: () => (!isAppHidden ? hideAppWindows() : showWindow())
+      click: () => (!isAppHidden ? hideAppWindows() : showCurrentMode())
     },
+    { label: zh ? "打开工作台" : "Open workspace", click: showWindow },
+    { label: zh ? "收为 GPT 小宠物" : "Switch to GPT pet", click: enterPetMode },
     {
       label: zh ? "立即刷新" : "Refresh now",
       click: () => window?.webContents.send("quota:refresh")
@@ -267,6 +270,7 @@ function updateTray() {
 
 function showWindow() {
   if (!window || window.isDestroyed()) return;
+  petController?.hide({ restore: true });
   isAppHidden = false;
   window.setAlwaysOnTop(store.get("alwaysOnTop", false), "floating");
   alwaysOnTopYielded = false;
@@ -276,9 +280,21 @@ function showWindow() {
   updateTray();
 }
 
+async function enterPetMode() {
+  const entered = await petController?.enter();
+  if (!entered) return false;
+  isAppHidden = false; updateTray(); return true;
+}
+
+function showCurrentMode() {
+  if (store.get("petMode", false)) return enterPetMode();
+  showWindow();
+}
+
 function hideAppWindows() {
   isAppHidden = true;
   saveWindowPosition(window, "windowBounds");
+  petController?.hide();
   window?.hide();
   updateTray();
 }
@@ -311,10 +327,17 @@ function focusCodexFromMonitor() {
 }
 
 function registerIpc() {
+  ipcMain.handle("pet:enter", event => event.sender === window?.webContents ? enterPetMode() : false);
+  ipcMain.handle("pet:settings", (event, value) => event.sender === window?.webContents
+    ? petController.updateSettings(value && typeof value === "object" ? value : {}) : null);
   ipcMain.handle("pricing:read", () => ({ date: PRICING_DATE, models: Object.entries(MODEL_PRICING).map(([model, price]) => ({ model, ...price, vendor: price.vendor || "OpenAI", source: price.source || SOURCES.OpenAI })) }));
   ipcMain.handle("pricing:openSource", (_event, url) => Object.values(SOURCES).includes(url) ? shell.openExternal(url) : false);
-  ipcMain.handle("manual-usage:read", () => readManualUsage());
-  ipcMain.handle("manual-usage:save", (_event, value) => saveManualUsage(value));
+  ipcMain.handle("manual-usage:read", () => readManualUsage(manualUsagePath()));
+  ipcMain.handle("manual-usage:save", (_event, value) => saveManualUsage(manualUsagePath(), value));
+  ipcMain.handle("manual-usage:change", (event, change) => {
+    if (!window || window.isDestroyed() || event.sender !== window.webContents) throw new Error("Invalid manual usage sender");
+    return changeManualUsage(manualUsagePath(), change);
+  });
   ipcMain.handle("monitor-update:read", () => monitorUpdater?.snapshot());
   ipcMain.handle("monitor-update:check", () => monitorUpdater?.check());
   ipcMain.handle("monitor-update:install", () => monitorUpdater?.install());
@@ -344,11 +367,12 @@ function registerIpc() {
     monitorVersion: app.getVersion(), language: store.get("language", "zh"),
     alwaysOnTop: store.get("alwaysOnTop", false), closeBehavior: store.get("closeBehavior", "tray"),
     appearance: normalizeAppearance(store.get("appearance")),
+    petSettings: petController.preferences(),
     backgroundDataUrl: getBackgroundDataUrl(), backgroundOpacity: store.get("backgroundOpacity", 0.34)
   }));
   ipcMain.handle("settings:language", (_event, language) => {
     const next = language === "en" ? "en" : "zh";
-    store.set("language", next); window?.setTitle(getLocalizedAppName()); updateTray(); return next;
+    store.set("language", next); window?.setTitle(getLocalizedAppName()); petController?.publish(); updateTray(); return next;
   });
   ipcMain.handle("settings:alwaysOnTop", (_event, enabled) => { setAlwaysOnTop(enabled); return Boolean(enabled); });
   ipcMain.handle("settings:closeBehavior", (_event, value) => {
@@ -356,6 +380,10 @@ function registerIpc() {
   });
   ipcMain.handle("settings:appearance", (_event, value) => {
     const next = normalizeAppearance(value); store.set("appearance", next); return next;
+  });
+  ipcMain.handle("settings:saveAppearance", (event, value, opacity) => {
+    if (event.sender !== window?.webContents) return null;
+    return saveAppearanceSettings(store, value, opacity);
   });
   ipcMain.handle("sources:read", () => {
     const sources = discoverCodexSources();
@@ -395,22 +423,39 @@ function registerIpc() {
     return true;
   });
   ipcMain.on("window:minimize", () => window?.minimize());
+  ipcMain.on("window:close", event => {
+    if (window && !window.isDestroyed() && event.sender === window.webContents) window.close();
+  });
   ipcMain.on("window:hide", hideAppWindows);
 }
 
 if (hasSingleInstanceLock) app.whenReady().then(() => {
+  // The workbench is light; tray artwork independently follows the system UI.
+  nativeTheme.themeSource = "light";
   app.setName(APP_NAME);
   app.setAppUserModelId("com.codex.quota-monitor");
   store = new JsonStore(path.join(app.getPath("userData"), "settings.json"));
+  app.on("browser-window-created", (_event, target) => {
+    const relaunch = app.isPackaged
+      ? [process.env.PORTABLE_EXECUTABLE_FILE || process.execPath]
+      : [process.execPath, path.resolve(process.argv[1])];
+    applyWindowBranding(target, getWindowIconPath(), getLocalizedAppName(), relaunch);
+  });
   migrateDesktopSettings(store);
+  petController = new PetController({ BrowserWindow, Menu, screen, ipcMain, store,
+    getLanguage: () => store.get("language", "zh"), getIcon: getWindowIconPath,
+    getSnapshot: () => realtimeSync?.latest, getTasks: () => realtimeSync?.latestTasks,
+    onEnter: () => { saveWindowPosition(); window?.hide(); isAppHidden = false; updateTray(); },
+    onRestore: showWindow, onHide: hideAppWindows, onQuit: () => app.quit(),
+    onSettings: settings => window?.webContents.send("pet:settingsChanged", settings) });
   quotaService = new QuotaService({
     appStatePath: path.join(app.getPath("userData"), "quota-state.json"),
     fetchImpl: (url, options) => net.fetch(url, options)
   });
   realtimeSync = new RealtimeSync({
     service: quotaService,
-    onSnapshot: snapshot => window?.webContents.send("quota:snapshot", snapshot),
-    onTasks: result => window?.webContents.send("tasks:snapshot", result)
+    onSnapshot: snapshot => { window?.webContents.send("quota:snapshot", snapshot); petController.updateTasks(snapshot.activeTasks); },
+    onTasks: result => { window?.webContents.send("tasks:snapshot", result); petController.updateTasks(result); }
   });
   realtimeSync.start();
   quotaService.onCheckpoints = checkpoint => {
@@ -444,7 +489,7 @@ if (hasSingleInstanceLock) app.whenReady().then(() => {
   tray.setToolTip(getLocalizedAppName());
   tray.setContextMenu(buildTrayMenu());
   tray.on("click", () => {
-    !isAppHidden ? hideAppWindows() : showWindow();
+    !isAppHidden ? hideAppWindows() : showCurrentMode();
   });
   nativeTheme.on("updated", () => tray?.setImage(createTrayIcon()));
 });
@@ -460,6 +505,7 @@ app.on("before-quit", () => {
   quotaService?.dispose();
   realtimeSync?.dispose();
   monitorUpdater?.dispose();
+  petController?.dispose();
 });
 
 app.on("window-all-closed", () => { if (!tray) app.quit(); });

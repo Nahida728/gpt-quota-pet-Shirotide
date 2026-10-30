@@ -1,6 +1,37 @@
 # Changelog / 更新日志
 
+## 2.0.0-rc.2 — 2026-10-30
+
+- 品牌升级为 GPT-白汐 / GPT-Shirotide，仓库更名为 `gpt-quota-pet-Shirotide`；统一新宠物图标、任务栏图标、GIF 开屏、中英文说明和 RC 更新通道。
+- 任务中心改为紧凑多列卡片，保留状态、身份、模型、耗时、费用和确认入口；完整目标及模型明细改为居中弹窗，支持焦点约束、Esc、遮罩关闭与返回焦点。
+- 补全按钮、图标操作和下拉建议的 hover 过渡，遵循减少动态效果设置。
+- 桌宠支持等比显示、捏压弹簧、小黄鸭音效、原生拖动、抛出与边缘反弹；固定窄绘制窗口避免全屏透明层拖慢其他应用，移除透明碰撞留白。捏宠物仅刷新额度，点击气泡才切换碎碎念、再点关闭。
+- 保留测试阶段的存档恢复、第三方供应商追加/增量/替换用量、统一 Token/API 等价基数、外观原子保存、长数字和无边框圆角控件修复。
+- Upgrade GPT-Shirotide branding, mascot icons, taskbar artwork, GIF splash, bilingual documentation, repository URLs and RC update metadata.
+- Compact multi-column task cards open a centered, keyboard-accessible detail modal. Preserve task outcomes, acknowledgements, goal counters and model usage.
+- Smooth hover feedback across actions and menus. Keep reduced-motion support.
+- Add proportional pet artwork, spring squeezes, duck audio, native dragging, throws and edge bounces on a fixed narrow surface. Exclude invisible collision padding. Squeezing refreshes quotas; only bubble clicks show chatter and then close it.
+- Retain ledger recovery, model-scoped third-party edits, consistent accounting bases, atomic appearance persistence and rounded frameless controls. Existing appId and data directory remain unchanged. This is a prerelease; install it manually when upgrading from 1.x.
+
+## 2.0.0-beta.2 — 2026-10-30
+
+- 品牌更名为 GPT-白汐 / GPT-Shirotide。新增白发龙角桌面宠物，默认按可见区域等比显示为 256 DIP，可调大小、贴边、独立置顶、气泡和可选音效；保留原工作台、页面和历史数据。
+- 气泡沿用参考项目的 MIT 授权图形，改为浅蓝紫配色、256 DIP 宽；五小时与一周额度上下排列。去掉标题和 X，额度 → 社区 GPT 口癖碎碎念 → 关闭，七秒自动关闭；连续点击和双击均不打开主窗口，右键菜单或托盘恢复。
+- 点按立即驱动连续弹簧挤压回弹，快速连点保留当前形态和速度；只有越过移动阈值才进入系统拖动，拖动前恢复原比例。修复透明宠物在原生窗口可见但后台节流时无法绘制的问题。
+- 右侧统计改为左侧相同的 Codex Token/API 等价基数加手动第三方记录；未添加第三方时左右一致，费用构成同步使用该基数。保留本机模型明细及原账本。
+- 保持原数据目录标识，修复测试预览每次使用空目录造成的存档丢失假象；已有预览设置持续保留。手动用量沿用安全备份恢复，失败写入不清空记录。
+- 供应商和模型允许任意名称，建议菜单改为可滚动的浅色列表。修复外观透明度变量作用域，外观与背景强度原子保存；长数字保持单行并按可用空间重排，数值字段内部不产生滚动条。
+- 原生右上角控件使用透明底色和浅色应用主题，预留真实按钮区域，避免拖动区与内容覆盖原生点击和悬停效果。
+- 按用户选择固定主窗口为 1200 × 800 DIP，禁用缩放和最大化；全局卡片与原生窗口外轮廓统一为 12 DIP 圆角。首页一屏排列，最近任务与 Codex 任务换位，客户端更新移至侧栏实例入口上方。
+- 费用构成改为按模型分摊既有 Codex 基数并合并同名手动记录，不改变左右总计。最近任务增加明确记录的流式输出时长与 Standard/Fast/UltraFast 挡位；缺失显示“—”，英文指标按单词换行。
+- Rename to GPT-Shirotide and add a proportionally scaled white-dragon desktop companion, compact texture bubbles, community catchphrases and a responsive press spring. Left clicks only cycle quotas/chatter/closed; use the menu or tray to restore. Align both ledger bases, retain data identity, fix atomic appearance persistence, long numbers and editable scrollable suggestions, and reserve native caption controls.
+
 ## 2.0.0-beta.1 — 2026-10-28
+
+- 2026-10-30 审计修复：手动第三方用量在主文件缺失或损坏时从有效备份恢复，并保留损坏原件；无法恢复或超过 500 条时拒绝写入，避免静默清空或截断。保留版本号，重新构建本地审计包。
+- Audit repair (2026-10-30): recover manual usage from a validated backup, retain corrupt originals, and reject unrecoverable or over-capacity writes instead of silently losing entries. Rebuild the existing beta version locally.
+- 测试版显式使用 beta / prerelease 发布配置并生成 beta.yml，避免继承正式版更新通道。Explicitly use beta/prerelease update metadata for the beta build.
+- 修复中等窗口宽度下首页大额 Token 和金额拆分数字的问题，保留字号并改为两列指标。Keep large overview values intact with two metric columns at medium window widths.
 
 - 修复续接会话中新旧用量记录累计基线不同导致的重复入账；校验每次调用增量并同步纠正 Token、请求数和计价权重，支持断点扫描及存档恢复。首页保留官方账号统计，本机多开与第三方用量单列；无法重建的旧记录明确标为未核实。
 - 费用统计恢复老版官方日桶校准：OpenAI 原生模型的 Token 与金额同步分摊，第三方独立累计，官方缺失日期及未注明日期保留原记录。校准标为模型分摊估计，不覆盖原始账本与永久历史。摘要成功但日桶缺失时保留最新完整账号快照，避免费用页跳回旧计数。
@@ -275,4 +306,4 @@ Install 1.3.0 manually to enable future automatic updates. Existing local record
 
 ## Earlier releases / 历史版本
 
-See [GitHub Releases](https://github.com/Nahida728/codex-quota-monitor/releases) for earlier version notes, including the 1.3.0 beta. / 早期版本及 1.3.0 测试版说明请查看 GitHub Releases。
+See [GitHub Releases](https://github.com/Nahida728/gpt-quota-pet-Shirotide/releases) for earlier version notes, including the 1.3.0 beta. / 早期版本及 1.3.0 测试版说明请查看 GitHub Releases。

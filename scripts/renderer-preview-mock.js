@@ -317,7 +317,8 @@ window.codexMonitor = {
   focusCodex: async () => true,
   openResetSource: async () => true,
   readSettings: async () => ({
-    monitorVersion: "2.0.0-beta.1",
+    monitorVersion: "2.0.0-rc.2",
+    petSettings: { size: 256, alwaysOnTop: true, bubbles: true, sound: false },
     language: params.get("lang") === "en" ? "en" : "zh",
     alwaysOnTop: true,
     positionLocked: false,
@@ -328,6 +329,10 @@ window.codexMonitor = {
     backgroundOpacity: 0.34
   }),
   setLanguage: async language => language,
+  saveAppearance: async (appearance, backgroundOpacity) => ({ appearance, backgroundOpacity }),
+  enterPetMode: async () => true,
+  setPetSettings: async value => ({ size: 256, alwaysOnTop: true, bubbles: true, sound: false, ...value }),
+  onPetSettings: () => () => {},
   setAlwaysOnTop: async enabled => enabled,
   setPositionLocked: async locked => locked,
   setCollapsed: async (collapsed, anchor) => ({ collapsed, anchor }),

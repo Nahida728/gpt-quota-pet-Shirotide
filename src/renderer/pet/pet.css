@@ -1,0 +1,36 @@
+:root { color-scheme: light; font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif; color: #244654; }
+* { box-sizing: border-box; -webkit-app-region: no-drag; }
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; user-select: none; }
+button { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+#petCanvas { position: absolute; pointer-events: none; }
+.pet { position: absolute; z-index: 1; appearance: none; -webkit-appearance: none; border: 0; padding: 0; background: none; outline-offset: -5px; touch-action: none; -webkit-user-drag: none; }
+.working-dot { position: absolute; bottom: 8%; right: 12%; width: 9px; height: 9px; border: 2px solid #efffff; border-radius: 50%; background: #30c7b1; box-shadow: 0 0 10px #5de9db; opacity: 0; }
+.is-working .working-dot { opacity: 1; animation: working 2s ease-in-out infinite; }
+.sparkles { position: absolute; top: 6%; right: 5%; font-size: 25px; color: #9d84e4; opacity: 0; pointer-events: none; }
+.celebrating .sparkles { animation: sparkle .8s ease-out 3; }
+.bubble { position: absolute; z-index: 2; padding: 0; border: 0; background: none; animation: bubble-in .2s ease-out; }
+.bubble::before { content: ""; position: absolute; inset: 0; background: url("../assets/pet-bubble.png") center / 100% 100% no-repeat; pointer-events: none; }
+.bubble.is-below::before { transform: scaleY(-1); }
+.bubble-content { position: absolute; width: 70%; left: 15%; top: 36%; transform: translateY(-50%); }
+.bubble { cursor: pointer; }
+.bubble-content > p { text-align: center; font-size: 14px; line-height: 1.6; }
+#quotaStatus { display: block; text-align: center; font-size: 11px; color: #a16768; }
+.bubble.is-below .bubble-content { top: 64%; }
+[hidden] { display: none !important; }
+.bubble p { margin: 4px 0; font-size: 12px; line-height: 1.35; overflow-wrap: break-word; white-space: pre-line; }
+.quota-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 0; }
+.quota-grid > div { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 4px 8px; align-items: center; min-width: 0; }
+.quota-grid small { font-size: 12px; color: #617c88; white-space: nowrap; }
+.quota-grid strong { color: #147f96; font-size: 20px; line-height: 1.2; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.quota-grid > div:last-child strong { color: #6d69ba; }
+.quota-grid strong.is-text { font-size: 15px; line-height: 26px; }
+.quota-track { grid-column: 1 / -1; height: 5px; border-radius: 4px; background: #e2edf1; overflow: hidden; }
+.quota-track i { display: block; height: 100%; border-radius: inherit; background: #3bb7c8; }
+.quota-grid > div:last-child .quota-track i { background: #9890d7; }
+button:focus-visible { outline: 2px solid #399bb0; }
+.is-hidden *, .is-hidden .pet-float { animation-play-state: paused !important; }
+@keyframes working { 50% { box-shadow: 0 0 4px #5de9db; opacity: .55; } }
+@keyframes sparkle { 30% { opacity: 1; transform: translateY(-8px) rotate(15deg) scale(1.15); } 100% { opacity: 0; transform: translateY(-14px) scale(.8); } }
+@keyframes bubble-in { from { opacity: 0; transform: translateY(4px) scale(.96); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+#chatter { text-align: center; font-size: 15px; font-weight: 700; line-height: 1.6; }

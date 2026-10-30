@@ -1,9 +1,9 @@
 {
   "name": "codex-quota-monitor",
-  "version": "2.0.0-beta.1",
-  "description": "A bilingual Windows desktop workspace for Codex quotas, concurrent tasks and API-equivalent model costs.",
+  "version": "2.0.0-rc.2",
+  "description": "GPT-白汐 / GPT-Shirotide — Codex quota desktop pet, task center and multi-provider usage ledger.",
   "main": "src/main.js",
-  "author": "Codex Quota Monitor",
+  "author": "GPT-Shirotide",
   "license": "MIT",
   "scripts": {
     "start": "electron .",
@@ -16,7 +16,7 @@
   },
   "build": {
     "appId": "com.codex.quota-monitor",
-    "productName": "Codex监测台",
+    "productName": "GPT-白汐",
     "electronDist": "node_modules/electron/dist",
     "asar": true,
     "files": [
@@ -48,22 +48,23 @@
       ]
     },
     "nsis": {
-      "artifactName": "codex-quota-monitor-2.0.0-beta.1-setup-${arch}.${ext}",
+      "artifactName": "gpt-shirotide-${version}-setup-${arch}.${ext}",
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "Codex监测台"
+      "shortcutName": "GPT-白汐"
     },
     "portable": {
-      "artifactName": "codex-quota-monitor-2.0.0-beta.1-portable-${arch}.${ext}"
+      "artifactName": "gpt-shirotide-${version}-portable-${arch}.${ext}"
     },
-    "buildVersion": "2.0.0.1",
+    "buildVersion": "2.0.0.102",
     "beforePack": "./scripts/filter-packaged-docs.cjs",
     "publish": {
       "provider": "github",
       "owner": "Nahida728",
-      "repo": "codex-quota-monitor",
-      "releaseType": "release"
+      "repo": "gpt-quota-pet-Shirotide",
+      "releaseType": "prerelease",
+      "channel": "rc"
     }
   },
   "devDependencies": {
@@ -76,5 +77,13 @@
     "koffi": "^3.1.2",
     "semver": "7.7.3"
   },
-  "displayVersion": "2.0.0-beta.1"
+  "displayVersion": "2.0.0-rc.2",
+  "homepage": "https://github.com/Nahida728/gpt-quota-pet-Shirotide",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Nahida728/gpt-quota-pet-Shirotide.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Nahida728/gpt-quota-pet-Shirotide/issues"
+  }
 }

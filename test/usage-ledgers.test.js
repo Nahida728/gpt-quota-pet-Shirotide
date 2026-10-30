@@ -48,10 +48,80 @@ test("official view prices account Tokens at the native blended rate; combined v
   assert.equal(result.official.ratePerMillion, 10);
   assert.equal(result.official.costUsd, 30);
   assert.equal(result.official.dailyCostUsd, 10);
-  assert.equal(result.combined.tokens, 2500000);
-  assert.equal(result.combined.costUsd, 13);
+  assert.equal(result.combined.tokens, 4000000);
+  assert.equal(result.combined.costUsd, 31);
   assert.equal(result.composition[0].label, "gpt-x");
+  const noManual = summarizeLedgers({ scope: "account", lifetimeTokens: 3000000, totalWorkDays: 3 }, cost, {});
+  assert.equal(noManual.combined.tokens, noManual.official.tokens);
+  assert.equal(noManual.combined.costUsd, noManual.official.costUsd);
+  const unpriced = summarizeLedgers({ scope: "account", lifetimeTokens: 3000000 }, cost,
+    { entries: [{ provider: "Custom", model: "custom name", inputTokens: 10, outputTokens: 2 }] });
+  assert.equal(unpriced.combined.tokens, 3000012);
+  assert.equal(unpriced.combined.costUsd, unpriced.official.costUsd);
+  assert.equal(unpriced.combined.partial, true);
   const missing = summarizeLedgers({ scope: "account", lifetimeTokens: 5 }, { available: false }, {});
   assert.equal(missing.official.costUsd, null);
   assert.equal(missing.combined.costUsd, null);
+});
+
+test("model composition allocates the account base and merges same-model manual rows without changing totals", () => {
+  const result = summarizeLedgers({ scope: "account", lifetimeTokens: 3000000 }, { available: true, models: [
+    { model: "gpt-a", inputTokens: 700000, outputTokens: 100000, priced: true, estimatedCostUsd: 7, pricing: { vendor: "OpenAI" } },
+    { model: "gpt-b", inputTokens: 100000, outputTokens: 100000, priced: true, estimatedCostUsd: 3, pricing: { vendor: "OpenAI" } }
+  ] }, { entries: [{ provider: "Custom", model: "GPT-A", inputTokens: 1000000, outputTokens: 0, cachedInputTokens: 0, inputPrice: 2, outputPrice: 4 }] });
+  assert.equal(result.combined.costUsd, 32); assert.equal(result.combined.tokens, 4000000);
+  assert.equal(result.composition.length, 2); assert.equal(result.composition[0].label, "gpt-a");
+  assert.equal(result.composition[0].costUsd, 23); assert.equal(result.composition[0].tokens, 3400000);
+  assert.equal(result.composition.reduce((sum, row) => sum + row.costUsd, 0), result.combined.costUsd);
+  assert.equal(result.composition.reduce((sum, row) => sum + row.tokens, 0), result.combined.tokens);
+});
+
+test("the three user-confirmed TokenRouter routes join third-party totals once without changing the account base", () => {
+  const usage = { scope: "account", lifetimeTokens: 3000000, totalWorkDays: 3 };
+  const native = { model: "gpt-native", inputTokens: 900000, outputTokens: 100000, priced: true, estimatedCostUsd: 10, pricing: { vendor: "OpenAI" } };
+  const router = [
+    { model: "z-ai/glm-5.3-free", inputTokens: 191948741, cachedInputTokens: 171665024, outputTokens: 944989, estimatedCostUsd: 77.188061, priced: true, accountCalibrated: true, pricing: { vendor: "Z.AI" } },
+    { model: "qwen/qwen3.8-max-free", inputTokens: 161805066, cachedInputTokens: 157975872, outputTokens: 896434, estimatedCostUsd: 43.299444, priced: true, pricing: { vendor: "Qwen" } },
+    { model: "glm-5.3-flash", inputTokens: 467609524, cachedInputTokens: 418979840, outputTokens: 1146172, estimatedCostUsd: 20.436933, priced: true, pricing: { vendor: "Z.AI" } }
+  ];
+  const cost = { available: true, models: [native, ...router] }, before = JSON.stringify(cost);
+  const baseline = summarizeLedgers(usage, { available: true, models: [native] }, {});
+  const result = summarizeLedgers(usage, cost, {});
+  assert.deepEqual(result.official, baseline.official);
+  assert.equal(result.combined.thirdParty.tokens, 824350926); // cache is already part of input
+  assert.equal(result.combined.thirdParty.costUsd, 140.924438);
+  assert.equal(result.combined.thirdParty.count, 3);
+  assert.equal(result.combined.manual.count, 0);
+  assert.equal(result.entries.length, 0); // never manufacture a manual copy
+  assert.equal(result.combined.tokens, baseline.official.tokens + 824350926);
+  assert.equal(result.combined.costUsd, 170.924438);
+  assert.deepEqual(result.observed.map(entry => entry.provider), ["TokenRouter", "TokenRouter", "TokenRouter"]);
+  assert.deepEqual(result.composition.filter(row => row.group === "TokenRouter").map(row => row.costUsd).sort((a, b) => a - b), [20.436933, 43.299444, 77.188061]);
+  assert.deepEqual(summarizeLedgers(usage, cost, {}), result);
+  assert.equal(JSON.stringify(cost), before);
+  assert.equal(result.composition.reduce((sum, row) => sum + row.tokens, 0), result.combined.tokens);
+});
+
+test("TokenRouter attribution stays exact and keeps manual additions and unknown prices distinct", () => {
+  const { observedProvider } = require("../src/usage-ledgers");
+  assert.equal(observedProvider("glm-5.3-flash"), "TokenRouter");
+  for (const name of ["glm-5.3", "qwen3.8-max", "unrelated/glm-5.3-flash", "gpt-native"]) assert.equal(observedProvider(name), null);
+  const manual = { entries: [{ provider: "TokenRouter", model: "qwen/qwen3.8-max-free", inputTokens: 20, cachedInputTokens: 0, outputTokens: 2, inputPrice: 2, outputPrice: 8 }] };
+  const before = JSON.stringify(manual);
+  const result = summarizeLedgers({ scope: "account", lifetimeTokens: 1000 }, { available: true, models: [
+    { model: "gpt-native", inputTokens: 1000, outputTokens: 0, priced: true, estimatedCostUsd: 1, pricing: { vendor: "OpenAI" } },
+    { model: "qwen/qwen3.8-max-free", inputTokens: 100, cachedInputTokens: 80, outputTokens: 10, priced: false },
+    { model: "other-qwen", inputTokens: 999999, outputTokens: 999999, priced: true, estimatedCostUsd: 50, pricing: { vendor: "Qwen" } }
+  ] }, manual);
+  assert.equal(result.observed.length, 1);
+  assert.equal(result.combined.thirdParty.tokens, 132);
+  assert.equal(result.combined.thirdParty.costUsd, .000056);
+  assert.equal(result.combined.thirdParty.unpriced, 1);
+  assert.equal(result.combined.thirdParty.count, 1);
+  assert.equal(result.combined.manual.tokens, 22);
+  const model = result.composition.find(row => row.label === "qwen/qwen3.8-max-free");
+  assert.equal(model.tokens, 132);
+  assert.equal(model.group, "TokenRouter");
+  assert.ok(model.partial);
+  assert.equal(JSON.stringify(manual), before);
 });

@@ -27,6 +27,8 @@ http.createServer((request, response) => {
     const html = fs.readFileSync(htmlPath, "utf8")
       .replace("./styles.css", "/src/renderer/styles.css")
        .replace("./workbench.js", "/src/renderer/workbench.js")
+      .replace("./manual-combobox.js", "/src/renderer/manual-combobox.js")
+      .replace("./assets/gpt-pet.png", "/src/renderer/assets/gpt-pet.png")
       .replace("./reset-calendar.js", "/src/renderer/reset-calendar.js")
       .replace("./crop-geometry.js", "/src/renderer/crop-geometry.js")
       .replace("../token-usage.js", "/src/token-usage.js")

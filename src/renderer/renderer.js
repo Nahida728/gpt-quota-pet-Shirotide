@@ -1,14 +1,28 @@
 const i18n = {
   zh: {
+    petTitle: "GPT 小宠物",
+    enterPet: "收为小宠物",
+    petHelp: "收起工作台，在桌面陪伴你。拖动可贴边，点按依次显示五小时与一周额度、碎碎念、关闭气泡；右键菜单或托盘可回到工作台。",
+    petSize: "形象可见高度",
+    petOnTop: "宠物保持置顶",
+    petBubbles: "气泡与完成提示",
+    petSound: "小黄鸭捏捏音效",
+    petFailed: "宠物暂未准备好，请重试。工作台仍可正常使用。",
     allowBackgroundUpscale: "允许放大小图",
     backgroundActual: "原始像素大小",
     backgroundScaleHint: "默认保留完整图片且不放大小图。勾选允许放大后，铺满或缩放才会超过原始像素。",
     pricingScope: "统计范围与计价说明",
-    brandName: "潮汐台",
+    brandName: "GPT-白汐",
     ledgerOfficial: "官方口径",
     ledgerCombined: "总量口径",
     ledgerOfficialBasis: "账号累计 Token × 本机原生模型均价",
-    ledgerCombinedBasis: "Codex 本机记录 + 手动第三方用量",
+    ledgerCombinedBasis: "左侧同一 Codex 基数 + 已归属第三方用量",
+    ledgerBaseTokens: "Codex Token",
+    ledgerBaseCost: "Codex 金额",
+    ledgerAddonTokens: "第三方 Token",
+    ledgerAddonCost: "第三方金额",
+    manualFreeText: "可自由输入，也可从建议中选择",
+    manualNoSuggestions: "无匹配建议，仍可使用输入的名称",
     ledgerTokens: "Token",
     ledgerInferredCost: "推断金额",
     ledgerTotalCost: "总金额",
@@ -25,10 +39,33 @@ const i18n = {
     ledgerPartial: "含未计价",
     ledgerComplete: "已计价",
     ledgerManualEntries: "{count} 条手动",
+    ledgerThirdPartyModels: "{count} 个第三方模型",
+    manualLocalUsage: "本地统计",
+    manualMixedUsage: "本地＋手动",
+    manualIncrementPart: "增量更新手动部分",
+    manualReplacePart: "直接修改手动部分",
+    manualCurrentPart: "当前手动部分：{tokens} Token · {cost}",
+    manualAfterPart: "更新后手动部分：{tokens} Token · {cost}",
+    manualObservedCurrent: "本地已有：{tokens} Token · {cost}；本次录入为额外手动用量",
+    manualDeletePartConfirm: "删除该模型的手动用量？自动统计会保留。",
     usageLedgerTab: "两种口径",
     overviewTrendRange: "30 天",
     manualTitle: "第三方用量",
     manualAdd: "添加用量",
+    manualAddProvider: "添加供应商",
+    manualAddModel: "添加模型",
+    manualUpdateMethod: "更新方式",
+    manualReplace: "直接修改",
+    manualIncrement: "增量更新",
+    manualProviderModels: "{count} 个模型",
+    manualGroupCount: "{providers} 家供应商 · {models} 个模型",
+    manualCurrent: "当前：{tokens} Token · {cost}",
+    manualAfter: "更新后：{tokens} Token · {cost}",
+    manualDelta: "本次新增：{tokens} Token · {cost}",
+    manualDuplicate: "该供应商已有此模型，请选择直接修改或增量更新",
+    manualConflict: "记录已更新，请重新打开后修改",
+    manualInvalid: "请检查供应商、模型、用量和单价",
+    manualLimit: "记录已满，可直接修改已有模型",
     manualEdit: "编辑用量",
     manualEmpty: "暂无手动记录",
     manualProvider: "供应商",
@@ -39,6 +76,8 @@ const i18n = {
     manualInputShare: "输入占比",
     manualHitRate: "命中率",
     manualInputPrice: "输入 $/百万",
+    manualWrite: "其中缓存写入",
+    manualWritePrice: "缓存写入 $/百万",
     manualCachedPrice: "缓存 $/百万",
     manualOutputPrice: "输出 $/百万",
     manualRequests: "调用次数",
@@ -49,7 +88,7 @@ const i18n = {
     manualUseMeasured: "使用 Codex 实测比例",
     manualSave: "保存",
     manualDelete: "删除",
-    manualDeleteConfirm: "删除这条用量？",
+    manualDeleteConfirm: "删除该模型的全部用量？",
     manualRequired: "请填写供应商、模型和大于 0 的用量",
     manualSaveFailed: "保存失败，原记录未改动",
     manualPreview: "输入 {input} · 缓存 {cached} · 输出 {output} · {cost}",
@@ -71,7 +110,8 @@ const i18n = {
     overviewTrend: "用量趋势",
     overviewTrendHint: "近 30 天 · 本机输入（含缓存）加输出",
     overviewModelCosts: "模型费用构成",
-    overviewCostHint: "沿用老版每日校准，模型 Token 与金额使用同一口径；详见费用页。",
+    overviewOtherModels: "其他 {count} 个模型",
+    overviewCostHint: "按已观测模型权重分摊上方 Codex 推断基数，再合并手动同名模型；分摊估计不改变总金额，本机模型计价另见费用页。",
     viewAll: "查看全部",
     usageTrendTab: "用量趋势",
     usageCostTab: "模型费用",
@@ -90,7 +130,7 @@ const i18n = {
     connectionStatusTitleKey: "连接诊断",
     diagnosticsHint: "点击连接指示灯或下方按钮查看诊断。只有成功取得远程额度才显示在线；本机任务和历史统计可以离线使用。",
     aboutTitle: "关于",
-    aboutDescription: "Codex 额度、用量、任务与费用的本地数据总览。",
+    aboutDescription: "白龙桌宠与 Codex 额度工作台，汇总任务、多供应商用量和 API 等价费用。",
     localDataHint: "本地处理，不读取或保存对话正文。",
     workspaceFooter: "本机记录 · API 等价金额（USD）",
     alwaysOnTopSetting: "始终置顶",
@@ -161,6 +201,9 @@ const i18n = {
     taskMinRate: "最低 tok/s",
     taskAverageRate: "平均 tok/s",
     taskCacheHitRate: "缓存命中率",
+    taskStreamingDuration: "流式输出时长",
+    taskServiceTier: "输出速度挡位",
+    taskNotRecorded: "未记录",
     taskRateShort: "区间输出；tok/s",
     taskTelemetryScope: "最近观测回合（运行时同步）：{task}。范围为本机最近 7 天、最多 96 份普通/归档会话，不含其他设备或未写入日志的调用。首字响应读取官方日志耗时；总 Tokens 为回合输入（含缓存）加输出。峰值/最低为相邻日志间的输出速率，平均为输出 Tokens / 整个回合耗时，含工具等待，不是逐 Token 解码速度。缓存命中率为已观测调用的缓存输入 / 输入 Tokens，多模型按输入量加权，不含输出。缺失字段显示 —；不完整扫描只显示 Tokens 下限。",
     quotaPausedShort: "官方暂停",
@@ -171,6 +214,7 @@ const i18n = {
     checkpointUnavailable: "检查站数据不足",
     checkpointStale: "检查站数据过期",
     checkpointTrend: "社区估计值",
+    checkpointCountdownShort: "目标倒计时",
     checkpointTitle: "公开重置公告",
     checkpointLocal: "本机账户观测",
     checkpointLatest: "{time}",
@@ -225,8 +269,8 @@ const i18n = {
     taskGoalComplete: "目标已完成",
     taskIdentity: "回合 {id}；{time}",
     taskGoalBudget: "目标 Token {used} / {budget}",
-    appTitle: "潮汐台",
-    title: "潮汐台",
+    appTitle: "GPT-白汐",
+    title: "GPT-白汐",
     switchLanguage: "切换到英文",
     refreshNow: "立即刷新",
     quotaRegion: "额度",
@@ -518,15 +562,29 @@ const i18n = {
     cropSaving: "正在保存…"
   },
   en: {
+    petTitle: "GPT companion",
+    enterPet: "Switch to pet",
+    petHelp: "Fold the workspace into a desktop companion. Drag to snap to an edge. Tap to cycle through quotas, a little thought, and a closed bubble. Return through the right-click menu or tray.",
+    petSize: "Visible pet height",
+    petOnTop: "Keep pet on top",
+    petBubbles: "Bubbles and completion notices",
+    petSound: "Squeaky duck sounds",
+    petFailed: "The pet is not ready. Please retry; your workspace is still available.",
     allowBackgroundUpscale: "Allow enlarging small images",
     backgroundActual: "Original pixel size",
     backgroundScaleHint: "Images remain complete and are not enlarged by default. Enable enlargement to fill or zoom beyond original pixels.",
     pricingScope: "Coverage and pricing rules",
-    brandName: "Tidemark",
+    brandName: "GPT-Shirotide",
     ledgerOfficial: "Official basis",
     ledgerCombined: "Combined basis",
     ledgerOfficialBasis: "Account Tokens × local native-model average rate",
-    ledgerCombinedBasis: "Codex local ledger + manual third-party usage",
+    ledgerCombinedBasis: "Same Codex basis as left + attributed third-party usage",
+    ledgerBaseTokens: "Codex Tokens",
+    ledgerBaseCost: "Codex cost",
+    ledgerAddonTokens: "Third-party Tokens",
+    ledgerAddonCost: "Third-party cost",
+    manualFreeText: "Type any name or choose a suggestion",
+    manualNoSuggestions: "No matching suggestion; your own name is allowed",
     ledgerTokens: "Tokens",
     ledgerInferredCost: "Inferred cost",
     ledgerTotalCost: "Total cost",
@@ -543,10 +601,33 @@ const i18n = {
     ledgerPartial: "Partly unpriced",
     ledgerComplete: "Priced",
     ledgerManualEntries: "{count} manual",
+    ledgerThirdPartyModels: "{count} third-party models",
+    manualLocalUsage: "Local logs",
+    manualMixedUsage: "Logs + manual",
+    manualIncrementPart: "Add manual usage",
+    manualReplacePart: "Edit manual total",
+    manualCurrentPart: "Current manual part: {tokens} Tokens · {cost}",
+    manualAfterPart: "Updated manual part: {tokens} Tokens · {cost}",
+    manualObservedCurrent: "Local logs: {tokens} Tokens · {cost}; this entry adds extra manual usage",
+    manualDeletePartConfirm: "Delete the manual usage? Automatic usage will remain.",
     usageLedgerTab: "Two bases",
     overviewTrendRange: "30 days",
     manualTitle: "Third-party usage",
     manualAdd: "Add usage",
+    manualAddProvider: "Add provider",
+    manualAddModel: "Add model",
+    manualUpdateMethod: "Update method",
+    manualReplace: "Edit total",
+    manualIncrement: "Add usage",
+    manualProviderModels: "{count} models",
+    manualGroupCount: "{providers} providers · {models} models",
+    manualCurrent: "Current: {tokens} Tokens · {cost}",
+    manualAfter: "After update: {tokens} Tokens · {cost}",
+    manualDelta: "Adding: {tokens} Tokens · {cost}",
+    manualDuplicate: "This provider already has this model. Edit its total or add usage.",
+    manualConflict: "This model changed. Reopen it before updating.",
+    manualInvalid: "Check the provider, model, usage and prices",
+    manualLimit: "The record limit is reached. You can edit an existing total.",
     manualEdit: "Edit usage",
     manualEmpty: "No manual entries",
     manualProvider: "Provider",
@@ -557,6 +638,8 @@ const i18n = {
     manualInputShare: "Input share",
     manualHitRate: "Hit rate",
     manualInputPrice: "Input $/M",
+    manualWrite: "Cache-write portion",
+    manualWritePrice: "Cache write $/M",
     manualCachedPrice: "Cached $/M",
     manualOutputPrice: "Output $/M",
     manualRequests: "Requests",
@@ -567,7 +650,7 @@ const i18n = {
     manualUseMeasured: "Use measured Codex ratios",
     manualSave: "Save",
     manualDelete: "Delete",
-    manualDeleteConfirm: "Delete this entry?",
+    manualDeleteConfirm: "Delete all usage for this model?",
     manualRequired: "Enter a provider, model and usage above 0",
     manualSaveFailed: "Save failed; the previous entries are unchanged",
     manualPreview: "Input {input} · Cached {cached} · Output {output} · {cost}",
@@ -589,7 +672,8 @@ const i18n = {
     overviewTrend: "Usage trend",
     overviewTrendHint: "Last 30 days · local input (including cache) plus output",
     overviewModelCosts: "Cost by model",
-    overviewCostHint: "Uses legacy daily calibration; model Tokens and cost share the same basis. See cost details.",
+    overviewOtherModels: "{count} other models",
+    overviewCostHint: "Allocate the same Codex projection by observed model weights, then merge same-model manual usage. This allocation keeps totals unchanged; local model pricing is in cost details.",
     viewAll: "View all",
     usageTrendTab: "Usage trend",
     usageCostTab: "Model costs",
@@ -608,7 +692,7 @@ const i18n = {
     connectionStatusTitleKey: "Connection diagnostics",
     diagnosticsHint: "Click the connection indicator or the button below for diagnostics. Online means a successful remote quota read. Local tasks and usage history remain available offline.",
     aboutTitle: "About",
-    aboutDescription: "A local data overview of Codex quotas, usage, tasks and cost.",
+    aboutDescription: "A white-dragon desktop companion for Codex quotas, tasks, multi-provider usage and API-equivalent costs.",
     localDataHint: "Processed locally. Conversation text is never read or stored.",
     workspaceFooter: "Local records · API equivalents (USD)",
     alwaysOnTopSetting: "Always on top",
@@ -679,6 +763,9 @@ const i18n = {
     taskMinRate: "Min tok/s",
     taskAverageRate: "Avg tok/s",
     taskCacheHitRate: "Cache hits",
+    taskStreamingDuration: "Streaming duration",
+    taskServiceTier: "Output speed tier",
+    taskNotRecorded: "Not recorded",
     taskRateShort: "Output intervals; tok/s",
     taskTelemetryScope: "Latest observed turn (live while running): {task}. Covers up to 96 local/archived sessions modified in the last 7 days, excluding other devices and unlogged calls. First-token latency comes from the official log. Total tokens = input (including cache) + output. Peak/min are output rates between log records; average = output tokens / entire turn duration, including tool waits, not per-token decoding speed. Missing fields show —; partial scans show a token lower bound.",
     quotaPausedShort: "Officially paused",
@@ -689,6 +776,7 @@ const i18n = {
     checkpointUnavailable: "Insufficient source data",
     checkpointStale: "Source data is stale",
     checkpointTrend: "Community estimate",
+    checkpointCountdownShort: "Target countdown",
     checkpointTitle: "Public reset announcements",
     checkpointLocal: "Local account observations",
     checkpointLatest: "{time}",
@@ -743,8 +831,8 @@ const i18n = {
     taskGoalComplete: "Goal complete",
     taskIdentity: "Turn {id}; {time}",
     taskGoalBudget: "Goal tokens {used} / {budget}",
-    appTitle: "Tidemark",
-    title: "Tidemark",
+    appTitle: "GPT-Shirotide",
+    title: "GPT-Shirotide",
     switchLanguage: "Switch to Chinese",
     refreshNow: "Refresh now",
     quotaRegion: "Quotas",
@@ -1037,7 +1125,7 @@ const i18n = {
 };
 
 const elements = Object.fromEntries([
-  "taskSearch", "taskOutcomeTotals", "taskDetailDrawer", "taskDrawerTitle", "taskDrawerContent", "taskDrawerClose", "cropAspect", "cropRatioLabel", "useWholeBackground",
+  "taskSearch", "taskOutcomeTotals", "taskDetailModal", "taskDetailTitle", "taskDetailContent", "taskDetailClose", "cropAspect", "cropRatioLabel", "useWholeBackground",
   "app", "connectionStrip", "connectionLabel", "connectionStatusButton", "statusDot",
   "connectionStatusModal", "connectionStatusTitle", "connectionStatusMessage",
   "connectionIssueList", "connectionStatusDone",
@@ -1052,7 +1140,7 @@ const elements = Object.fromEntries([
   "checkpointRange24", "checkpointRange48", "checkpointStatistics",
   "taskFilter", "taskSort", "confirmAllTasks",
   "appVersion", "taskPerformance", "latestTaskIdentity", "latestTaskFirstToken", "latestTaskTokens",
-  "latestTaskPeak", "latestTaskMin", "latestTaskAverage", "latestTaskCacheHit", "taskPerformanceScope", "taskConcurrency",
+  "latestTaskPeak", "latestTaskMin", "latestTaskAverage", "latestTaskCacheHit", "latestTaskStreamingDuration", "latestTaskServiceTier", "taskPerformanceScope", "taskConcurrency",
   "monitorUpdateStatus", "monitorUpdateCheck", "monitorUpdateInstall",
   "settingsButton", "settingsPopover", "settingsClose", 
   "chooseBackground", "clearBackground",
@@ -1072,7 +1160,7 @@ const elements = Object.fromEntries([
   "clientUpdateHistoryCurrent", "clientUpdateHistoryPending", "clientUpdateHistoryList",
   "subscriptionModal", "subscriptionClose", "subscriptionDone", "subscriptionPlan",
   "subscriptionAssistedDays", "subscriptionExpiry", "subscriptionCountdown", "subscriptionNote",
-  "tokenOverview", "tokenOverviewTitle", "lifetimeTokenValue", "tokenLifetimeLabel", "tokenModalLifetimeLabel", "tokenSourceNote", "totalWorkDaysValue",
+  "tokenOverview", "tokenOverviewTitle", "lifetimeTokenValue", "tokenLifetimeLabel", "tokenModalLifetimeLabel", "totalWorkDaysValue",
   "estimatedCostValue", "tokenCostHelp", "tokenSparkline",
   "tokenUsageModal", "tokenUsageClose", "tokenUsageDone", "tokenModalLifetime",
   "tokenModalDailyAverage", "tokenModalDailyCost", "tokenModalTotalWorkDays",
@@ -1080,7 +1168,7 @@ const elements = Object.fromEntries([
   "tokenChartRange", "tokenChartLatest", "tokenChartTooltip", "tokenChartTooltipDate",
   "tokenChartTooltipValue",
   "tokenCostModal", "tokenCostClose", "tokenCostDone", "tokenCostTotal",
-  "tokenCostCoverage", "modelCostList", "fullCostScan", "costScanProgress",
+  "modelCostList", "fullCostScan", "costScanProgress",
   "activeTaskCard", "activeTaskCount", "activeTaskPending", "activeTaskElapsed",
   "activeTaskTotalCost", "activeTaskAverageTime", "activeTaskAverageCost",
   "activeTaskTotalCount", "activeTaskTotalElapsed",
@@ -1099,18 +1187,24 @@ const elements = Object.fromEntries([
   "ledgerCombinedCost", "ledgerManualCost", "overviewCompositionBar", "overviewModelList",
   "ledgerOfficialState", "ledgerOfficialTokens", "ledgerOfficialCostDetail", "ledgerOfficialRate", "ledgerOfficialDays",
   "ledgerOfficialDailyTokens", "ledgerOfficialDailyCost", "ledgerCombinedState", "ledgerCombinedTokensDetail",
-  "ledgerCombinedCostDetail", "ledgerCombinedInput", "ledgerCombinedCached", "ledgerCombinedOutput", "ledgerCombinedHit",
+  "ledgerCombinedCostDetail", "ledgerBaseTokens", "ledgerBaseCost", "ledgerAddonTokens", "ledgerAddonCost",
   "ledgerSplitBar", "ledgerCodexShare", "ledgerManualShare",
   "manualCount", "manualDefaultInputShare", "manualDefaultHitRate", "manualUseMeasured", "manualAdd",
   "manualTableBody", "manualEmpty", "manualModal", "manualForm", "manualModalTitle", "manualClose",
-  "manualProvider", "manualModel", "manualProviderList", "manualModelList", "manualInput", "manualCached",
+  "manualProvider", "manualModel", "manualInput", "manualCached",
   "manualOutput", "manualTotal", "manualShare", "manualHit", "manualInputPrice", "manualCachedPrice",
-  "manualOutputPrice", "manualRequests", "manualPreview", "manualError", "manualDelete", "manualCancel", "manualSave"
+  "manualOutputPrice", "manualRequests", "manualPreview", "manualError", "manualDelete", "manualCancel", "manualSave",
+  "manualUpdateControls", "manualCurrent", "manualLedgerError", "manualWrite", "manualWritePrice"
 ].map(id => [id, document.getElementById(id)]));
 
 let language = "zh";
 let alwaysOnTop = false;
 let latestSnapshot = null;
+let presentationDirty = false;
+function deferHiddenPresentation() {
+  if (!document.hidden) return false;
+  presentationDirty = true; return true;
+}
 let presentationFrame = null;
 let lastPresentationSecond = null;
 let unsubscribeSnapshot = null;
@@ -1127,6 +1221,7 @@ let backgroundAppearance = { fit: "contain", x: 50, y: 50, zoom: 100, blur: 0, v
 let savedAppearance = { ...backgroundAppearance };
 let workbenchReady = false;
 let selectedTaskIdentity = null;
+let taskDetailSource = null;
 let cropLoadSequence = 0;
 let lastQuotaData = null;
 const rendererUnsubscribers = [];
@@ -1169,7 +1264,7 @@ let activeTaskRecords = {
 let connectionState = "checking";
 let automaticOfflineAlertShown = false;
 
-const TOKEN_CHART_PADDING = Object.freeze({ left: 43, right: 13, top: 17, bottom: 28 });
+const TOKEN_CHART_PADDING = Object.freeze({ left: 57, right: 13, top: 17, bottom: 28 });
 const SECONDARY_DIALOG_SELECTOR = [
   ".crop-dialog",
   ".reset-dialog",
@@ -1187,7 +1282,6 @@ const secondaryModalQueue = [];
 function setWorkspaceInert(inert) {
   document.querySelector(".workspace").inert = inert;
   document.querySelector(".sidebar").inert = inert;
-  elements.taskDetailDrawer.inert = inert;
 }
 
 function cancelSecondaryModalTransition(modal) {
@@ -1241,11 +1335,8 @@ function openSecondaryModal(modal, focusTarget) {
   transition.timer = setTimeout(finish, SECONDARY_MODAL_ENTER_FALLBACK_MS);
   secondaryModalTransitions.set(modal, transition);
   modal.classList.add("is-entering");
-  requestAnimationFrame(() => {
-    if (!modal.hidden && !modal.classList.contains("is-closing")) {
-      focusTarget?.focus({ preventScroll: true });
-    }
-  });
+  // Keyboard focus must not wait for a paint, which an occluded window may defer.
+  focusTarget?.focus({ preventScroll: true });
 }
 
 function closeSecondaryModal(modal, restoreFocus, { onClose, onHidden } = {}) {
@@ -1305,6 +1396,7 @@ function t(key, values = {}) {
 function applyLanguage() {
   document.documentElement.lang = language === "zh" ? "zh-CN" : "en";
   document.querySelectorAll("[data-label-key]").forEach(node => node.setAttribute("aria-label", t(node.dataset.labelKey)));
+  document.querySelectorAll("[data-pet-entry]").forEach(node => { node.title = t("enterPet"); });
   document.title = t("appTitle");
   renderMonitorUpdate();
   document.querySelectorAll("[data-i18n]").forEach(node => {
@@ -1537,20 +1629,23 @@ function syncWorkbench() {
   elements.taskOutcomeTotals.textContent = t("taskOutcomes", { completed:formatTokenCount(records.completedTaskCount), manual:formatTokenCount(records.manualInterruptedTaskCount), abnormal:formatTokenCount(records.abnormalInterruptedTaskCount), managed:formatTokenCount(records.managedStoppedTaskCount) });
 }
 
-function closeTaskDrawer() {
-  elements.taskDetailDrawer.hidden = true; selectedTaskIdentity = null;
+function closeTaskDetail() {
+  if (elements.taskDetailModal.hidden) { selectedTaskIdentity = null; return; }
+  closeSecondaryModal(elements.taskDetailModal, taskDetailSource, {
+    onClose() { selectedTaskIdentity = null; taskDetailSource = null; }
+  });
 }
-function renderTaskDrawer() {
+function renderTaskDetail() {
   if (!selectedTaskIdentity) return;
   const task = [...activeTasks,...pendingTasks].find(task=>activeTaskIdentity(task)===selectedTaskIdentity);
-  if (!task) { closeTaskDrawer(); return; }
+  if (!task) { closeTaskDetail(); return; }
   const active=activeTasks.includes(task);
-  elements.taskDrawerTitle.textContent=task.projectName || t("activeTaskProjectFallback");
-  const content=elements.taskDrawerContent; content.replaceChildren();
+  elements.taskDetailTitle.textContent=task.projectName || t("activeTaskProjectFallback");
+  const content=elements.taskDetailContent; content.replaceChildren();
   appendTaskContext(content,task,!active);
   const stats=document.createElement("div");stats.className="active-task-item-stats";
   appendActiveTaskStat(stats,t("activeTaskTimeLabel"),formatTaskDuration(active?getTaskElapsedSeconds(task):task.elapsedSeconds));
-  stats.querySelector("strong").dataset.drawerElapsed = "true";
+  stats.querySelector("strong").dataset.detailElapsed = "true";
   appendActiveTaskStat(stats,t("activeTaskCostLabel"),formatActiveTaskCost(task));
   content.append(stats,createTaskModelRows(task));
   const note=document.createElement("p");note.className="active-task-explanation";
@@ -2017,6 +2112,9 @@ function renderCheckpoints(checkpoint = {}) {
   elements.checkpointOdds24.textContent = percent(checkpoint.probability24);
   elements.checkpointOdds48.textContent = percent(checkpoint.probability48);
   for (const hours of [24, 48]) {
+    const probability = checkpoint[`probability${hours}`];
+    elements.resetProbabilityButton.style.setProperty(`--odds-${hours}`,
+      Number.isFinite(probability) && probability >= 0 && probability <= 100 ? `${probability}%` : "0%");
     const range = checkpoint.probabilityMode === "source-experimental" ? checkpoint.forecast?.[`range${hours}`] : null;
     elements[`checkpointRange${hours}`].textContent = range ? t("checkpointRange", range) : "";
   }
@@ -2552,16 +2650,11 @@ function drawTokenSparkline() {
 function renderTokenUsageModal(animate = false) {
   const usage = latestSnapshot?.tokenUsage || {};
   const cost = latestSnapshot?.tokenCost || {};
-  const verifiedLocal = cost.verifiedLocalUsage || cost.localUsage;
   const workDays = Number.isFinite(usage.totalWorkDays)
     ? Math.max(0, Math.floor(usage.totalWorkDays))
     : 0;
   elements.tokenModalLifetimeLabel.textContent = t(usage.scope === "local" ? "localLifetimeTokens" : "lifetimeTokens");
   elements.tokenModalLifetime.textContent = `${usage.truncated || usage.hasUnverifiedHistory ? "≈" : ""}${formatTokenCount(usage.lifetimeTokens)}`;
-  elements.tokenSourceNote.textContent = usage.scope === "local"
-    ? t("tokenLocalSource", { state: t(usage.truncated || usage.hasUnverifiedHistory ? "tokenLocalPartial" : "tokenLocalComplete"), account: formatTokenCount(usage.accountLifetimeTokens) })
-    : verifiedLocal ? t("tokenAccountWithLocalSource", { local: formatTokenCount(verifiedLocal.lifetimeTokens),
-      state: t(verifiedLocal.truncated || cost.hasUnverifiedHistory ? "tokenLocalPartial" : "tokenLocalComplete") }) : t("tokenAccountSource");
   elements.tokenModalDailyAverage.textContent = (
     workDays > 0 && !usage.undatedTokens && Number.isFinite(usage.lifetimeTokens)
   )
@@ -2617,39 +2710,6 @@ function renderTokenCostDetails(cost = latestSnapshot?.tokenCost || {}) {
     ? cost.models.filter(model => model?.model && model.model !== "unknown")
     : [];
   const modelCount = models.length;
-  const coverageKey = cost.hasUnpricedModels ? "costCoveragePartial" : "costCoverage";
-  const coverage = t(coverageKey, {
-    count: modelCount,
-    date: cost.pricingDate || "—"
-  });
-  const coverageNotes = [coverage];
-  if (cost.calibrationMethod === "legacy-daily") {
-    coverageNotes.push(t("costLegacyAlgorithm"));
-    coverageNotes.push(t("costTokenBasis", {
-      raw: formatTokenCount(cost.rawLocalInputTokens), calibrated: formatTokenCount(cost.calibratedInputTokens),
-      independent: formatTokenCount(cost.independentInputTokens)
-    }));
-    if (cost.calibrationUncoveredDays > 0) coverageNotes.push(t("costUncoveredDates", { count: formatTokenCount(cost.calibrationUncoveredDays) }));
-    if (!cost.calibratedToOfficialUsage && cost.calibratedNativeInputTokens > 0) coverageNotes.push(t("costCalibrationUnavailable"));
-  }
-  if (cost.hasUnattributedUsage) {
-    coverageNotes.push(t("costCoverageUnattributed", {
-      count: formatTokenCount(cost.unattributedRequestCount)
-    }));
-  }
-  if (cost.replayExcludedInputTokens > 0) {
-    coverageNotes.push(t("costCoverageCalibrated", {
-      tokens: formatTokenCount(cost.replayExcludedInputTokens, true)
-    }));
-  }
-  if (cost.officialUnmappedInputTokens > 0) {
-    coverageNotes.push(t("costCoverageUnmapped", {
-      tokens: formatTokenCount(cost.officialUnmappedInputTokens, true)
-    }));
-  }
-  if (cost.truncated) coverageNotes.push(t("costCoverageTruncated"));
-  if (cost.hasUnverifiedHistory) coverageNotes.push(t("costCoverageUnverified", { count: formatTokenCount(cost.unverifiedFiles || 0) }));
-  elements.tokenCostCoverage.textContent = coverageNotes.join("; ");
   elements.modelCostList.replaceChildren();
 
   if (!cost.available || !modelCount) {
@@ -2667,6 +2727,11 @@ function renderTokenCostDetails(cost = latestSnapshot?.tokenCost || {}) {
     heading.className = "model-cost-heading";
     const modelName = document.createElement("strong");
     modelName.textContent = model.model;
+    const provider = window.UsageLedgers.observedProvider(model.model);
+    if (provider) {
+      const badge = document.createElement("small"); badge.className = "chip model-provider-label";
+      badge.textContent = provider; modelName.append(badge);
+    }
     const modelCost = document.createElement("span");
     modelCost.textContent = model.priced
       ? `≈${formatUsd(model.estimatedCostUsd)}`
@@ -2686,13 +2751,9 @@ function renderTokenCostDetails(cost = latestSnapshot?.tokenCost || {}) {
     appendModelCostStat(stats, t("modelCostHitRate"), `${Number(model.cacheHitRate || 0).toFixed(1)}%`);
     item.append(heading, stats);
 
-    const details = [t(model.accountCalibrated ? "modelCostCalibratedRequests" : "modelCostRequests", {
-      count: formatTokenCount(model.requestCount)
-    })];
-    if (model.pricingPartial) details.push(t("modelCostPartialRates"));
+    const details = [];
     if (model.pricing) {
-      details.unshift(t("modelPricingVendor", { vendor: model.pricing.vendor || "API" }));
-      details.unshift(t("modelCostRate", {
+      details.push(t("modelCostRate", {
         input: formatPrice(model.pricing.input),
         cached: formatPrice(model.pricing.cachedInput),
         output: formatPrice(model.pricing.output)
@@ -2702,25 +2763,13 @@ function renderTokenCostDetails(cost = latestSnapshot?.tokenCost || {}) {
           longTtl: model.pricing.vendor === "Anthropic" ? "1h" : "12h",
           short: formatPrice(model.pricing.cacheWrite), long: formatPrice(model.pricing.cacheWriteLong) }));
       }
-      if (model.pricing.contextThreshold) details.push(t("modelPriceThreshold", {
-        operator: model.pricing.contextInclusive ? "≥" : ">", tokens: formatTokenCount(model.pricing.contextThreshold, true) }));
-      if (model.pricing.note === "peak") details.push(t("modelPricePeak"));
-      if (model.pricing.note === "global") details.push(t("modelPriceGlobal"));
     }
-    if (model.cacheWriteInputTokens > 0) {
-      details.push(t("modelCostCacheWrite", {
-        tokens: formatTokenCount(model.cacheWriteInputTokens, true)
-      }));
+    if (details.length) {
+      const rate = document.createElement("div");
+      rate.className = "model-cost-rate";
+      rate.textContent = details.join("; ");
+      item.append(rate);
     }
-    if (model.longContextRequests > 0) {
-      details.push(t("modelCostLongContext", {
-        count: formatTokenCount(model.longContextRequests)
-      }));
-    }
-    const rate = document.createElement("div");
-    rate.className = "model-cost-rate";
-    rate.textContent = details.join("; ");
-    item.append(rate);
     elements.modelCostList.append(item);
   });
 }
@@ -2733,6 +2782,8 @@ function renderTokenCost(cost = {}) {
 
 let manualLedger = { version: 1, defaults: { ...window.UsageLedgers.DEFAULTS }, entries: [] };
 let manualEditingId = null;
+let manualDialogTarget = null;
+let manualOperation = "create";
 let ledgerSignature = "";
 
 function formatPercent(value) {
@@ -2776,7 +2827,7 @@ function renderLedgers() {
   elements.ledgerOfficialDaily.textContent = ledgerCost(official.dailyCostUsd, false);
   elements.ledgerOfficialDailyCost.textContent = ledgerCost(official.dailyCostUsd, false);
 
-  const combinedState = combined.manual.count ? t("ledgerManualEntries", { count: combined.manual.count })
+  const combinedState = combined.thirdParty.count ? t("ledgerThirdPartyModels", { count: combined.thirdParty.count })
     : combined.available ? t(combined.partial ? "ledgerPartial" : "ledgerComplete") : "";
   setChip(elements.ledgerCombinedChip, combinedState, combined.partial ? "warn" : "ok");
   setChip(elements.ledgerCombinedState, combined.available ? t(combined.partial ? "ledgerPartial" : "ledgerComplete") : "", combined.partial ? "warn" : "ok");
@@ -2785,16 +2836,16 @@ function renderLedgers() {
   elements.ledgerCombinedTokensDetail.textContent = combinedTokens;
   elements.ledgerCombinedCost.textContent = ledgerCost(combined.costUsd, combined.partial);
   elements.ledgerCombinedCostDetail.textContent = ledgerCost(combined.costUsd, combined.partial);
-  elements.estimatedCostValue.textContent = formatApiEstimate(cost);
-  elements.ledgerManualCost.textContent = combined.manual.count ? ledgerCost(combined.manual.costUsd, combined.manual.unpriced > 0) : "—";
-  elements.ledgerCombinedInput.textContent = tokens(combined.inputTokens);
-  elements.ledgerCombinedCached.textContent = tokens(combined.cachedInputTokens);
-  elements.ledgerCombinedOutput.textContent = tokens(combined.outputTokens);
-  elements.ledgerCombinedHit.textContent = formatPercent(combined.hitRate);
-  const share = combined.tokens ? combined.manual.tokens / combined.tokens * 100 : 0;
+  elements.estimatedCostValue.textContent = ledgerCost(combined.codex.costUsd, false);
+  elements.ledgerManualCost.textContent = combined.thirdParty.count ? ledgerCost(combined.thirdParty.costUsd, combined.thirdParty.unpriced > 0) : "—";
+  elements.ledgerBaseTokens.textContent = tokens(combined.codex.tokens);
+  elements.ledgerBaseCost.textContent = ledgerCost(combined.codex.costUsd, false);
+  elements.ledgerAddonTokens.textContent = tokens(combined.thirdParty.tokens);
+  elements.ledgerAddonCost.textContent = ledgerCost(combined.thirdParty.count ? combined.thirdParty.costUsd : 0, combined.thirdParty.unpriced > 0);
+  const share = combined.tokens ? combined.thirdParty.tokens / combined.tokens * 100 : 0;
   elements.ledgerSplitBar.style.setProperty("--manual-share", `${share}%`);
   elements.ledgerCodexShare.textContent = tokens(combined.codex.tokens);
-  elements.ledgerManualShare.textContent = tokens(combined.manual.tokens);
+  elements.ledgerManualShare.textContent = tokens(combined.thirdParty.tokens);
 
   renderComposition(summary.composition);
   renderManualTable(summary);
@@ -2802,7 +2853,7 @@ function renderLedgers() {
 }
 
 function compositionStatus(row) {
-  if (Number.isFinite(row.costUsd)) return `${row.estimated ? "≈" : ""}${formatUsd(row.costUsd)}`;
+  if (Number.isFinite(row.costUsd)) return `${row.partial ? "≥" : row.estimated ? "≈" : ""}${formatUsd(row.costUsd)}`;
   if (row.kind === "manual") return t("manualUnpriced");
   return t(row.status === "rate" ? "modelCostRateUnavailable" : row.status === "pending" ? "modelCostPricingPending" : "modelCostUnpriced");
 }
@@ -2811,7 +2862,13 @@ function renderComposition(rows) {
   const list = elements.overviewModelList;
   const bar = elements.overviewCompositionBar;
   list.replaceChildren(); bar.replaceChildren();
-  const priced = rows.filter(row => row.costUsd > 0);
+  const limit = innerHeight < 760 ? 2 : 3;
+  const displayed = rows.slice(0, limit);
+  const rest = rows.slice(limit);
+  if (rest.length) displayed.push({ key: "other", label: t("overviewOtherModels", { count: rest.length }), group: "",
+    kind: "other", costUsd: rest.some(row => Number.isFinite(row.costUsd)) ? rest.reduce((sum, row) => sum + (row.costUsd || 0), 0) : null,
+    partial: rest.some(row => row.partial || row.costUsd === null), estimated: rest.some(row => row.estimated) });
+  const priced = displayed.filter(row => row.costUsd > 0);
   const total = priced.reduce((sum, row) => sum + row.costUsd, 0);
   priced.slice(0, 6).forEach((row, index) => {
     const segment = document.createElement("i");
@@ -2825,16 +2882,16 @@ function renderComposition(rows) {
     list.append(empty); return;
   }
   const maximum = Math.max(1, ...rows.map(row => row.costUsd || 0));
-  rows.slice(0, 5).forEach(row => {
+  displayed.forEach(row => {
     const item = document.createElement("button");
     item.type = "button"; item.className = "overview-model-row";
-    item.dataset.route = "usage"; item.dataset.tab = row.kind === "manual" ? "ledger" : "cost";
+    item.dataset.route = "usage"; item.dataset.tab = ["manual", "mixed", "third-party"].includes(row.kind) ? "ledger" : "cost";
     const pricedIndex = priced.indexOf(row);
     item.dataset.series = pricedIndex >= 0 && pricedIndex < 6 ? String(pricedIndex) : "none";
     const swatch = document.createElement("i"); swatch.className = "swatch"; swatch.setAttribute("aria-hidden", "true");
     const name = document.createElement("span"); name.className = "model-name";
     const strong = document.createElement("strong"); strong.textContent = row.label;
-    const group = document.createElement("small"); group.textContent = row.kind === "manual" ? `${row.group} · ${t("ledgerManualPart")}` : row.group;
+    const group = document.createElement("small"); group.textContent = row.group;
     name.append(strong, group);
     const meter = document.createElement("span"); meter.className = "model-mini-bar";
     meter.style.setProperty("--share", `${(row.costUsd || 0) / maximum * 100}%`);
@@ -2859,45 +2916,100 @@ function iconButton(icon, label, dataset) {
   return button;
 }
 
+function manualProviders(observed = null) {
+  const providers = window.ManualUsage.groupManualUsage(manualLedger);
+  for (const entry of observed || []) {
+    const key = window.ManualUsage.nameKey(entry.provider);
+    let provider = providers.find(item => item.key === key);
+    if (!provider) { provider = { key, provider: entry.provider, models: [] }; providers.push(provider); }
+    const modelKey = window.ManualUsage.identity(entry.provider, entry.model);
+    const existing = provider.models.find(item => item.key === modelKey);
+    if (existing) {
+      for (const field of ["inputTokens", "cachedInputTokens", "outputTokens", "totalTokens"]) existing[field] += entry[field];
+      existing.estimatedCostUsd = existing.estimatedCostUsd === null && entry.estimatedCostUsd === null ? null
+        : Math.round(((existing.estimatedCostUsd || 0) + (entry.estimatedCostUsd || 0)) * 1e6) / 1e6;
+      existing.partial ||= entry.partial; existing.priced &&= entry.priced;
+      existing.hasObserved = true; existing.costEstimated = true;
+    } else provider.models.push({ ...entry, key: modelKey, hasObserved: true });
+  }
+  if (observed) for (const provider of providers) {
+    provider.totalTokens = provider.models.reduce((value, model) => value + model.totalTokens, 0);
+    provider.estimatedCostUsd = provider.models.some(model => model.estimatedCostUsd !== null)
+      ? Math.round(provider.models.reduce((value, model) => value + (model.estimatedCostUsd || 0), 0) * 1e6) / 1e6 : null;
+    provider.partial = provider.models.some(model => model.partial);
+  }
+  return providers;
+}
+
+function observedManualModel(provider = elements.manualProvider.value, model = elements.manualModel.value) {
+  const key = window.ManualUsage.identity(provider, model);
+  return window.UsageLedgers.observedEntries(latestSnapshot?.tokenCost).find(entry => window.ManualUsage.identity(entry.provider, entry.model) === key) || null;
+}
+
+function findManualModel(id) {
+  return manualProviders().flatMap(provider => provider.models).find(model => model.entries.some(entry => entry.id === id)) || null;
+}
+
+function manualModelAmount(model) {
+  return model.estimatedCostUsd === null ? t("manualUnpriced")
+      : `${model.partial ? "≥" : model.estimated || model.cacheEstimated || model.costEstimated ? "≈" : ""}${formatUsd(model.estimatedCostUsd)}`;
+}
+
 function renderManualTable(summary) {
-  const body = elements.manualTableBody;
+  const body = elements.manualTableBody, providers = manualProviders(summary.observed);
   body.replaceChildren();
-  elements.manualCount.textContent = String(summary.entries.length);
-  elements.manualEmpty.hidden = summary.entries.length > 0;
-  body.closest(".table-scroll").hidden = !summary.entries.length;
+  elements.manualCount.textContent = t("manualGroupCount", { providers: providers.length, models: providers.reduce((count, provider) => count + provider.models.length, 0) });
+  elements.manualEmpty.hidden = providers.length > 0;
+  body.closest(".table-scroll").hidden = !providers.length;
   if (document.activeElement !== elements.manualDefaultInputShare) elements.manualDefaultInputShare.value = String(summary.defaults.inputShare);
   if (document.activeElement !== elements.manualDefaultHitRate) elements.manualDefaultHitRate.value = String(summary.defaults.cacheHitRate);
   elements.manualUseMeasured.disabled = !summary.measuredDefaults;
-  for (const entry of summary.entries) {
-    const row = document.createElement("tr");
-    const cells = [entry.provider, entry.model];
-    const modeCell = document.createElement("td");
-    const mode = document.createElement("span"); mode.className = "chip";
-    mode.dataset.tone = entry.estimated || entry.cacheEstimated ? "warn" : "ok";
-    mode.textContent = t(entry.estimated ? "manualModeEstimate" : "manualModeExact");
-    modeCell.append(mode);
-    for (const value of cells) { const td = document.createElement("td"); td.textContent = value; row.append(td); }
-    row.append(modeCell);
-    for (const [value, estimated] of [[entry.inputTokens, entry.estimated], [entry.cachedInputTokens, entry.cacheEstimated], [entry.outputTokens, entry.estimated]]) {
-      const td = document.createElement("td"); td.className = "num";
-      td.textContent = `${estimated ? "≈" : ""}${formatTokenCount(value)}`; row.append(td);
+  for (const provider of providers) {
+    const heading = document.createElement("tr"); heading.className = "manual-provider-row";
+    const cell = document.createElement("td"); cell.colSpan = 7;
+    const head = document.createElement("div"); head.className = "manual-provider-head";
+    const name = document.createElement("span"); name.className = "manual-provider-name";
+    const title = document.createElement("strong"); title.textContent = provider.provider;
+    const count = document.createElement("small"); count.textContent = t("manualProviderModels", { count: provider.models.length });
+    name.append(title, count);
+    const total = document.createElement("span"); total.className = "manual-provider-total";
+    total.textContent = `${formatTokenCount(provider.totalTokens)} Token · ${ledgerCost(provider.estimatedCostUsd, provider.partial)}`;
+    const add = document.createElement("button"); add.type = "button"; add.className = "glass-button";
+    add.textContent = t("manualAddModel"); add.dataset.manualProviderAdd = provider.provider;
+    head.append(name, total, add); cell.append(head); heading.append(cell); body.append(heading);
+    for (const entry of provider.models) {
+      const row = document.createElement("tr"), model = document.createElement("td"); model.textContent = entry.model; row.append(model);
+      const modeCell = document.createElement("td"), mode = document.createElement("span"); mode.className = "chip";
+      mode.dataset.tone = entry.estimated || entry.cacheEstimated ? "warn" : "ok";
+      mode.textContent = t(entry.hasObserved ? entry.readOnly ? "manualLocalUsage" : "manualMixedUsage"
+        : entry.estimated ? "manualModeEstimate" : "manualModeExact"); modeCell.append(mode); row.append(modeCell);
+      for (const [value, estimated] of [[entry.inputTokens, entry.estimated], [entry.cachedInputTokens, entry.cacheEstimated], [entry.outputTokens, entry.estimated]]) {
+        const td = document.createElement("td"); td.className = "num";
+        td.textContent = `${estimated ? "≈" : ""}${formatTokenCount(value)}`; row.append(td);
+      }
+      const amount = document.createElement("td"); amount.className = "num"; amount.textContent = manualModelAmount(entry);
+      amount.classList.toggle("is-unpriced", entry.partial);
+      if (entry.cachedPriceAssumed) amount.title = t("manualCacheAssumed");
+      const actions = document.createElement("td"); actions.className = "actions";
+      if (entry.readOnly) actions.append(iconButton("chevron", t("openCostDetails"), { route: "usage", tab: "cost" }));
+      else actions.append(iconButton("plus", t(entry.hasObserved ? "manualIncrementPart" : "manualIncrement"), { manualIncrement: entry.id }),
+        iconButton("pencil", t(entry.hasObserved ? "manualReplacePart" : "manualReplace"), { manualEdit: entry.id }), iconButton("trash", t("manualDelete"), { manualRemove: entry.id }));
+      row.append(amount, actions); body.append(row);
     }
-    const amount = document.createElement("td"); amount.className = "num";
-    amount.textContent = entry.priced ? `${entry.estimated || entry.cacheEstimated ? "≈" : ""}${formatUsd(entry.estimatedCostUsd)}` : t("manualUnpriced");
-    amount.classList.toggle("is-unpriced", !entry.priced);
-    if (entry.cachedPriceAssumed) amount.title = t("manualCacheAssumed");
-    const actions = document.createElement("td"); actions.className = "actions";
-    actions.append(iconButton("pencil", t("manualEdit"), { manualEdit: entry.id }), iconButton("trash", t("manualDelete"), { manualRemove: entry.id }));
-    row.append(amount, actions);
-    body.append(row);
   }
 }
 
-async function persistManualLedger(next) {
-  const saved = await window.codexMonitor.saveManualUsage(next);
+function manualErrorKey(error) {
+  const text = String(error?.message || error);
+  return text.includes("MANUAL_CONFLICT") ? "manualConflict" : text.includes("MANUAL_DUPLICATE") ? "manualDuplicate"
+    : text.includes("MANUAL_LIMIT") ? "manualLimit" : text.includes("MANUAL_INVALID") ? "manualInvalid" : "manualSaveFailed";
+}
+
+async function persistManualChange(change) {
+  elements.manualLedgerError.hidden = true;
+  const saved = await window.codexMonitor.changeManualUsage(change);
   manualLedger = window.UsageLedgers.normalizeManualLedger(saved);
-  ledgerSignature = "";
-  renderLedgers();
+  ledgerSignature = ""; renderLedgers();
   return manualLedger;
 }
 
@@ -2906,14 +3018,19 @@ function manualMode() {
 }
 
 function readManualForm() {
-  const existing = manualLedger.entries.find(entry => entry.id === manualEditingId);
   return {
-    id: manualEditingId || undefined, provider: elements.manualProvider.value, model: elements.manualModel.value, mode: manualMode(),
+    provider: elements.manualProvider.value, model: elements.manualModel.value, mode: manualMode(),
     inputTokens: elements.manualInput.value, cachedInputTokens: elements.manualCached.value, outputTokens: elements.manualOutput.value,
+    cacheWriteInputTokens: elements.manualWrite.value, cacheWritePrice: elements.manualWritePrice.value,
     totalTokens: elements.manualTotal.value, inputShare: elements.manualShare.value, cacheHitRate: elements.manualHit.value,
     inputPrice: elements.manualInputPrice.value, cachedPrice: elements.manualCachedPrice.value, outputPrice: elements.manualOutputPrice.value,
-    requestCount: elements.manualRequests.value, createdAt: existing?.createdAt || Date.now(), updatedAt: Date.now()
+    requestCount: elements.manualRequests.value
   };
+}
+
+function manualChange() {
+  return { action: manualDialogTarget ? manualOperation : "create", targetId: manualDialogTarget?.id,
+    revision: manualDialogTarget?.revision, entry: readManualForm() };
 }
 
 function syncManualMode() {
@@ -2924,19 +3041,76 @@ function syncManualMode() {
   renderManualPreview();
 }
 
+function configureManualUpdate() {
+  const target = manualDialogTarget;
+  const observed = observedManualModel(target?.provider, target?.model);
+  elements.manualUpdateControls.hidden = !target;
+  elements.manualCurrent.hidden = !target && !observed;
+  if (target) {
+    elements.manualForm.querySelector(`input[name="manualUpdate"][value="${manualOperation}"]`).checked = true;
+    elements.manualCurrent.textContent = t(observed ? "manualCurrentPart" : "manualCurrent", { tokens: formatTokenCount(target.totalTokens), cost: manualModelAmount(target) });
+  } else if (observed) elements.manualCurrent.textContent = t("manualObservedCurrent", { tokens: formatTokenCount(observed.totalTokens), cost: manualModelAmount(observed) });
+  elements.manualProvider.readOnly = Boolean(manualEditingId && manualOperation === "increment");
+  elements.manualModel.readOnly = elements.manualProvider.readOnly;
+  if (elements.manualProvider.readOnly && target) {
+    elements.manualProvider.value = target.provider; elements.manualModel.value = target.model;
+  }
+  elements.manualModalTitle.textContent = t(target ? manualOperation === "increment" ? observed ? "manualIncrementPart" : "manualIncrement"
+    : observed ? "manualReplacePart" : "manualReplace" : "manualAddModel");
+  elements.manualSave.textContent = t(target ? manualOperation === "increment" ? "manualIncrement" : "manualReplace" : "manualSave");
+  elements.manualDelete.hidden = !target;
+}
+
+function fillManualValues(target, operation) {
+  const entry = target?.draft;
+  const value = field => entry?.[field] === null || entry?.[field] === undefined ? "" : String(entry[field]);
+  const increment = operation === "increment";
+  elements.manualForm.querySelector(`input[name="manualMode"][value="${entry?.mode === "estimate" ? "estimate" : "exact"}"]`).checked = true;
+  elements.manualInput.value = increment || !target ? "" : String(target.inputTokens);
+  elements.manualCached.value = increment || !target || target.cacheEstimated ? "" : String(target.cachedInputTokens);
+  elements.manualWrite.value = increment ? "" : value("cacheWriteInputTokens");
+  elements.manualWritePrice.value = value("cacheWritePrice");
+  elements.manualOutput.value = increment || !target ? "" : String(target.outputTokens);
+  elements.manualTotal.value = increment || !target ? "" : String(target.totalTokens);
+  elements.manualShare.value = value("inputShare"); elements.manualHit.value = value("cacheHitRate");
+  elements.manualRequests.value = increment ? "" : value("requestCount");
+  elements.manualInputPrice.value = value("inputPrice"); elements.manualCachedPrice.value = value("cachedPrice"); elements.manualOutputPrice.value = value("outputPrice");
+}
+
+function syncManualTarget() {
+  if (!manualEditingId) {
+    const key = window.ManualUsage.identity(elements.manualProvider.value, elements.manualModel.value);
+    const target = manualProviders().flatMap(provider => provider.models).find(model => model.key === key) || null;
+    if (target?.key !== manualDialogTarget?.key) {
+      manualDialogTarget = target; manualOperation = target ? "increment" : "create";
+      if (target) {
+        for (const [node, field] of [[elements.manualInputPrice, "inputPrice"], [elements.manualCachedPrice, "cachedPrice"], [elements.manualOutputPrice, "outputPrice"]]) {
+          if (!node.value.trim() && target.draft[field] !== null) node.value = String(target.draft[field]);
+        }
+      }
+    }
+  }
+  configureManualUpdate();
+}
+
 function renderManualPreview() {
   const entry = window.UsageLedgers.normalizeEntry(readManualForm());
   if (!entry) { elements.manualPreview.textContent = ""; return; }
-  const resolved = window.UsageLedgers.resolveEntry(entry, manualLedger.defaults);
-  const prefix = resolved.estimated || resolved.cacheEstimated ? "≈" : "";
-  elements.manualPreview.textContent = t("manualPreview", {
-    input: prefix + formatTokenCount(resolved.inputTokens), cached: prefix + formatTokenCount(resolved.cachedInputTokens),
-    output: prefix + formatTokenCount(resolved.outputTokens),
-    cost: resolved.priced ? prefix + formatUsd(resolved.estimatedCostUsd) : t("manualUnpriced")
-  }) + (resolved.cachedPriceAssumed ? ` · ${t("manualCacheAssumed")}` : "");
+  try {
+    const next = window.ManualUsage.applyManualUsageChange(manualLedger, manualChange(), { id: "m-preview-operation" });
+    const target = window.ManualUsage.groupManualUsage(next).flatMap(provider => provider.models)
+      .find(model => model.key === window.ManualUsage.identity(entry.provider, entry.model));
+    if (!target) { elements.manualPreview.textContent = ""; return; }
+    const after = t(observedManualModel() ? "manualAfterPart" : "manualAfter", { tokens: formatTokenCount(target.totalTokens), cost: manualModelAmount(target) });
+    if (manualDialogTarget && manualOperation === "increment") {
+      const delta = window.UsageLedgers.resolveEntry(entry, manualLedger.defaults);
+      elements.manualPreview.textContent = t("manualDelta", { tokens: formatTokenCount(delta.totalTokens), cost: manualModelAmount({ ...delta, partial: !delta.priced }) }) + "\n" + after;
+    } else elements.manualPreview.textContent = after;
+  } catch { elements.manualPreview.textContent = ""; }
 }
 
 function fillCatalogPrice() {
+  if (manualDialogTarget) return;
   const name = elements.manualModel.value.trim().toLowerCase();
   const price = window.Workbench.pricing?.models?.find(item => item.model.toLowerCase() === name);
   if (!price) return;
@@ -2944,84 +3118,96 @@ function fillCatalogPrice() {
   for (const [node, value] of [[elements.manualInputPrice, price.input], [elements.manualCachedPrice, price.cachedInput], [elements.manualOutputPrice, price.output]]) {
     if (!node.value.trim() && Number.isFinite(value)) node.value = String(value);
   }
-  renderManualPreview();
+  syncManualTarget(); renderManualPreview();
 }
 
 function fillManualDatalists() {
   const models = window.Workbench.pricing?.models || [];
-  const vendors = [...new Set([...models.map(item => item.vendor).filter(Boolean), ...manualLedger.entries.map(entry => entry.provider)])];
-  elements.manualProviderList.replaceChildren(...vendors.map(value => Object.assign(document.createElement("option"), { value })));
-  elements.manualModelList.replaceChildren(...models.map(item => Object.assign(document.createElement("option"), { value: item.model })));
+  const key = window.ManualUsage.nameKey(elements.manualProvider.value);
+  const saved = manualLedger.entries.filter(entry => window.ManualUsage.nameKey(entry.provider) === key);
+  window.ManualCombobox.attach(elements.manualProvider, t).update([...manualLedger.entries.map(entry => entry.provider), ...models.map(item => item.vendor).filter(Boolean)]);
+  window.ManualCombobox.attach(elements.manualModel, t).update([...saved.map(entry => entry.model), ...models.map(item => item.model)]);
 }
 
-function openManualDialog(id = null) {
+function openManualDialog(id = null, operation = "replace", provider = "") {
   manualEditingId = id;
-  const entry = manualLedger.entries.find(item => item.id === id) || null;
-  const value = (field) => entry && entry[field] !== null && entry[field] !== undefined ? String(entry[field]) : "";
-  elements.manualModalTitle.textContent = t(entry ? "manualEdit" : "manualAdd");
-  elements.manualProvider.value = value("provider"); elements.manualModel.value = value("model");
-  elements.manualForm.querySelector(`input[name="manualMode"][value="${entry?.mode === "estimate" ? "estimate" : "exact"}"]`).checked = true;
-  elements.manualInput.value = value("inputTokens"); elements.manualCached.value = value("cachedInputTokens"); elements.manualOutput.value = value("outputTokens");
-  elements.manualTotal.value = value("totalTokens"); elements.manualShare.value = value("inputShare"); elements.manualHit.value = value("cacheHitRate");
-  elements.manualInputPrice.value = value("inputPrice"); elements.manualCachedPrice.value = value("cachedPrice"); elements.manualOutputPrice.value = value("outputPrice");
-  elements.manualRequests.value = value("requestCount");
-  elements.manualDelete.hidden = !entry; elements.manualError.hidden = true;
-  fillManualDatalists(); syncManualMode();
-  openSecondaryModal(elements.manualModal, elements.manualProvider);
+  manualDialogTarget = id ? findManualModel(id) : null;
+  manualOperation = manualDialogTarget ? operation : "create";
+  elements.manualProvider.value = manualDialogTarget?.provider || provider;
+  elements.manualModel.value = manualDialogTarget?.model || "";
+  fillManualValues(manualDialogTarget, manualOperation);
+  elements.manualError.hidden = true;
+  configureManualUpdate(); fillManualDatalists(); syncManualMode();
+  openSecondaryModal(elements.manualModal, manualDialogTarget ? manualMode() === "estimate" ? elements.manualTotal : elements.manualInput : provider ? elements.manualModel : elements.manualProvider);
 }
 
 function closeManualDialog() {
-  closeSecondaryModal(elements.manualModal, elements.manualAdd, { onHidden: () => { manualEditingId = null; } });
+  window.ManualCombobox?.closeAll();
+  closeSecondaryModal(elements.manualModal, elements.manualAdd, { onHidden: () => { manualEditingId = null; manualDialogTarget = null; manualOperation = "create"; } });
+}
+
+async function showManualFailure(error, inDialog = true) {
+  const node = inDialog ? elements.manualError : elements.manualLedgerError;
+  node.textContent = t(manualErrorKey(error)); node.hidden = false;
+  if (manualErrorKey(error) === "manualConflict") {
+    try { manualLedger = window.UsageLedgers.normalizeManualLedger(await window.codexMonitor.readManualUsage()); ledgerSignature = ""; renderLedgers(); } catch {}
+  }
 }
 
 async function submitManualDialog(event) {
   event.preventDefault();
-  const entry = window.UsageLedgers.normalizeEntry(readManualForm());
-  const showError = key => { elements.manualError.textContent = t(key); elements.manualError.hidden = false; };
-  if (!entry) { showError("manualRequired"); return; }
-  const entries = manualLedger.entries.filter(item => item.id !== manualEditingId);
-  const index = manualLedger.entries.findIndex(item => item.id === manualEditingId);
-  entries.splice(index >= 0 ? index : entries.length, 0, { ...entry, id: manualEditingId || `m-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}` });
+  syncManualTarget();
+  const change = manualChange();
+  try { window.ManualUsage.applyManualUsageChange(manualLedger, change, { id: "m-preview-operation" }); }
+  catch (error) { await showManualFailure(error); return; }
+  if (elements.manualSave.disabled) return;
   elements.manualSave.disabled = true;
-  try { await persistManualLedger({ ...manualLedger, entries }); closeManualDialog(); }
-  catch { showError("manualSaveFailed"); }
+  try { await persistManualChange(change); closeManualDialog(); }
+  catch (error) { await showManualFailure(error); }
   finally { elements.manualSave.disabled = false; }
 }
 
-async function removeManualEntry(id) {
-  if (!id || !window.confirm(t("manualDeleteConfirm"))) return;
-  try { await persistManualLedger({ ...manualLedger, entries: manualLedger.entries.filter(entry => entry.id !== id) }); }
-  catch { elements.manualError.textContent = t("manualSaveFailed"); }
+async function removeManualEntry(id, inDialog = false) {
+  const target = inDialog ? manualDialogTarget : findManualModel(id);
+  if (!target || !window.confirm(t(observedManualModel(target.provider, target.model) ? "manualDeletePartConfirm" : "manualDeleteConfirm"))) return;
+  try { await persistManualChange({ action: "remove", targetId: target.id, revision: target.revision }); if (inDialog) closeManualDialog(); }
+  catch (error) { await showManualFailure(error, inDialog); }
 }
 
 async function saveManualDefaults(defaults) {
-  const next = window.UsageLedgers.normalizeDefaults({ ...manualLedger.defaults, ...defaults });
-  if (JSON.stringify(next) === JSON.stringify(manualLedger.defaults)) { renderLedgers(); return; }
-  try { await persistManualLedger({ ...manualLedger, defaults: next }); } catch { ledgerSignature = ""; renderLedgers(); }
+  try { await persistManualChange({ action: "defaults", defaults }); }
+  catch (error) { await showManualFailure(error, false); ledgerSignature = ""; renderLedgers(); }
 }
 
 function initializeManualLedger() {
   elements.manualAdd.addEventListener("click", () => openManualDialog());
   elements.manualTableBody.addEventListener("click", event => {
+    const add = event.target.closest("[data-manual-provider-add]");
+    if (add) { openManualDialog(null, "create", add.dataset.manualProviderAdd); return; }
+    const increment = event.target.closest("[data-manual-increment]");
+    if (increment) { openManualDialog(increment.dataset.manualIncrement, "increment"); return; }
     const edit = event.target.closest("[data-manual-edit]");
-    if (edit) { openManualDialog(edit.dataset.manualEdit); return; }
+    if (edit) { openManualDialog(edit.dataset.manualEdit, "replace"); return; }
     const remove = event.target.closest("[data-manual-remove]");
     if (remove) removeManualEntry(remove.dataset.manualRemove);
   });
   elements.manualForm.addEventListener("submit", submitManualDialog);
   elements.manualForm.addEventListener("input", event => {
     elements.manualError.hidden = true;
+    if (event.target.name === "manualUpdate") {
+      manualOperation = event.target.value;
+      fillManualValues(manualDialogTarget, manualOperation); configureManualUpdate(); syncManualMode(); return;
+    }
+    if (event.target === elements.manualProvider || event.target === elements.manualModel) {
+      syncManualTarget();
+      if (event.target === elements.manualProvider) fillManualDatalists();
+    }
     if (event.target.name === "manualMode") syncManualMode(); else renderManualPreview();
   });
-  elements.manualModel.addEventListener("change", fillCatalogPrice);
+  elements.manualModel.addEventListener("change", () => { syncManualTarget(); fillCatalogPrice(); });
   elements.manualCancel.addEventListener("click", closeManualDialog);
   elements.manualClose.addEventListener("click", closeManualDialog);
-  elements.manualDelete.addEventListener("click", async () => {
-    const id = manualEditingId;
-    if (!id || !window.confirm(t("manualDeleteConfirm"))) return;
-    try { await persistManualLedger({ ...manualLedger, entries: manualLedger.entries.filter(entry => entry.id !== id) }); closeManualDialog(); }
-    catch { elements.manualError.textContent = t("manualSaveFailed"); elements.manualError.hidden = false; }
-  });
+  elements.manualDelete.addEventListener("click", () => removeManualEntry(manualDialogTarget?.id, true));
   for (const [node, key] of [[elements.manualDefaultInputShare, "inputShare"], [elements.manualDefaultHitRate, "cacheHitRate"]]) {
     node.addEventListener("change", () => saveManualDefaults({ [key]: node.value }));
   }
@@ -3031,7 +3217,7 @@ function initializeManualLedger() {
   });
   window.codexMonitor.readManualUsage?.().then(value => {
     manualLedger = window.UsageLedgers.normalizeManualLedger(value); ledgerSignature = ""; renderLedgers();
-  }).catch(() => {});
+  }).catch(error => showManualFailure(error, false));
 }
 
 function openTokenCost(event) {
@@ -3321,9 +3507,9 @@ function renderActiveTaskClock() {
     const task = activeTasks[Number(node.dataset.taskElapsedIndex)];
     if (task) node.textContent = formatTaskDuration(getTaskElapsedSeconds(task));
   });
-  if (!elements.taskDetailDrawer.hidden && selectedTaskIdentity) {
+  if (!elements.taskDetailModal.hidden && selectedTaskIdentity) {
     const task = activeTasks.find(task => activeTaskIdentity(task) === selectedTaskIdentity);
-    const elapsed = elements.taskDrawerContent.querySelector("[data-drawer-elapsed]");
+    const elapsed = elements.taskDetailContent.querySelector("[data-detail-elapsed]");
     if (task && elapsed) elapsed.textContent = formatTaskDuration(getTaskElapsedSeconds(task));
   }
   elements.activeTaskPreviewList.querySelectorAll("[data-task-preview-elapsed-index]").forEach(node => {
@@ -3332,7 +3518,7 @@ function renderActiveTaskClock() {
   });
 }
 
-const ACTIVE_TASK_PREVIEW_LIMIT = 2;
+const ACTIVE_TASK_PREVIEW_LIMIT = 1;
 function renderActiveTaskPreview() {
   elements.activeTaskPreviewList.replaceChildren();
   const previewTasks = activeTasks.map(task => ({ task, pending: false }));
@@ -3585,7 +3771,9 @@ function renderActiveTaskDetails() {
     actions.append(returnButton, confirmButton);
     item.append(heading);
     appendTaskContext(item, task, true);
-    item.append(stats, createTaskModelRows(task), actions);
+    const details = document.createElement("button"); details.type = "button"; details.className = "text-button"; details.textContent = t("taskDetails");
+    details.dataset.taskDetailId = activeTaskIdentity(task);
+    item.append(stats, createTaskModelRows(task), details, actions);
     elements.activeTaskList.append(item);
   });
   if (!elements.activeTaskList.querySelector(".active-task-item")) {
@@ -3594,7 +3782,7 @@ function renderActiveTaskDetails() {
   elements.activeTaskList.scrollTop = previousScroll;
   if (!elements.activeTaskModal.hidden) document.getElementById("workspaceContent").scrollTop = pageScroll;
   if (focusedDetail) [...elements.activeTaskList.querySelectorAll("[data-task-detail-id]")].find(node => node.dataset.taskDetailId === focusedDetail)?.focus({preventScroll:true});
-  renderTaskDrawer();
+  renderTaskDetail();
   if (focusedAction?.identity) {
     const control = [...elements.activeTaskList.querySelectorAll("button")].find(button =>
       button.dataset.pendingTaskId === focusedAction.identity && button.dataset.pendingTaskAction === focusedAction.action);
@@ -3623,9 +3811,16 @@ function renderTaskPerformance(task = latestPerformanceTask) {
   elements.latestTaskMin.textContent = rate(telemetry.minTokensPerSecond);
   elements.latestTaskAverage.textContent = rate(telemetry.averageTokensPerSecond);
   elements.latestTaskCacheHit.textContent = valid(telemetry.cacheHitRate) && telemetry.cacheHitRate <= 100 ? `${rate(telemetry.cacheHitRate)}%` : "—";
+  elements.latestTaskStreamingDuration.textContent = valid(telemetry.streamingDurationMs)
+    ? `${rate(telemetry.streamingDurationMs / 1000)}s` : "—";
+  elements.latestTaskServiceTier.textContent = ["Standard", "Fast", "UltraFast"].includes(telemetry.serviceTier)
+    ? telemetry.serviceTier : "—";
+  const evidenceHint = language === "zh" ? "仅使用日志中明确记录的流式时长与速度档位；不由回合总耗时、首字时间或输出速率推算。" : "Uses explicit streaming-duration and service-tier log fields only; never inferred from turn time, first-token latency or token rate.";
+  elements.latestTaskStreamingDuration.title = evidenceHint;
+  elements.latestTaskServiceTier.title = evidenceHint;
   const scope = t("taskTelemetryScope", { task: identity });
-  elements.taskPerformance.title = scope;
-  elements.taskPerformance.setAttribute("aria-label", `${t("latestTaskTitle")}: ${identity}. ${scope}`);
+  elements.taskPerformance.removeAttribute("title");
+  elements.taskPerformance.setAttribute("aria-label", `${t("latestTaskTitle")}: ${identity}`);
   elements.taskPerformanceScope.textContent = scope;
 }
 
@@ -3923,6 +4118,8 @@ function updateLastChecked() {
 }
 
 function render(snapshot) {
+  if (deferHiddenPresentation()) return;
+  presentationDirty = false;
   if (snapshot.online) renderOnline(snapshot);
   else renderOffline(snapshot);
   renderCheckpoints(snapshot.resetCheckpoints);
@@ -4007,6 +4204,34 @@ function dismissSplash(immediate = false) {
   }, wait);
 }
 
+function initializePetControls(settings) {
+  const status = document.getElementById("petSettingsStatus");
+  const sync = value => {
+    document.getElementById("petSize").value = value?.size || 256;
+    document.getElementById("petSizeValue").textContent = (value?.size || 256) + " px";
+    for (const [id, key] of [["petOnTop", "alwaysOnTop"], ["petBubbles", "bubbles"], ["petSound", "sound"]])
+      document.getElementById(id).checked = value?.[key] ?? (key !== "sound");
+  };
+  const fail = () => { status.textContent = t("petFailed"); status.hidden = false; };
+  const save = async value => {
+    status.hidden = true;
+    try { sync(await window.codexMonitor.setPetSettings(value)); } catch { fail(); }
+  };
+  sync(settings.petSettings);
+  for (const node of document.querySelectorAll("[data-pet-entry]")) node.addEventListener("click", async () => {
+    const entries = document.querySelectorAll("[data-pet-entry]");
+    entries.forEach(button => { button.disabled = true; }); status.hidden = true;
+    try { if (!await window.codexMonitor.enterPetMode()) fail(); } catch { fail(); }
+    finally { entries.forEach(button => { button.disabled = false; }); }
+  });
+  document.getElementById("petSize").addEventListener("input", event => { document.getElementById("petSizeValue").textContent = event.target.value + " px"; });
+  document.getElementById("petSize").addEventListener("change", event => save({ size: Number(event.target.value) }));
+  for (const [id, key] of [["petOnTop", "alwaysOnTop"], ["petBubbles", "bubbles"], ["petSound", "sound"]])
+    document.getElementById(id).addEventListener("change", event => save({ [key]: event.target.checked }));
+  const unsubscribe = window.codexMonitor.onPetSettings?.(sync);
+  if (unsubscribe) rendererUnsubscribers.push(unsubscribe);
+}
+
 async function initialize() {
   const settings = await window.codexMonitor.readSettings();
   language = settings.language === "en" ? "en" : "zh";
@@ -4025,7 +4250,7 @@ async function initialize() {
   const savedSort = window.Workbench.restore("cqm2.taskSort", "time");
   elements.taskSort.value = ["time", "cost", "duration"].includes(savedSort) ? savedSort : "time";
   window.Workbench.init({ t, onDiagnose: openConnectionStatus, onNavigate(route) {
-    closeTaskDrawer();
+    closeTaskDetail();
     cancelAnimationFrame(tokenChartAnimationFrame); tokenChartAnimationActive = false;
     hideTokenChartTooltip(false);
     if (route.page === "tasks") {
@@ -4041,6 +4266,7 @@ async function initialize() {
   } });
   workbenchReady = true;
   applyLanguage(); applyBackground(); initializeCropper();
+  initializePetControls(settings);
   renderClientUpdate(); renderTokenUsage(); renderTokenCost(); renderActiveTasks();
   const click = (id, callback) => document.getElementById(id).addEventListener("click", callback);
   for (const [ids, close] of [
@@ -4054,7 +4280,7 @@ async function initialize() {
     [["resetProbabilityClose","resetProbabilityDone"],()=>window.Workbench.navigate("overview")],
     [["settingsClose"],closeBackgroundPopover],
     [["statScopeClose","statScopeDone"],()=>closeStatScope()],
-    [["taskDrawerClose"],closeTaskDrawer]
+    [["taskDetailClose"],closeTaskDetail]
   ]) for (const id of ids) click(id,()=>close());
   for (const [id, open] of [["connectionStatusButton",openConnectionStatus],["connectionLabel",openSubscription],["resetCreditButton",openResetCredits],["officialResetButton",openOfficialResetHistory],["clientUpdateCard",openClientUpdateHistory],["activeTaskCard",openActiveTasks],["taskPerformance",openActiveTasks]]) {
     click(id,open);
@@ -4084,7 +4310,7 @@ async function initialize() {
   click("confirmAllTasks",()=>{confirmAllCompletedTasks();syncWorkbench();});
   elements.activeTaskList.addEventListener("click",event=>{
     const detail=event.target.closest("[data-task-detail-id]");
-    if(detail){selectedTaskIdentity=detail.dataset.taskDetailId;renderTaskDrawer();elements.taskDetailDrawer.hidden=false;elements.taskDrawerClose.focus();return;}
+    if(detail){taskDetailSource=detail;selectedTaskIdentity=detail.dataset.taskDetailId;renderTaskDetail();openSecondaryModal(elements.taskDetailModal,elements.taskDetailClose);return;}
     handlePendingTaskAction(event);
   });
   elements.taskFilter.addEventListener("change",renderActiveTaskDetails);
@@ -4131,8 +4357,8 @@ async function initialize() {
   click("applyAppearance",async()=>{
     const button=document.getElementById("applyAppearance");button.disabled=true;
     try{
-      backgroundAppearance=await window.codexMonitor.setAppearance(backgroundAppearance);
-      backgroundOpacity=await window.codexMonitor.setBackgroundOpacity(backgroundOpacity);
+      const saved=await window.codexMonitor.saveAppearance(backgroundAppearance,backgroundOpacity);
+      backgroundAppearance=saved.appearance; backgroundOpacity=saved.backgroundOpacity;
       savedAppearance={...backgroundAppearance};savedBackgroundOpacity=backgroundOpacity;
       applyBackground();document.getElementById("appearanceStatus").textContent=t("appearanceSaved");
     }catch{document.getElementById("appearanceStatus").textContent=t("appearanceSaveFailed");}
@@ -4148,17 +4374,20 @@ async function initialize() {
   unsubscribeSnapshot=window.codexMonitor.onSnapshot?.(snapshot=>{if(!isRefreshing)applySnapshot(snapshot);});
   unsubscribeTasks=window.codexMonitor.onTasks?.(result=>{
     if(latestSnapshot?.activeTasks?.observedAt>result.observedAt)return;
-    if(latestSnapshot)latestSnapshot={...latestSnapshot,activeTasks:result};renderActiveTasks(result);
+    if(latestSnapshot)latestSnapshot={...latestSnapshot,activeTasks:result};
+    if(!latestSnapshot||!deferHiddenPresentation())renderActiveTasks(result);
   });
-  unsubscribeCheckpoints=window.codexMonitor.onCheckpoints?.(checkpoint=>{if(latestSnapshot)latestSnapshot={...latestSnapshot,resetCheckpoints:checkpoint};renderCheckpoints(checkpoint);});
+  unsubscribeCheckpoints=window.codexMonitor.onCheckpoints?.(checkpoint=>{if(latestSnapshot)latestSnapshot={...latestSnapshot,resetCheckpoints:checkpoint};if(!latestSnapshot||!deferHiddenPresentation())renderCheckpoints(checkpoint);});
   rendererUnsubscribers.push(window.codexMonitor.onCost?.(cost=>{
     if(latestSnapshot)latestSnapshot={...latestSnapshot,tokenCost:cost,tokenUsage:window.TokenUsage.combineTokenUsage(latestSnapshot.tokenUsage,cost)};
-    renderTokenUsage(latestSnapshot?.tokenUsage);renderTokenCost(cost);
+    if(!deferHiddenPresentation()){renderTokenUsage(latestSnapshot?.tokenUsage);renderTokenCost(cost);}
   }));
   chartResizeObserver=new ResizeObserver(()=>{
+    if(deferHiddenPresentation())return;
     requestAnimationFrame(()=>{if(window.Workbench.visible(elements.tokenUsageChart))renderTokenChart(false);drawTokenSparkline();layoutCropper(true);applyBackground();});
   });
   chartResizeObserver.observe(document.getElementById("workspaceContent"));chartResizeObserver.observe(elements.cropStage);
+  chartResizeObserver.observe(elements.tokenSparkline.parentElement);
   document.addEventListener("keydown",event=>{
     if(event.key === "F5"){event.preventDefault();refresh();return;}
     const modal=[...document.querySelectorAll('[aria-modal="true"]')].find(node=>!node.hidden && !node.inert);
@@ -4174,10 +4403,14 @@ async function initialize() {
     else if(!elements.statScopeModal.hidden)closeStatScope();
     else if(!elements.taskInterruptionModal.hidden)closeTaskInterruptionAlert();
     else if(!elements.connectionStatusModal.hidden)closeConnectionStatus();
-    else if(!elements.taskDetailDrawer.hidden)closeTaskDrawer();
+    else if(!elements.taskDetailModal.hidden)closeTaskDetail();
   });
-  for(const [node,close]of [[elements.connectionStatusModal,closeConnectionStatus],[elements.statScopeModal,()=>closeStatScope()],[elements.manualModal,closeManualDialog],[elements.cropModal,()=>{if(!elements.cropApply.disabled)closeCropModal();}]])node.addEventListener("click",event=>{if(event.target===node)close();});
-  document.addEventListener("visibilitychange",()=>{if(document.hidden){cancelAnimationFrame(tokenChartAnimationFrame);tokenChartAnimationActive=false;}startPresentationClock();});
+  for(const [node,close]of [[elements.taskDetailModal,closeTaskDetail],[elements.connectionStatusModal,closeConnectionStatus],[elements.statScopeModal,()=>closeStatScope()],[elements.manualModal,closeManualDialog],[elements.cropModal,()=>{if(!elements.cropApply.disabled)closeCropModal();}]])node.addEventListener("click",event=>{if(event.target===node)close();});
+  document.addEventListener("visibilitychange",()=>{
+    if(document.hidden){cancelAnimationFrame(tokenChartAnimationFrame);tokenChartAnimationActive=false;}
+    else if(presentationDirty&&latestSnapshot){render(latestSnapshot);drawTokenSparkline();}
+    startPresentationClock();
+  });
   window.addEventListener("online",()=>refresh({silent:true}));window.addEventListener("offline",()=>refresh({silent:true}));
   await refresh({initial:true});dismissSplash();startPresentationClock();
 }

@@ -12,8 +12,10 @@ mode, or regression is discovered.
 ## Scope and packaging
 
 - This is a Windows x64 Electron desktop application, not a website.
-- The production UI is a normal, resizable Windows desktop workspace with one
-  persistent frameless, opaque window. Its default size is 1360 × 900 DIP.
+- The production UI is one persistent frameless Windows workspace with opaque
+  content on a transparent native surface so its rounded outer corners stay clear.
+  On 2026-10-30 the user chose a fixed 1200 × 800 DIP surface, limited only by
+  smaller display work areas. Cards and native outline share a 12 DIP radius.
 - `AGENTS.md` is development-only. It must be committed to the repository but
   must never be included in portable, installer, unpacked, or ASAR output.
 - Keep `build.files` as an explicit allowlist containing only `src/**/*` and
@@ -85,13 +87,15 @@ The monitor must:
 - Support complete Chinese and English UI.
 - Support click-to-upload and drag-to-upload backgrounds, manual fixed-ratio
   cropping, and background opacity.
-- Support standard native movement, resizing, maximize/restore, system snapping,
-  taskbar access, optional always-on-top, tray hide/show and configurable close.
+- Support standard native movement, taskbar access, optional always-on-top,
+  tray hide/show and configurable close. The user-selected fixed size disables
+  resizing, maximizing and full screen.
 - Use a white and sky-cyan palette with user images behind frosted white cards.
 - Provide six pages: overview, usage/cost, tasks, quotas/resets, client updates,
   and settings. All existing data and history actions remain reachable.
-- Top docking, floating orb, fixed small-window mode and position locking were
-  explicitly retired by the user for 2.0. Do not restore their IPC or UI.
+- Top docking, the old floating orb, fixed small-window mode and position locking
+  remain retired. On 2026-10-30 the user explicitly requested a GPT pet mode;
+  this is the authorized exception, not a return of the old orb/dock code.
 
 Preserve data and business behavior during visual changes. The retired window
 modes above are the explicit user-authorized exception.
@@ -152,24 +156,151 @@ Renderer security settings are non-negotiable:
 
 ## Desktop window and layout invariants (2.0)
 
-- Keep one persistent normal BrowserWindow with frame: false, transparent: false,
-  resizable: true and maximizable: true. Never set a shape, fixed maximum size,
-  resize prevention, native mode-switch surfaces or pointer-driven bounds loops.
-- Use titleBarStyle: hidden and a native Windows titleBarOverlay for caption
-  buttons and snap/maximize behavior. Only the toolbar free space and brand use
+### GPT desktop pet (2.0.0-beta.2, user requested)
+
+- Keep the workspace alive. Lazily create one transparent, sandboxed pet
+  window; hide the workspace only after the image decodes and the pet acknowledges
+  two painted frames. On restore, show the same workspace and hide the pet. Never
+  use snapshots, interpolate native bounds or alter the saved desktop bounds.
+- The pet uses one transparent master PNG. Its default 256 DIP size is based on
+  visible alpha bounds, excluding transparent canvas margins. Scale both source
+  axes by one factor. Draw the same master with numeric poses; never regenerate separate states.
+  The bubble uses the reference's licensed frame geometry, recolored, at 256 DIP
+  width with two stacked quota rows. Keep quota and chatter content inside it.
+- Store only pet preferences, mode and the visible character's absolute anchor in
+  settings. Clamp/snap that anchor after movement settles, including negative
+  display coordinates and removed monitors. Shape only the portrait and a visible
+  speech bubble; hidden transparent bubble space must not block other apps.
+- Classify pet pointer intent locally with a four-DIP movement threshold. Taps
+  update the bubble immediately and must never invoke a native move loop. Only
+  a drag queues one PostMessage system move with an IsWindow-validated decoded
+  HWND. Never call blocking SendMessage through FFI: its modal loop re-enters
+  Electron/V8 and can crash. Await WM_EXITSIZEMOVE/moved asynchronously and clean
+  up the hook on completion/disposal. Check VK_LBUTTON so a released drag cannot attach to the cursor. Never
+  poll the cursor or drive setBounds/setPosition from pointer movement.
+- Press and release feed a bounded renderer spring that retains velocity across
+  rapid taps. Reset all squash/stretch before handing a drag to Windows. Native
+  movement must show the unmodified aspect ratio; animations never block input.
+- On 2026-10-30 the user explicitly authorized pet throwing and screen bounces.
+  Keep one fixed narrow native carrier and fixed local sprite coordinates for
+  idle, native dragging and flight. Reserve transparent space for a bubble above
+  or below, passing unused space through with sender-validated hover toggles.
+  Physical collision and settled clamps use the visible art rectangle with no
+  16/20-DIP inset. Source art bounds exclude the near-transparent alpha fringe
+  below 8/255; the 32-DIP spring canvas margin never participates in collisions.
+  A permanent full-screen transparent window made Codex lag; temporary expansion
+  displaced old pixels, and clearing/acknowledging that resize made the pet blink.
+  Full-screen flight surfaces and clear-frame handshakes are retired.
+- Renderer RAF owns the bounded post-release simulation, with gravity, damping,
+  speed/time-step caps and work-area collisions. Coalesce numeric world-position
+  reports to one newest native move per main event-loop turn. This is the
+  authorized post-release motion exception: translate the existing HWND with
+  SetWindowPos + SWP_NOSIZE/NOZORDER/NOACTIVATE/NOOWNERZORDER/NOSENDCHANGING.
+  Convert DIP origins with screen.dipToScreenPoint. Never resize, remount, change
+  opacity, discard bitmap contents, replay pointer deltas or drive native drag
+  from JS. Size-preserving physical translation avoids fractional-DPI size drift.
+  Cancel native-move queues and flight timers on catch, hide, settings/display
+  changes or disposal. Catch freezes the actual displayed carrier, not a future
+  predicted pose. Persist only settled anchors; never touch workspace bounds.
+- A single small alpha canvas owns character pixels. Its backing bitmap covers
+  only the character and spring padding, not unused bubble space. Clear that
+  bitmap and redraw the same master for changed poses; do not create a second
+  transformed DOM sprite. Native translation retains this exact bitmap and local
+  actor origin, so flight start/end do not need a blank frame or coordinate rebase.
+  Prepaint the decoded source before the initial two-frame readiness acknowledgment.
+  Main layout revisions prevent old task/quota updates replaying geometry.
+- Keep press/release and collision spring poses responsive, preserve uniform
+  base scale and master orientation, and remove squeeze before native dragging.
+  No hover animation swap, animated blur filter, native snapshot or extra window.
+  Local original yellow-duck press/release audio respects mute and cancels on drag.
+- Deduplicate state/shape/bounds publications. Active state owns animation
+  suspension; showInactive may report document.hidden for a visible surface.
+  Hidden workspace data stays cached without rebuilding charts, task/model DOM;
+  restore the latest snapshot once when that workspace becomes visible again.
+- App, taskbar, tray and sidebar icons derive from one generated mascot icon
+  master. Keep the existing appId/userData identity. Native ICO contains explicit
+  16–256px images; the renderer PNG is inside the application allowlist.
+  Splash uses the local mascot GIF with a static reduced-motion fallback, never
+  the retired SVG tide mark. Source masters/build scripts stay outside ASAR.
+  Windows taskbar branding also explicitly sets each window's AppUserModel icon
+  to a content-addressed ICO inside userData/icons. Reusing the old icon path
+  can retain cached shell artwork even after the window/tray image changes.
+- Pet presses only open/refresh 5-hour/weekly quotas, including repeated squeezes.
+  Only clicking the bubble switches quotas -> random chatter -> closed. Keep
+  their sender-validated IPC actions separate, including keyboard activation.
+  Never restore the workspace on any left-click count or double-click.
+  Restoration is an explicit native context-menu/tray action. No bubble header
+  or X; each shown phase closes after seven seconds. Chatter avoids immediate
+  repeats and uses the bilingual community-derived pool in pet-chatter.js.
+- Keep backgroundThrottling false on the transparent pet: showInactive can leave
+  document.hidden true while the native surface is visible and otherwise stop
+  its paint. Explicitly pause hidden/inactive animations instead.
+- First complete task read is the notification baseline. Pet notices use only
+  new, complete, deduplicated completion evidence; old/interrupted tasks do not
+  celebrate. Pet IPC exposes only quota/task numbers, never raw snapshots or
+  project/conversation/authentication data, and accepts gestures only from its
+  own webContents. Use the existing background readers; no new quota polling.
+- Verify native press/release, long drag, edge snap, rapid/double clicks without
+  workspace restoration, right-click restore, bubble dismissal and tray hide/show.
+  Verify that returning restores navigation and the fixed workspace bounds and that
+  the pet's transparent space does not intercept the desktop. Honor reduced motion
+  and keep sounds optional and initially off.
+
+- Keep one persistent workspace BrowserWindow with frame: false, transparent: true,
+  backgroundColor: #00000000, hasShadow: false,
+  resizable: false, maximizable: false, fullscreenable: false and thickFrame: false.
+  Minimum/maximum dimensions match the 1200 × 800 DIP target (or the smaller
+  work area). A will-resize guard prevents accidental system resizing. The user's
+  rounded-window request permits one bounded rounded region from window-shape.js.
+  Build it from GetWindowRect physical pixels and the shared 12 DIP radius; do
+  not reuse DIP scanline rectangles as a native-pixel mask. Reapply after native
+  show/restore, renderer load and settled display/bounds changes, once the native
+  operation finishes. Skip minimized HWND bounds and let Windows own successful
+  SetWindowRgn regions. Never add polling, mode-switch surfaces or pointer-driven
+  bounds loops. A native region alone did not round the opaque compositor surface
+  on the user's machine. The native workspace must also be transparent, with a
+  transparent document canvas, a root clip-path and an opaque workbench inside
+  the shared radius. A transparency option change requires recreating the window;
+  hot-loading a helper cannot change the existing surface. Native corner appearance
+  remains subject to user verification.
+- Use renderer caption buttons in one inset rounded rectangular group; the
+  Windows titleBarOverlay is retired because its close hover was clipped at the
+  rounded window edge. Each button owns its full hover/pressed background and is
+  no-drag. Closing uses a sender-validated narrow IPC and BrowserWindow.close(),
+  honoring the configured tray/quit behavior. Maximize is disabled by the fixed-size
+  contract. Only toolbar free space and brand use
   native app-region: drag; every button, input and connection control is no-drag.
-  Keep native resize edges. No custom edge drag strips or orb gesture bridge. Keep single-instance protection, tray and
+  Keep workspace-toolbar itself no-drag; its page-identity child owns the free
+  heading drag area. A draggable toolbar behind the separately positioned caption
+  group swallowed native mouse input even though DOM hit testing found the right
+  button. CSS z-index and button no-drag alone did not resolve that overlap.
+  Place the caption group after the workbench in DOM order. Live style injection
+  must override the existing stylesheet: the default author-origin insertCSS did
+  not replace the imported toolbar drag rule in the preview. Inspect the effective
+  region rather than assuming a successful injection changed native hit testing.
+  No custom edge drag strips or orb gesture bridge. Keep single-instance protection, tray and
   the bounded package-verified Codex focus handoff.
-- Restore normal bounds and maximize state from desktopWindow, separate from old
-  windowBounds. Clamp to valid display work areas including high-DPI and removed
-  monitors. Never save minimized bounds. Lower minimum dimensions for a smaller
-  work area instead of placing controls outside the screen.
-- First use targets 1360 × 900 DIP, with a usual minimum of 1000 × 680 DIP.
-  Work areas smaller than that remain usable with scrolling and compact navigation.
+- Keep caption controls above renderer overlays and reserve toolbar space for
+  their full group. Hover fills the whole rounded button, including its bottom
+  edge; no native overlay may cover it. Tray artwork follows the system-integrated
+  theme independently of the app's light theme.
+- Restore position from desktopWindow, separate from old windowBounds; ignore old
+  large sizes and maximized state. Clamp to valid work areas including high-DPI
+  and removed monitors. Never save minimized bounds. Smaller work areas may lower
+  the fixed dimensions so controls remain reachable.
+- The overview occupies one screen without page scrolling. Trend/latest task are
+  the first analytics row; model composition/Codex tasks/reset signals are below.
+  The client update card lives in the sidebar above the instance entry. Secondary
+  pages retain scrolling. Bound main-card lists and expose all records in details.
 - Migrate window/appearance settings only. Keep appId, userData, quota-state,
   persistent model ledger, archive generations and business counters unchanged.
-- Six pages share one state/snapshot stream. Complex details are page panels or
-  a task drawer; diagnostics, coverage, background composition and abnormal-task
+- Six pages share one state/snapshot stream. Task cards use a compact grid with
+  at least two columns at the normal workspace width. Goal/model details open a
+  centered modal, including pending tasks, with the shared queue, focus trap,
+  Escape/backdrop close and focus restoration. Never use a right-side drawer.
+  Set opening focus synchronously after revealing it; RAF can be suspended when
+  an otherwise healthy native window is occluded. Motion never gates keyboard use.
+  Diagnostics, coverage, background composition and abnormal-task
   acknowledgement are bounded overlays with keyboard focus management.
 - Scope page selection to .workspace-page[data-page]. The body's current-page
   metadata is not a page: hiding it during navigation blanks the whole app.
@@ -178,6 +309,42 @@ Renderer security settings are non-negotiable:
   task outcomes/confirmation and telemetry fields available in both languages.
 - Compress card padding and summary heights rather than reducing readable text.
   Use shared SVG symbols with consistent stroke, viewBox and decorative semantics.
+- Overview ledger tiles use two metric columns below 1500 DIP. Verify real
+  billion-scale Token totals and four-digit USD amounts stay on one line at
+  1200/1360 DIP; synthetic short values and overflow-only checks miss split digits.
+- Never use overflow:auto/scroll on numeric metric fields. It creates nested
+  horizontal or vertical scrollbars even for dashes and percentages at fractional
+  scaling. Reflow their parent grid instead and keep the field overflow visible.
+- Account and combined headlines share the exact same Codex Token/cost base;
+  combined adds attributed local third-party usage and manual additions. With
+  neither attributed usage nor manual entries both headlines are equal. Other local model counters are a separately labeled
+  population and cannot replace either base. Model composition allocates the
+  existing Codex projection by observed model weights, preserving Token and
+  currency totals, then merges manual rows by model name. This is an allocation
+  estimate, not measured account per-model usage.
+- On 2026-10-30 the user attributed exactly z-ai/glm-5.3-free,
+  qwen/qwen3.8-max-free and glm-5.3-flash to TokenRouter. These live local models
+  appear in that provider's group and combined third-party totals, while keeping
+  their recorded counts, per-call API-equivalent costs and maker pricing intact.
+  Never copy their snapshots into the manual ledger, infer ownership of other
+  routes from a shared maker, or count their cached input a second time. Automatic
+  records are read-only; edits to a mixed row explicitly affect its manual part.
+- Streaming duration and Standard/Fast/UltraFast are explicit evidence fields.
+  Never subtract first-token latency from whole-turn time or infer tier from
+  throughput. Whitelist safe tier aliases; missing fields remain unavailable.
+- Compact task tails retain modern/legacy usage format identity. Interval
+  telemetry uses separate cumulative baselines and the cost reader's evidenced
+  mirror deduplication, including rollback of a confirmed first mirrored pair.
+  A cross-format baseline offset is not a counter reset. Count numeric usage
+  preceding the first model context in task telemetry, but leave its cost
+  unpriced; never silently drop it or assign a later model retroactively.
+- Save appearance and background opacity as one atomic settings transaction,
+  committing memory only after disk succeeds. Resolve derived glass-alpha
+  variables on the same workbench element that owns --card-opacity. Preserve
+  unrelated settings and background assets across cold starts.
+- Branding keeps the established appId and codex-quota-monitor userData path.
+  Native previews use a persistent isolated profile, seeded only when missing;
+  a fresh empty scan must not masquerade as a user's retained historical ledger.
 - Sidebar and toolbar stay outside the scrolling content area. Wider windows
   use multi-column grids; narrower ones reflow without shrinking text. Tables
   may scroll inside their own container. Important copy never uses ellipsis.
@@ -192,9 +359,9 @@ Renderer security settings are non-negotiable:
 - Offline is a remote-quota state. Local indexing or task activity cannot imply
   online. Keep the last safe display and permanent histories available offline.
 
-After native window changes verify title movement, four-edge resizing, maximize/
-restore, minimize, system snapping, taskbar/tray restore and a second launch.
-Verify 1000 × 680 / 1360 × 900 and smaller work areas, 125/150/200% scaling,
+After native window changes verify title movement, blocked resizing/maximizing,
+minimize, taskbar/tray restore, rounded outline and a second launch.
+Verify 1200 × 800 and smaller work areas, 125/150/200% scaling,
 monitor removal and readable Chinese/English with light/dark custom backgrounds.
 Never claim native interaction verification from static source checks alone.
 
@@ -306,7 +473,7 @@ available reset credit. If the available count decreases across the same snapsho
 - The task dialog supports context/status filtering, persistent sorting and one
   action confirming all completed rows. Confirming does not alter numeric records
   or dismiss running/interrupted rows. Verify controls and close buttons in both
-  languages; standard desktop movement/resizing and state recovery remain mandatory.
+  languages; fixed-window movement and state recovery remain mandatory.
 - GPT-6.1 Sol pricing uses the official Standard card dated 2026-10-10:
   USD/million input 2, cached input 0.10, cache write 2.5, output 10; beyond
   272K input use 2x input classes and 1.5x output. Pricing-only changes must preserve compatible schema-6 and schema-7
@@ -406,6 +573,10 @@ client's visible “Update” button before installation. Do not regress to that
 - In model-cost details, `inputTokens` is total request input and already includes
   cached input. Label cached input as a subset and never present the two columns
   as additive or comparable to the official account lifetime Token total.
+- The local cost total is a content-width inline summary with equal-size,
+  vertically aligned label and amount. Model-card rate footers show prices, units
+  and cache TTLs only; omit vendor prose, call counts and context-accounting notes
+  from that line. Keep pricing calculations and unknown-price states intact.
 - A Token-count event without a directly preceding valid model context is
   unattributed coverage, not an `unknown` model. Exclude it from model totals and
   estimated cost, retain only normalized aggregate coverage counts, and never
@@ -621,6 +792,30 @@ Historical language/readability failures:
 
 ## State, privacy, and error handling
 
+- Manual third-party usage uses a bounded atomic primary and validated `.bak`.
+  Recover a missing/corrupt primary from backup before any save; retain corrupt
+  bytes separately. If no valid generation can be read, reject writes. Reject
+  more than 500 entries rather than truncating user records. Verify cold reads,
+  backup recovery and failed-save preservation when changing this storage.
+- Display manual usage by case-insensitive provider/model identity. Existing v1
+  batches remain intact when grouped; adding a model must not duplicate an existing
+  identity. Each provider offers model addition, and each model offers replacement
+  of its total or incremental usage, with current/after previews.
+- Increment batches retain their own rates and estimation semantics, without
+  repricing history. Only exact batches with matching rates, known cached counts
+  and compatible request-count evidence may compact. An unchanged aggregate edit
+  must be a no-op; explicit replacement/deletion affects that model's batches only.
+- Manual/imported cache-write Tokens are a subset of total input, distinct from
+  cache reads. Retain their counts and rate through normalization, grouping,
+  increments and edits; charge regular input only after subtracting reads/writes.
+  Imported provider CNY bills stay separate from USD API-equivalent estimates;
+  never convert implicitly. For unspecified cache TTL use the existing short-TTL
+  estimate basis and retain the limitation in the import summary.
+- New manual mutations run against the latest disk generation in the main process.
+  Require the selected model's revision for replacement, increments and deletion;
+  reject stale/replayed or invalid changes before touching primary/backup bytes.
+  Partial default changes preserve other defaults and all provider records.
+
 - Settings are stored in `settings.json`.
 - Event baselines, reset history, credit detail cache, and client-update state are
   stored in `quota-state.json`.
@@ -668,7 +863,7 @@ Historical language/readability failures:
 
 Run focused desktop-settings, background-boundary/geometry, localization, renderer
 navigation/layout and packaging checks for 2.0. Exercise real Chinese and English
-across pages, task filters/confirmation/drawer, charts, connection/coverage/crop
+across pages, task filters/confirmation/modal, charts, connection/coverage/crop
 modals, offline and missing quota states. Confirm navigation and acknowledgement
 leave token/cost/work-day/history counters unchanged. Do not re-run unrelated
 service tests unless a concrete failure or changed business code warrants it.
@@ -758,7 +953,7 @@ than assuming a launch replaced an older single-instance process.
 - All UI copy is bilingual. Avoid decorative middle-dot strings. Wrap long names
   and durations or provide an explicit bounded scroll area. Check text bounds in
   every secondary view. Six reset rows require 188 px (6*28 + 5*4), not 186 px.
-- Monitor self-updates use only Nahida728/codex-quota-monitor on GitHub. Stable
+- Monitor self-updates use only Nahida728/gpt-quota-pet-Shirotide on GitHub. Stable
   installs exclude prereleases; beta installs can receive beta or stable upgrades.
   Never downgrade, accept draft releases, arbitrary URLs or asset-provided paths.
 - NSIS uses electron-updater's verified update flow. Portable uses the exact x64
@@ -773,6 +968,10 @@ than assuming a launch replaced an older single-instance process.
 - Release asset names are ASCII and include the SemVer version. Publish latest.yml (beta.yml for beta channels)
   and the setup blockmap alongside the setup, portable, and SHA-256 manifest.
   Keep build.files as the src/package allowlist and inspect actual ASAR contents.
+- Set the publisher's channel and releaseType explicitly for prerelease builds.
+  RC versions use rc/prerelease with rc.yml; beta versions use beta.yml. An
+  inherited stable publisher can emit only latest.yml for a beta version; require
+  beta.yml and verify the packaged app-update.yml before delivering a beta.
 
 ## Checkpoint synchronization (1.3.2)
 
@@ -792,6 +991,10 @@ than assuming a launch replaced an older single-instance process.
 
 ## Reset forecast dashboard and client timeline
 
+- The main reset-odds card has one compact title/source row and two equal metric
+  panels. Baseline panels show 24/48-hour odds with matching decorative meters;
+  commitment mode uses the same panels for its signal and target countdown.
+  Keep source/stale/unavailable status in the header and retain the details action.
 - Validated Tibo promise/dated-commitment signals take priority over historical
   24/48-hour odds. Display the checkpoint's separate commitment percentage, never
   label it an official probability or insert a promise into confirmed reset history.
@@ -842,6 +1045,9 @@ than assuming a launch replaced an older single-instance process.
 
 ## Weekly projection and reset calendars
 
+- Valid weekly predictions use gold text and a centered four-DIP gold marker.
+  Its CSS particle drift is decorative, pointer-transparent and hidden with an
+  unavailable prediction; reduced motion retains the marker without particles.
 - Extrapolate weekly remaining quota only from observed percent deltas in the
   same 5-hour and weekly windows. Persist one bounded sampling baseline. Never
   use lifetime Tokens, earlier weekly consumption, or an assumed zero anchor.

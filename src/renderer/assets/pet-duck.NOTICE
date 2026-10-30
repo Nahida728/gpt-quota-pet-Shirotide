@@ -1,0 +1,6 @@
+Small yellow duck press/release sounds: Ya1.mp3 / Ya2.mp3
+Source: https://github.com/MeteorNOX/DeepSeek-Balance-Whale-Widget
+Revision: 5247dd6813d6e4430728f39ccc63d43cda046022
+Copied byte-for-byte as pet-duck-press.mp3 / pet-duck-release.mp3.
+Upstream PROVENANCE.md excludes assets/** from its MIT code license and provides assets as-is. No MIT relicensing is claimed for these audio files.
+Source provenance: https://github.com/MeteorNOX/DeepSeek-Balance-Whale-Widget/blob/5247dd6813d6e4430728f39ccc63d43cda046022/PROVENANCE.md

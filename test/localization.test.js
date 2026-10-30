@@ -24,12 +24,13 @@ test("Chinese and English dictionaries expose exactly the same keys", () => {
 });
 
 test("language switching updates document and accessibility-only copy", () => {
-  assert.match(renderer, /appTitle:\s*"潮汐台"/);
-  assert.match(renderer, /title:\s*"潮汐台"/);
+  assert.match(renderer, /appTitle:\s*"GPT-白汐"/);
+  assert.match(renderer, /title:\s*"GPT-白汐"/);
   // Display brand changed; the internal app name keeps userData/archive identity.
   assert.match(main, /const APP_NAME = "Codex监测台"/);
-  assert.match(main, /DISPLAY_NAME = Object\.freeze\(\{ zh: "潮汐台", en: "Tidemark" \}\)/);
-  assert.match(html, /<title>潮汐台<\/title>/);
+  assert.deepEqual(require("../src/brand").DISPLAY_NAME, { zh: "GPT-白汐", en: "GPT-Shirotide" });
+  assert.match(main, /require\("\.\/brand"\)/);
+  assert.match(html, /<title>GPT-白汐<\/title>/);
   for (const key of [
     "appTitle",
     "switchLanguage",

@@ -5,7 +5,7 @@ const crypto = require('node:crypto');
 const { spawn } = require('node:child_process');
 const semver = require('semver');
 
-const REPOSITORY = 'Nahida728/codex-quota-monitor';
+const { REPOSITORY, ASSET_PREFIX } = require('./brand');
 const RELEASES_API = `https://api.github.com/repos/${REPOSITORY}/releases?per_page=30`;
 const MAX_DOWNLOAD_BYTES = 384 * 1024 * 1024;
 
@@ -17,7 +17,7 @@ function selectPortableUpdate(releases, currentVersion) {
     .filter(item => item.version && semver.gt(item.version, currentVersion) && (beta || !semver.prerelease(item.version)))
     .sort((a, b) => semver.rcompare(a.version, b.version));
   for (const { release, version } of candidates) {
-    const name = `codex-quota-monitor-${version}-portable-x64.exe`;
+    const name = `${ASSET_PREFIX}-${version}-portable-x64.exe`;
     const asset = release.assets?.find(asset => asset.name === name);
     const expectedUrl = `https://github.com/${REPOSITORY}/releases/download/v${version}/${name}`;
     if (asset?.browser_download_url !== expectedUrl || !/^sha256:[a-f0-9]{64}$/.test(asset.digest || '') ||
@@ -85,7 +85,8 @@ class MonitorUpdater {
     autoUpdater.allowPrerelease = Boolean(semver.prerelease(this.app.getVersion()));
     autoUpdater.autoDownload = true;
     autoUpdater.autoInstallOnAppQuit = true;
-    autoUpdater.setFeedURL({ provider: 'github', owner: 'Nahida728', repo: 'codex-quota-monitor', private: false });
+    const [owner, repo] = REPOSITORY.split('/');
+    autoUpdater.setFeedURL({ provider: 'github', owner, repo, private: false });
     autoUpdater.on('update-available', info => this.publish({ status: 'downloading', version: semver.valid(info.version), percent: 0 }));
     autoUpdater.on('update-not-available', () => this.publish({ status: 'current', version: null, percent: 0 }));
     autoUpdater.on('download-progress', info => this.publish({ status: 'downloading', percent: Math.max(0, Math.min(100, Math.floor(info.percent))) }));

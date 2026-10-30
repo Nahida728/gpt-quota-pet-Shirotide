@@ -1,4 +1,4 @@
-const DEFAULT_SIZE = Object.freeze({ width: 1360, height: 900 });
+const DEFAULT_SIZE = Object.freeze({ width: 1200, height: 800 });
 const DEFAULT_APPEARANCE = Object.freeze({ fit: "contain", x: 50, y: 50, zoom: 100, blur: 0, veil: 18, cardOpacity: 80, reducedTransparency: false, allowUpscale: false });
 
 function bounded(value, fallback, minimum, maximum) {
@@ -24,13 +24,11 @@ function restoreDesktopWindow(saved, displays, primary = displays[0]) {
   const { workArea: area } = matching || primary;
   const availableWidth = Math.max(320, area.width - 24);
   const availableHeight = Math.max(240, area.height - 24);
-  const minWidth = Math.min(1000, availableWidth);
-  const minHeight = Math.min(680, availableHeight);
-  const width = Math.round(bounded(valid ? saved.width : undefined, DEFAULT_SIZE.width, minWidth, availableWidth));
-  const height = Math.round(bounded(valid ? saved.height : undefined, DEFAULT_SIZE.height, minHeight, availableHeight));
+  const width = Math.round(Math.min(DEFAULT_SIZE.width, availableWidth));
+  const height = Math.round(Math.min(DEFAULT_SIZE.height, availableHeight));
   const x = Math.round(bounded(matching ? saved.x : undefined, area.x + (area.width - width) / 2, area.x, area.x + area.width - width));
   const y = Math.round(bounded(matching ? saved.y : undefined, area.y + (area.height - height) / 2, area.y, area.y + area.height - height));
-  return { x, y, width, height, minWidth, minHeight };
+  return { x, y, width, height, minWidth: width, minHeight: height, maxWidth: width, maxHeight: height };
 }
 
 function migrateDesktopSettings(store) {

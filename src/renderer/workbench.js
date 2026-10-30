@@ -67,6 +67,8 @@
 
   function init(config) {
     options = config;
+    get("windowMinimize").addEventListener("click", () => global.codexMonitor.minimize());
+    get("windowClose").addEventListener("click", () => global.codexMonitor.close());
     document.addEventListener("click", event => {
       const route = event.target.closest("[data-route]");
       if (!route) return;

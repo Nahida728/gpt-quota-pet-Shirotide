@@ -3,6 +3,52 @@ const assert = require("node:assert/strict");
 const { summarizeTaskTelemetry, normalizeTaskTelemetry } = require("../src/task-telemetry");
 const { summarizeTaskWindow, normalizeActiveTaskResult } = require("../src/codex-active-tasks");
 
+test("compact task reads preserve offset mirror evidence and unattributed output", async t => {
+  const fs = require("node:fs"), os = require("node:os"), path = require("node:path");
+  const { CodexActiveTaskReader } = require("../src/codex-active-tasks");
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "task-mirror-"));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const file = path.join(directory, "rollout.jsonl");
+  const cumulative = (seconds, total, last, step) => {
+    const record = JSON.parse(counter(seconds, total, last));
+    Object.assign(record.payload.info.total_token_usage, { input_tokens: 160 + step * 100,
+      cached_input_tokens: 20 + step * 10, total_tokens: 160 + step * 100 + total });
+    return record;
+  };
+  const modern = (seconds, total, last) => {
+    const legacy = cumulative(seconds, total, last, total >= 1130 ? 2 : total >= 1070 ? 1 : 0);
+    return JSON.stringify({ timestamp: legacy.timestamp, type: "token_usage_record", payload: {
+      usage: legacy.payload.info.last_token_usage, thread_token_usage: legacy.payload.info.total_token_usage,
+      stream_duration_ms: 8400, serviceTier: "priority" } });
+  };
+  const lines = [JSON.stringify({ type: "event_msg", timestamp: new Date(startedAt * 1000).toISOString(),
+    payload: { type: "task_started", turn_id: "mirror", started_at: startedAt } }),
+    modern(5, 1040, 40), // before model context: numeric usage must survive
+    JSON.stringify({ type: "turn_context", payload: { model: "gpt-6.1-sol" } }),
+    counter(6, 500, 0), // legacy heartbeat with an independent cumulative base
+    modern(10, 1070, 30), JSON.stringify(cumulative(11, 530, 30, 1)),
+    modern(20, 1130, 60), JSON.stringify(cumulative(21, 590, 60, 2)),
+    JSON.stringify({ type: "event_msg", timestamp: new Date((startedAt + 30) * 1000).toISOString(),
+      payload: { type: "task_complete", turn_id: "mirror", started_at: startedAt,
+        completed_at: startedAt + 30, duration_ms: 30000 } })];
+  fs.writeFileSync(file, lines.join("\n") + "\n");
+  const stat = fs.statSync(file);
+  const reader = new CodexActiveTaskReader({ sessionsRoot: directory });
+  const compact = await reader.readCachedTaskWindow({ path: file, size: stat.size, mtimeMs: stat.mtimeMs }, 1e6, null);
+  const raw = summarizeTaskWindow(lines, (startedAt + 40) * 1000).terminalTask;
+  const task = summarizeTaskWindow(compact.lines, (startedAt + 40) * 1000).terminalTask;
+  assert.deepEqual(task.telemetry, raw.telemetry);
+  assert.equal(task.telemetry.outputTokens, 130);
+  assert.equal(task.unattributedOutputTokens, 40);
+  assert.equal(task.models[0].outputTokens, 90); // mirrors counted once
+  assert.equal(task.hasUnpricedModels, true);
+  assert.equal(task.telemetry.intervalCount, 3);
+  assert.equal(task.telemetry.peakTokensPerSecond, 8);
+  assert.equal(task.telemetry.minTokensPerSecond, 6);
+  assert.equal(task.telemetry.streamingDurationMs, 8400);
+  assert.equal(task.telemetry.serviceTier, "Fast");
+});
+
 const startedAt = 1791590400;
 function counter(seconds, total, last = total) {
   return JSON.stringify({ timestamp: new Date((startedAt + seconds) * 1000).toISOString(), type: "event_msg",
@@ -80,4 +126,19 @@ test("completed-task latency and numeric telemetry cross the public normalizatio
   assert.equal(result.latestTask.id, "turn-1");
   assert.equal(result.latestTask.telemetry.firstTokenMs, 1250);
   assert.ok(!JSON.stringify(result).includes("private content"));
+});
+
+test("streaming duration and speed tier require explicit evidence and survive task normalization", () => {
+  assert.equal(summarizeTaskTelemetry([counter(10, 130)], terminal, cost).streamingDurationMs, null);
+  assert.equal(summarizeTaskTelemetry([counter(10, 130)], terminal, cost).serviceTier, null);
+  for (const [raw, expected] of [["standard", "Standard"], ["priority", "Fast"], ["ultra_fast", "UltraFast"], ["unknown-secret", null]]) {
+    const lines = [JSON.stringify({ type: "event_msg", timestamp: new Date(startedAt * 1000).toISOString(), payload: { type: "task_started", turn_id: "speed", started_at: startedAt } }),
+      JSON.stringify({ type: "turn_context", payload: { model: "gpt-6.1-sol", service_tier: raw } }), counter(10,130),
+      JSON.stringify({ type: "event_msg", timestamp: new Date((startedAt + 30) * 1000).toISOString(), payload: { type: "task_complete", turn_id: "speed", started_at: startedAt,
+        completed_at: startedAt+30, duration_ms:30000,time_to_first_token_ms:1250,streaming_duration_ms:8400 } })];
+    const task = summarizeTaskWindow(lines, (startedAt+40)*1000).terminalTask;
+    const result = normalizeActiveTaskResult({ available:true,tasks:[],terminalTasks:[task] }).latestTask.telemetry;
+    assert.equal(result.streamingDurationMs,8400); assert.equal(result.serviceTier,expected);
+    assert.ok(!JSON.stringify(result).includes("unknown-secret"));
+  }
 });

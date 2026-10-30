@@ -119,6 +119,12 @@ async function shutdown() {
     console.log('Bilingual modal/ledger gate passed');
     if(process.argv.includes('--screenshots')) {
       const directory=path.join(root,'docs/screenshots');fs.mkdirSync(directory,{recursive:true});
+      let screenshotReady=false;
+      for(let i=0;i<240;i++) {
+        screenshotReady=await inRenderer('Boolean(latestSnapshot) && elements.loadingLayer.classList.contains("is-hidden")');
+        if(screenshotReady)break;await delay(250);
+      }
+      assert.ok(screenshotReady,'Wait for the actual workspace, not the splash');
       for(const locale of ['zh','en']) {
         await inRenderer(`(async()=>{language=${JSON.stringify(locale)};await codexMonitor.setLanguage(language);applyLanguage();Workbench.navigate('overview','main',{focus:false});syncWorkbench();})()`);
         await delay(500);

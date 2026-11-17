@@ -196,6 +196,12 @@ const i18n = {
     taskConcurrencyHint: "并发数：{count}，其中子智能体 {agents}。统计本机所有运行中的任务，不含已完成或已停止任务。",
     taskConcurrencyUnknown: "并发数暂不可用",
     taskFirstToken: "首字响应",
+    taskPreviousFirstToken: "上次首字",
+    taskPreviousFirstTokenHint: "最近一次实测：{project}（{time}）。当前回合尚未记录首字时间。",
+    taskTimingNotLogged: "未上报",
+    taskStreamingEvidence: "仅显示 Codex 记录的流式输出时长。不使用整个回合耗时或首字响应推算。",
+    taskTierEvidence: "来自当前回合或 Codex 应用的线程速度设置，不由输出速率推算。",
+    taskNoFilterMatch: "没有符合筛选条件的任务",
     taskTotalTokens: "总 Tokens",
     taskPeakRate: "峰值 tok/s",
     taskMinRate: "最低 tok/s",
@@ -503,7 +509,7 @@ const i18n = {
     taskAbnormalMessage: "{project} 的任务未检测到正常结束或手动停止事件，已在 {time} 停止计时。请检查 Codex 客户端、网络、系统休眠或进程异常。",
     statScopeTitle: "{metric}；统计口径",
     statScopeOpen: "查看“{metric}”统计口径说明",
-    statScopeTokenDailyCost: "费用页沿用老版每日校准：OpenAI 原生模型按官方日桶分摊，第三方独立累计。日均费用使用同一批展示记录中有输入或输出的日期数，不混用账号工作天数；未注明日期的记录保留在总额中，但不推造工作日。金额及模型 Token 使用同一校准口径，不代表逐请求实测或订阅账单，原始账本不被覆盖。",
+    statScopeTokenDailyCost: "官方趋势的日均费用与日均 Token 使用同一账号快照及工作天数。金额来自原生模型本机样本推算，不是订阅账单。本机趋势仅在估价与已校验 Token 覆盖同一批有日期的记录时显示日均金额，不计未注明日期的记录、旧账本或其他设备。",
     statScopeTaskRunning: "进行中任务来自近期本机会话的明确 task_started 状态。当前扫描达到安全文件或字节上限，可能还有未显示的任务；列表不会根据文件更新时间猜测任务状态。",
     statScopeTaskRunningUnavailable: "当前无法完整读取本机任务状态，因此进行中数量不可用。监测台只接受明确的 task_started 状态，不会根据文件更新时间猜测任务。",
     statScopeTaskPending: "待处理只保存本次监测台运行期间刚完成或中断、且尚未由你确认的任务。关闭监测台后不会恢复这些任务名称或条目；历史总数和结果分类仍以匿名数字永久保存。",
@@ -758,6 +764,12 @@ const i18n = {
     taskConcurrencyHint: "Concurrent tasks: {count}, including {agents} subagents. All locally observed running tasks; completed and stopped tasks are excluded.",
     taskConcurrencyUnknown: "Concurrent task count unavailable",
     taskFirstToken: "First token",
+    taskPreviousFirstToken: "Last first token",
+    taskPreviousFirstTokenHint: "Last measured: {project} ({time}). No first-token timing has been logged for the current turn.",
+    taskTimingNotLogged: "Not logged",
+    taskStreamingEvidence: "Shows streaming duration only when Codex records it. Turn length and first-token latency are not substitutes.",
+    taskTierEvidence: "From the turn or Codex's applied thread setting, not inferred from token rate.",
+    taskNoFilterMatch: "No tasks match these filters",
     taskTotalTokens: "Total tokens",
     taskPeakRate: "Peak tok/s",
     taskMinRate: "Min tok/s",
@@ -1065,7 +1077,7 @@ const i18n = {
     taskAbnormalMessage: "{project} ended without a normal completion or manual stop event. Timing stopped at {time}. Check the Codex client, network, system sleep, or an unexpected process exit.",
     statScopeTitle: "{metric}; Coverage",
     statScopeOpen: "View the coverage notes for {metric}",
-    statScopeTokenDailyCost: "The cost page uses legacy daily calibration: native OpenAI models are allocated against official daily buckets, while third-party usage remains independent. Daily average cost uses dates with input or output in the same displayed population, not account work days. Undated evidence remains in the total without inventing work days. Cost and model Tokens use the same calibrated basis; neither is a per-request measurement or subscription bill, and the raw ledger is retained.",
+    statScopeTokenDailyCost: "Account trend averages use the same account snapshot and work-day denominator. Cost is estimated from sampled native model usage, not a subscription bill. Local trends show a daily cost only when the estimate and verified Tokens cover the same dated records, excluding undated usage, unverified ledgers and other devices.",
     statScopeTaskRunning: "Running tasks require an explicit task_started state in recent readable local sessions. This scan reached a safe file or byte bound, so another task may be omitted. File modification time is never used to guess that a task is running.",
     statScopeTaskRunningUnavailable: "The local task state cannot currently be read completely, so the running count is unavailable. The monitor requires an explicit task_started state and never guesses from file modification time.",
     statScopeTaskPending: "Pending contains only newly completed or interrupted tasks from this monitor session that you have not confirmed. Project names and pending entries are not restored after the monitor exits; anonymous historical totals and outcome counts remain permanently stored.",
@@ -1139,7 +1151,7 @@ const elements = Object.fromEntries([
   "checkpointSignalSource", "checkpointDashboardSource", "checkpointOdds24", "checkpointOdds48",
   "checkpointRange24", "checkpointRange48", "checkpointStatistics",
   "taskFilter", "taskSort", "confirmAllTasks",
-  "appVersion", "taskPerformance", "latestTaskIdentity", "latestTaskFirstToken", "latestTaskTokens",
+  "appVersion", "taskPerformance", "latestTaskIdentity", "latestTaskFirstTokenLabel", "latestTaskFirstToken", "latestTaskTokens",
   "latestTaskPeak", "latestTaskMin", "latestTaskAverage", "latestTaskCacheHit", "latestTaskStreamingDuration", "latestTaskServiceTier", "taskPerformanceScope", "taskConcurrency",
   "monitorUpdateStatus", "monitorUpdateCheck", "monitorUpdateInstall",
   "settingsButton", "settingsPopover", "settingsClose", 
@@ -1239,6 +1251,8 @@ let tokenChartAnimationActive = false;
 let tokenChartHoverIndex = null;
 let activeTasks = [];
 let latestPerformanceTask = null;
+let lastMeasuredFirstToken = null;
+const queuedTaskHandoffs = new Map();
 let pendingTasks = [];
 const dismissedPendingTaskIds = new Set();
 const shownAbnormalTaskIds = new Set();
@@ -1295,7 +1309,7 @@ function cancelSecondaryModalTransition(modal) {
 function openSecondaryModal(modal, focusTarget) {
   if (modal.dataset.panel) {
     const [page, tab] = modal.dataset.panel.split(":");
-    window.Workbench.navigate(page, tab === "all" ? "running" : tab); return;
+    window.Workbench.navigate(page, tab); return;
   }
   const blocking = [...document.querySelectorAll('[aria-modal="true"]')].find(node => node !== modal && !node.hidden);
   if (blocking) {
@@ -1647,6 +1661,9 @@ function renderTaskDetail() {
   appendActiveTaskStat(stats,t("activeTaskTimeLabel"),formatTaskDuration(active?getTaskElapsedSeconds(task):task.elapsedSeconds));
   stats.querySelector("strong").dataset.detailElapsed = "true";
   appendActiveTaskStat(stats,t("activeTaskCostLabel"),formatActiveTaskCost(task));
+  appendActiveTaskStat(stats,t("taskFirstToken"),formatTaskTiming(task.telemetry?.firstTokenMs));
+  appendActiveTaskStat(stats,t("taskStreamingDuration"),formatTaskTiming(task.telemetry?.streamingDurationMs));
+  appendActiveTaskStat(stats,t("taskServiceTier"),task.telemetry?.serviceTier || "—");
   content.append(stats,createTaskModelRows(task));
   const note=document.createElement("p");note.className="active-task-explanation";
   note.textContent=t("activeTaskDetailsHint");content.append(note);
@@ -2308,6 +2325,13 @@ function formatTaskDuration(value) {
   return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
 }
 
+function formatTaskTiming(ms) {
+  if (!Number.isFinite(ms)) return t("taskTimingNotLogged");
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  if (ms >= 60000) return formatTaskDuration(ms / 1000);
+  return `${new Intl.NumberFormat(language === "zh" ? "zh-CN" : "en-US", { maximumFractionDigits: 1 }).format(ms / 1000)}s`;
+}
+
 function getTaskElapsedSeconds(task) {
   if (Number.isFinite(task?.startedAt)) {
     return Math.max(0, Math.floor(Date.now() / 1_000) - task.startedAt);
@@ -2405,19 +2429,13 @@ function chartBars(series, width, height, padding, maximum, compact = false) {
   const usableWidth = Math.max(1, width - padding.left - padding.right);
   const usableHeight = Math.max(1, height - padding.top - padding.bottom);
   const slotWidth = usableWidth / Math.max(1, series.length);
-  const barWidth = Math.max(
-    compact ? 2 : 3,
-    Math.min(compact ? 24 : 32, slotWidth * (compact ? .62 : .58))
-  );
+  const barWidth = Math.min(compact ? 24 : 32, slotWidth * (compact ? .62 : .70));
   const bottom = height - padding.bottom;
-  return series.map((item, index) => ({
-    x: padding.left + slotWidth * (index + .5),
-    y: bottom - Math.max(2, usableHeight * item.tokens / maximum),
-    width: barWidth,
-    height: Math.max(2, usableHeight * item.tokens / maximum),
-    bottom,
-    slotWidth
-  }));
+  return series.map((item, index) => {
+    const barHeight = item.tokens > 0 ? Math.max(1, usableHeight * item.tokens / maximum) : 0;
+    return { x: padding.left + slotWidth * (index + .5), y: bottom - barHeight,
+      width: barWidth, height: barHeight, bottom, slotWidth };
+  });
 }
 
 function drawTokenBars(
@@ -2447,6 +2465,7 @@ function drawTokenBars(
   gradient.addColorStop(1, "rgba(153,215,231,.65)");
 
   bars.forEach((bar, index) => {
+    if (!bar.height) return;
     const highlighted = index === highlightedIndex;
     const animatedHeight = Math.max(1.5, bar.height * Math.max(0, Math.min(1, growth)));
     const animatedY = bar.bottom - animatedHeight;
@@ -2455,7 +2474,7 @@ function drawTokenBars(
     context.shadowColor = highlighted
       ? "rgba(207,255,246,.62)"
       : "rgba(120,234,213,.28)";
-    context.shadowBlur = highlighted ? 13 : (compact ? (overview ? 6 : 3) : 7);
+    context.shadowBlur = highlighted ? 13 : series.length > 120 ? 0 : (compact ? (overview ? 6 : 3) : 7);
     context.fillStyle = highlighted ? "#087e9e" : gradient;
     context.beginPath();
     context.roundRect(
@@ -2520,10 +2539,9 @@ function drawTokenChartFrame(previousSeries, currentSeries, progress) {
   );
 }
 
-function getTokenSeries(period = tokenPeriod) {
+function getTokenSeries(period = tokenPeriod, limit = Infinity) {
   const buckets = latestSnapshot?.tokenUsage?.dailyUsageBuckets || [];
   const aggregated = window.TokenUsage?.aggregateTokenUsage(buckets, period) || [];
-  const limit = period === "day" ? 30 : (period === "week" ? 16 : 12);
   return aggregated.slice(-limit);
 }
 
@@ -2639,7 +2657,7 @@ function renderTokenChart(animate = true) {
 
 function drawTokenSparkline() {
   if (!window.Workbench.visible(elements.tokenSparkline)) return;
-  const series = getTokenSeries("day");
+  const series = getTokenSeries("day", 30);
   const { context, width, height } = prepareCanvas(elements.tokenSparkline);
   context.clearRect(0, 0, width, height);
   document.getElementById("overviewChartEmpty").hidden = series.length > 0;
@@ -2660,15 +2678,16 @@ function renderTokenUsageModal(animate = false) {
   )
     ? formatTokenCount(Math.round(usage.lifetimeTokens / workDays))
     : t("tokenUnavailable");
-  const costWorkDays = cost.localUsage?.totalWorkDays || 0;
-  elements.tokenModalDailyCost.textContent = (
-    costWorkDays > 0 && !cost.localUsage?.undatedTokens && cost.available && Number.isFinite(cost.estimatedCostUsd)
-  )
-    ? formatApiEstimate({
-        ...cost,
-        estimatedCostUsd: cost.estimatedCostUsd / costWorkDays
-      })
-    : t("tokenUnavailable");
+  if (usage.scope === "local") {
+    const sameDatedUsage = workDays > 0 && !usage.undatedTokens && !cost.localUsage?.undatedTokens &&
+      cost.available && !cost.hasUnverifiedHistory && !cost.calibratedToOfficialUsage &&
+      cost.localUsage?.lifetimeTokens === usage.lifetimeTokens && cost.localUsage?.totalWorkDays === workDays;
+    elements.tokenModalDailyCost.textContent = sameDatedUsage && Number.isFinite(cost.estimatedCostUsd)
+      ? formatApiEstimate({ ...cost, estimatedCostUsd: cost.estimatedCostUsd / workDays }) : t("tokenUnavailable");
+  } else {
+    const { official } = window.UsageLedgers.summarizeLedgers(usage, cost);
+    elements.tokenModalDailyCost.textContent = ledgerCost(official.dailyCostUsd, false);
+  }
   elements.tokenModalTotalWorkDays.textContent = Number.isFinite(usage.totalWorkDays)
     ? t("workDays", { count: formatTokenCount(usage.totalWorkDays) })
     : t("tokenUnavailable");
@@ -3292,11 +3311,19 @@ function pendingTaskStatusKey(task) {
   return "activeTaskCompletedStatus";
 }
 
-function mergePendingTasks(incoming = []) {
+function queueTaskHandoffs(result) {
+  const incoming = result?.pendingTasks ?? result?.completedTasks;
+  for (const task of Array.isArray(incoming) ? incoming : []) {
+    const identity = activeTaskIdentity(task);
+    if (!dismissedPendingTaskIds.has(identity)) queuedTaskHandoffs.set(identity, task);
+  }
+}
+
+function mergePendingTasks() {
   const activeIdentities = new Set(activeTasks.map(activeTaskIdentity));
   pendingTasks = pendingTasks.filter(task => !activeIdentities.has(activeTaskIdentity(task)));
   const known = new Set(pendingTasks.map(activeTaskIdentity));
-  for (const task of Array.isArray(incoming) ? incoming : []) {
+  for (const task of queuedTaskHandoffs.values()) {
     const identity = activeTaskIdentity(task);
     if (
       known.has(identity) ||
@@ -3319,9 +3346,8 @@ function mergePendingTasks(incoming = []) {
     }
     known.add(identity);
   }
-  pendingTasks = pendingTasks
-    .sort((left, right) => right.completedAt - left.completedAt)
-    .slice(0, 32);
+  queuedTaskHandoffs.clear();
+  pendingTasks.sort((left, right) => right.completedAt - left.completedAt);
 }
 
 function renderTaskInterruptionAlert(task) {
@@ -3458,7 +3484,7 @@ function renderActiveTaskRecords() {
     ? formatUsd(stats.averageEstimatedCostUsd)
     : t("tokenUnavailable");
   elements.activeTaskCount.textContent = activeTasksAvailable
-    ? String(stats.running)
+    ? `${activeTasksTruncated ? "≥" : ""}${stats.running}`
     : "—";
   elements.activeTaskPending.textContent = String(stats.pending);
   elements.activeTaskElapsed.textContent = formatTaskDuration(
@@ -3475,7 +3501,7 @@ function renderActiveTaskRecords() {
   );
 
   elements.activeTaskDetailRunning.textContent = activeTasksAvailable
-    ? String(stats.running)
+    ? `${activeTasksTruncated ? "≥" : ""}${stats.running}`
     : "—";
   elements.activeTaskDetailPending.textContent = String(stats.pending);
   elements.activeTaskDetailLongest.textContent = formatTaskDuration(
@@ -3518,13 +3544,18 @@ function renderActiveTaskClock() {
   });
 }
 
-const ACTIVE_TASK_PREVIEW_LIMIT = 1;
+const ACTIVE_TASK_PREVIEW_LIMIT = 3;
 function renderActiveTaskPreview() {
   elements.activeTaskPreviewList.replaceChildren();
-  const previewTasks = activeTasks.map(task => ({ task, pending: false }));
+  const running = activeTasks.map(task => ({ task, pending: false }));
+  const pending = pendingTasks.map(task => ({ task, pending: true }));
+  const previewTasks = [...running, ...pending];
+  const hiddenTaskCount = Math.max(0, previewTasks.length - ACTIVE_TASK_PREVIEW_LIMIT);
+  elements.activeTaskMoreIndicator.hidden = hiddenTaskCount === 0;
+  elements.activeTaskMoreIndicator.textContent = hiddenTaskCount ? t("activeTaskMore", { count: hiddenTaskCount }) : "";
   elements.activeTaskPreviewList.classList.toggle("is-single", previewTasks.length === 1);
 
-  if (!activeTasksAvailable || !previewTasks.length) {
+  if (!previewTasks.length) {
     const empty = document.createElement("div");
     empty.className = "active-task-preview-empty";
     empty.textContent = activeTasksAvailable
@@ -3661,18 +3692,18 @@ function renderActiveTaskDetails() {
   renderActiveTaskRecords();
   elements.confirmAllTasks.disabled = !pendingTasks.some(task => task.outcome === "completed");
 
-  if ((!activeTasksAvailable && !pendingTasks.length) ||
-      (!activeTasks.length && !pendingTasks.length)) {
+  const runningVisible = activeTasks.some(task => taskVisible(task, false));
+  const pendingVisible = pendingTasks.some(task => taskVisible(task, true));
+  if (!runningVisible && !pendingVisible) {
     const empty = document.createElement("div");
     empty.className = "active-task-empty";
-    empty.textContent = activeTasksAvailable || pendingTasks.length
-      ? t("activeTaskEmptyDetail")
-      : t("activeTaskUnavailable");
+    empty.textContent = t(activeTasks.length || pendingTasks.length ? "taskNoFilterMatch"
+      : activeTasksAvailable ? "activeTaskEmptyDetail" : "activeTaskUnavailable");
     elements.activeTaskList.append(empty);
     return;
   }
 
-  if (activeTasks.length) {
+  if (runningVisible) {
     const runningHeading = document.createElement("h3");
     runningHeading.className = "active-task-list-section";
     runningHeading.textContent = t("activeTaskRunningSection");
@@ -3720,7 +3751,7 @@ function renderActiveTaskDetails() {
     elements.activeTaskList.append(item);
   });
 
-  if (pendingTasks.length) {
+  if (pendingVisible) {
     const pendingHeading = document.createElement("h3");
     pendingHeading.className = "active-task-list-section";
     pendingHeading.textContent = t("activeTaskPendingSection");
@@ -3793,7 +3824,7 @@ function renderActiveTaskDetails() {
 function renderTaskPerformance(task = latestPerformanceTask) {
   // Snapshot freshness is checked at the IPC boundary. A live parent can start
   // before a completed child; do not let its older start time freeze the board.
-  if (task) latestPerformanceTask = task;
+  latestPerformanceTask = task;
   const latest = latestPerformanceTask;
   const telemetry = latest?.telemetry || {};
   const valid = value => Number.isFinite(value) && value >= 0;
@@ -3801,9 +3832,14 @@ function renderTaskPerformance(task = latestPerformanceTask) {
   const identity = latest ? `${latest.projectName || t("taskKindTask")}; ${latest.endedAt ? formatDate(latest.endedAt) : t("activeTaskRunningStatus")}` : t("latestTaskEmpty");
   elements.latestTaskIdentity.textContent = latest?.projectName || t("latestTaskEmpty");
   elements.latestTaskIdentity.title = identity;
-  elements.latestTaskFirstToken.textContent = valid(telemetry.firstTokenMs)
-    ? telemetry.firstTokenMs < 1000 ? `${Math.round(telemetry.firstTokenMs)}ms` : `${rate(telemetry.firstTokenMs / 1000)}s` : "—";
-  elements.latestTaskFirstToken.title = valid(telemetry.firstTokenMs) ? `${telemetry.firstTokenMs} ms` : t("noData");
+  const previous = !valid(telemetry.firstTokenMs) ? lastMeasuredFirstToken : null;
+  const firstTokenMs = previous?.ms ?? telemetry.firstTokenMs;
+  elements.latestTaskFirstTokenLabel.textContent = t(previous ? "taskPreviousFirstToken" : "taskFirstToken");
+  elements.latestTaskFirstToken.textContent = valid(firstTokenMs)
+    ? formatTaskTiming(firstTokenMs) : "—";
+  elements.latestTaskFirstToken.title = previous
+    ? `${firstTokenMs} ms. ${t("taskPreviousFirstTokenHint", { project: previous.projectName || t("activeTaskProjectFallback"), time: formatDate(previous.endedAt) })}`
+    : valid(firstTokenMs) ? `${firstTokenMs} ms` : t("noData");
   elements.latestTaskTokens.textContent = valid(telemetry.totalTokens)
     ? `${telemetry.partial ? "≥" : ""}${new Intl.NumberFormat(language === "zh" ? "zh-CN" : "en-US", { notation: "compact", maximumFractionDigits: 1 }).format(telemetry.totalTokens)}` : "—";
   elements.latestTaskTokens.title = valid(telemetry.totalTokens) ? `${telemetry.partial ? "≥" : ""}${telemetry.totalTokens.toLocaleString()} Tokens` : t("noData");
@@ -3812,12 +3848,11 @@ function renderTaskPerformance(task = latestPerformanceTask) {
   elements.latestTaskAverage.textContent = rate(telemetry.averageTokensPerSecond);
   elements.latestTaskCacheHit.textContent = valid(telemetry.cacheHitRate) && telemetry.cacheHitRate <= 100 ? `${rate(telemetry.cacheHitRate)}%` : "—";
   elements.latestTaskStreamingDuration.textContent = valid(telemetry.streamingDurationMs)
-    ? `${rate(telemetry.streamingDurationMs / 1000)}s` : "—";
+    ? formatTaskTiming(telemetry.streamingDurationMs) : latest ? t("taskTimingNotLogged") : "—";
   elements.latestTaskServiceTier.textContent = ["Standard", "Fast", "UltraFast"].includes(telemetry.serviceTier)
     ? telemetry.serviceTier : "—";
-  const evidenceHint = language === "zh" ? "仅使用日志中明确记录的流式时长与速度档位；不由回合总耗时、首字时间或输出速率推算。" : "Uses explicit streaming-duration and service-tier log fields only; never inferred from turn time, first-token latency or token rate.";
-  elements.latestTaskStreamingDuration.title = evidenceHint;
-  elements.latestTaskServiceTier.title = evidenceHint;
+  elements.latestTaskStreamingDuration.title = t("taskStreamingEvidence");
+  elements.latestTaskServiceTier.title = t("taskTierEvidence");
   const scope = t("taskTelemetryScope", { task: identity });
   elements.taskPerformance.removeAttribute("title");
   elements.taskPerformance.setAttribute("aria-label", `${t("latestTaskTitle")}: ${identity}`);
@@ -3830,7 +3865,10 @@ function renderActiveTasks(result = {}) {
   activeTasks = activeTasksAvailable && Array.isArray(result.tasks)
     ? result.tasks.slice().sort((left, right) => left.startedAt - right.startedAt)
     : [];
-  renderTaskPerformance(result.latestTask);
+  if (result.lastMeasuredFirstToken && result.lastMeasuredFirstToken.endedAt >= (lastMeasuredFirstToken?.endedAt ?? 0)) {
+    lastMeasuredFirstToken = result.lastMeasuredFirstToken;
+  }
+  renderTaskPerformance(result.available ? (result.latestTask ?? null) : latestPerformanceTask);
   const concurrentCount = activeTasksAvailable ? `${activeTasksTruncated ? "≥" : ""}${activeTasks.length}` : "—";
   const agentCount = activeTasks.filter(task => task.taskKind === "subagent").length;
   elements.taskConcurrency.textContent = t("taskConcurrency", { count: concurrentCount });
@@ -3840,9 +3878,8 @@ function renderActiveTasks(result = {}) {
   elements.taskConcurrency.setAttribute("aria-label", concurrentHint);
   elements.taskConcurrency.classList.toggle("is-running", activeTasksAvailable && activeTasks.length > 0);
   activeTaskRecords = normalizeActiveTaskRecords(result.records);
-  mergePendingTasks(
-    Array.isArray(result.pendingTasks) ? result.pendingTasks : result.completedTasks
-  );
+  queueTaskHandoffs(result);
+  mergePendingTasks();
   activeTaskObservedAt = Number.isFinite(result.observedAt) ? result.observedAt : null;
 
   elements.activeTaskCard.classList.toggle("is-running", activeTasks.length > 0);
@@ -3856,11 +3893,6 @@ function renderActiveTasks(result = {}) {
   );
   renderStatScopeButtons();
   renderActiveTaskRecords();
-  const hiddenTaskCount = Math.max(0, activeTasks.length - ACTIVE_TASK_PREVIEW_LIMIT);
-  elements.activeTaskMoreIndicator.hidden = hiddenTaskCount === 0;
-  elements.activeTaskMoreIndicator.textContent = hiddenTaskCount
-    ? t("activeTaskMore", { count: hiddenTaskCount })
-    : "";
   elements.autoRefreshLabel.textContent = t(activeTasks.length ? "autoRefreshActive" : "autoRefresh");
   renderActiveTaskPreview();
 
@@ -3890,11 +3922,6 @@ async function handlePendingTaskAction(event) {
   pendingTasks.splice(index, 1);
   renderActiveTaskPreview();
   renderActiveTaskDetails();
-  const hiddenTaskCount = Math.max(0, activeTasks.length - ACTIVE_TASK_PREVIEW_LIMIT);
-  elements.activeTaskMoreIndicator.hidden = hiddenTaskCount === 0;
-  elements.activeTaskMoreIndicator.textContent = hiddenTaskCount
-    ? t("activeTaskMore", { count: hiddenTaskCount })
-    : "";
   if (action === "return") {
     try {
       await window.codexMonitor.focusCodex();
@@ -4132,6 +4159,7 @@ function render(snapshot) {
 
 function applySnapshot(snapshot) {
   if (!snapshot) return;
+  queueTaskHandoffs(snapshot.activeTasks);
   const currentTasks = latestSnapshot?.activeTasks;
   latestSnapshot = currentTasks?.observedAt > snapshot.activeTasks?.observedAt
     ? { ...snapshot, activeTasks: currentTasks } : snapshot;
@@ -4373,6 +4401,7 @@ async function initialize() {
   rendererUnsubscribers.push(window.codexMonitor.onAlwaysOnTop(enabled=>{alwaysOnTop=enabled;elements.pinButton.checked=enabled;}));
   unsubscribeSnapshot=window.codexMonitor.onSnapshot?.(snapshot=>{if(!isRefreshing)applySnapshot(snapshot);});
   unsubscribeTasks=window.codexMonitor.onTasks?.(result=>{
+    queueTaskHandoffs(result);
     if(latestSnapshot?.activeTasks?.observedAt>result.observedAt)return;
     if(latestSnapshot)latestSnapshot={...latestSnapshot,activeTasks:result};
     if(!latestSnapshot||!deferHiddenPresentation())renderActiveTasks(result);

@@ -181,6 +181,10 @@ Renderer security settings are non-negotiable:
 - Press and release feed a bounded renderer spring that retains velocity across
   rapid taps. Reset all squash/stretch before handing a drag to Windows. Native
   movement must show the unmodified aspect ratio; animations never block input.
+  The open bubble frame and text share that spring through one visual wrapper.
+  Their resting layout, button hit box and native regions stay fixed; reduced
+  motion, hide and drag reset both visuals. Verify squeeze and release with the
+  bubble already open, including stable hit geometry and unchanged click action.
 - On 2026-10-30 the user explicitly authorized pet throwing and screen bounces.
   Keep one fixed narrow native carrier and fixed local sprite coordinates for
   idle, native dragging and flight. Reserve transparent space for a bubble above
@@ -331,7 +335,17 @@ Renderer security settings are non-negotiable:
   records are read-only; edits to a mixed row explicitly affect its manual part.
 - Streaming duration and Standard/Fast/UltraFast are explicit evidence fields.
   Never subtract first-token latency from whole-turn time or infer tier from
-  throughput. Whitelist safe tier aliases; missing fields remain unavailable.
+  throughput. Whitelist safe tier aliases, including the applied
+  `thread_settings_applied.thread_settings.service_tier` fallback. Missing
+  streaming duration is not logged. Retain the latest measured terminal
+  first-token latency separately, with its turn/time attribution when the
+  current turn has not logged a value.
+- An explicit terminal record conveys its own timing even when the turn's
+  start cannot fit in the tail budget. Mark the associated counters partial,
+  prioritize observed/live rollouts, and keep explicit handoffs on truncated
+  reads without inferring an outcome from absence. Preserve handoffs while
+  the workspace is hidden. Check running plus pending preview rows, overflow
+  count and the complete filtered task view in both languages.
 - Compact task tails retain modern/legacy usage format identity. Interval
   telemetry uses separate cumulative baselines and the cost reader's evidenced
   mirror deduplication, including rollback of a confirmed first mirrored pair.
@@ -634,6 +648,14 @@ client's visible “Update” button before installation. Do not regress to that
   latest complete dated snapshot; doing so makes legacy fee calibration jump
   back to inflated raw counters. An explicit valid empty/zero snapshot still
   replaces an older higher value. Do not merge account maxima or date buckets.
+- Account buckets represent one total per date. Collapse identical duplicates;
+  conflicting rows, a missing lifetime total or an empty history paired with a
+  positive total cannot invalidate a complete cached account snapshot. Derive
+  work days from nonzero dated buckets. The trend uses one scope and denominator
+  for both daily averages. The overview still shows the recent 30-day chart.
+- During archive recovery, a compatible generation containing only aggregate
+  model counters retains its newest aggregate. An absent per-rollout index is
+  not a zero-token observation. Never restore older generations over a rebuild.
 
 ### Subscription details
 
@@ -1144,6 +1166,9 @@ than assuming a launch replaced an older single-instance process.
   input/cache semantics, and the same-denominator bilingual detail view.
 ## Vendor pricing and numeric repricing (1.3.53)
 
+- GPT-6.2 Astra and Sol use separate Standard API rates and the per-request
+  threshold above 272,000 input Tokens. Do not infer prices for unpublished
+  variants or accelerated service tiers from the model name or task telemetry.
 - Keep dated, first-party source URLs with the current Standard/global text
   pricing catalog. Recognize only explicit model versions and bounded route,
   snapshot and thinking aliases. Unknown model variants and unavailable cache

@@ -5,7 +5,7 @@ const os = require("node:os");
 const path = require("node:path");
 const readline = require("node:readline");
 const { readGoalContexts, normalizeTaskContext } = require("./codex-task-context");
-const { normalizeTaskTelemetry, summarizeTaskTelemetry, normalizeServiceTier } = require("./task-telemetry");
+const { normalizeTaskTelemetry, summarizeTaskTelemetry, normalizeServiceTier, readServiceTier } = require("./task-telemetry");
 const { configuredSessionRoots, discoverCodexSources } = require("./codex-sources");
 const { tokenUsageInfo, compactUsage, USAGE_RECORD_PATTERN } = require("./usage-record");
 
@@ -19,6 +19,7 @@ const ACTIVE_INACTIVITY_TIMEOUT_MS = 15 * 60 * 1_000;
 const PROJECT_HEAD_BYTES = 512 * 1024;
 const INITIAL_TAIL_BYTES = 256 * 1024;
 const MAX_ACTIVE_TURN_BYTES = 64 * 1024 * 1024;
+const MAX_UNOBSERVED_TERMINAL_TAIL_BYTES = 8 * 1024 * 1024;
 const MAX_CANDIDATE_FILES = 96;
 const MAX_ACTIVE_TASKS = 32;
 const MAX_TOTAL_SCAN_BYTES = 256 * 1024 * 1024;
@@ -79,7 +80,7 @@ function parseRelevantRecord(line) {
     if (record.type === "response_item" && record.payload?.role === "assistant" &&
         record.payload?.phase === "final_answer") {
       return { kind: "task_complete", eventAt: normalizeTimestampSeconds(null, record.timestamp),
-        completedAtExplicit: true, durationSeconds: null, turnId: null, finalAnswer: true };
+        eventAtMs: Date.parse(record.timestamp), completedAtExplicit: true, durationSeconds: null, turnId: null, finalAnswer: true };
     }
     if (
       record?.type === "event_msg" &&
@@ -97,6 +98,7 @@ function parseRelevantRecord(line) {
           record.payload.completed_at,
           record.timestamp
         ),
+        eventAtMs: Date.parse(record.timestamp),
         durationSeconds: Number.isFinite(durationMs) && durationMs >= 0
           ? Math.floor(durationMs / 1_000)
           : null,
@@ -236,15 +238,19 @@ function latestTimestampMsFromLines(lines, fallback = null) {
 function compactTaskLines(lines) {
   const compact = [];
   for (const line of lines) {
-    if (!/"type"\s*:\s*"(?:turn_context|token_count|token_usage_record|task_started|task_complete|task_completed|turn_aborted|response_item)"/.test(line)) continue;
+    if (!/"type"\s*:\s*"(?:turn_context|thread_settings_applied|token_count|token_usage_record|task_started|task_complete|task_completed|turn_aborted|response_item)"/.test(line)) continue;
     try {
       const record = JSON.parse(line);
       if (record.type === "turn_context") {
         compact.push(JSON.stringify({ type: record.type, timestamp: record.timestamp, payload: { model: record.payload?.model,
-          service_tier: normalizeServiceTier(record.payload?.service_tier ?? record.payload?.serviceTier) } }));
+          service_tier: readServiceTier(record) } }));
+      } else if (record.type === "event_msg" && record.payload?.type === "thread_settings_applied") {
+        compact.push(JSON.stringify({ type: "event_msg", timestamp: record.timestamp,
+          payload: { type: "thread_settings_applied", thread_settings: { service_tier: readServiceTier(record) } } }));
       } else if (tokenUsageInfo(record)) {
         const info = tokenUsageInfo(record);
         const safeInfo = { total_token_usage: compactUsage(info.total_token_usage), last_token_usage: compactUsage(info.last_token_usage),
+          time_to_first_token_ms: typeof info.time_to_first_token_ms === "number" ? info.time_to_first_token_ms : undefined,
           streaming_duration_ms: typeof (info.streaming_duration_ms ?? info.stream_duration_ms) === "number"
             ? (info.streaming_duration_ms ?? info.stream_duration_ms) : undefined,
           service_tier: normalizeServiceTier(info.service_tier ?? info.serviceTier) };
@@ -253,7 +259,8 @@ function compactTaskLines(lines) {
         compact.push(JSON.stringify({ type: record.type, timestamp: record.timestamp,
           payload: record.type === "token_usage_record"
             ? { usage: safeInfo.last_token_usage, thread_token_usage: safeInfo.total_token_usage,
-                streaming_duration_ms: safeInfo.streaming_duration_ms, service_tier: safeInfo.service_tier }
+                time_to_first_token_ms: safeInfo.time_to_first_token_ms, streaming_duration_ms: safeInfo.streaming_duration_ms,
+                service_tier: safeInfo.service_tier }
             : { type: "token_count", info: safeInfo } }));
       } else {
         const relevant = parseRelevantRecord(line);
@@ -303,6 +310,17 @@ function summarizeTaskCost(lines, now) {
   };
 }
 
+function appliedTierBefore(lines, index) {
+  for (let i = index - 1; i >= 0; i -= 1) {
+    if (!/"type"\s*:\s*"thread_settings_applied"/.test(lines[i])) continue;
+    try {
+      const record = JSON.parse(lines[i]);
+      if (record.type === "event_msg" && record.payload?.type === "thread_settings_applied") return readServiceTier(record);
+    } catch {}
+  }
+  return null;
+}
+
 function summarizeTaskWindow(lines, now = Date.now(), metadata = {}) {
   const safeLines = Array.isArray(lines) ? lines : [];
   const lifecycle = findLastLifecycle(safeLines);
@@ -325,7 +343,8 @@ function summarizeTaskWindow(lines, now = Date.now(), metadata = {}) {
         startedAt,
         elapsedSeconds: Math.max(0, nowSeconds - startedAt),
         telemetry: summarizeTaskTelemetry(safeLines.slice(lifecycle.index),
-          { ...lifecycle.record, startedAt, eventAt: now / 1000, durationMs: null }, cost, Boolean(metadata.partial)),
+          { ...lifecycle.record, startedAt, eventAt: now / 1000, durationMs: null,
+            appliedTier: metadata.appliedTier ?? appliedTierBefore(safeLines, lifecycle.index) }, cost, Boolean(metadata.partial)),
         ...cost,
         partial: Boolean(metadata.partial),
         ...context,
@@ -351,10 +370,16 @@ function summarizeTaskWindow(lines, now = Date.now(), metadata = {}) {
     };
   }
   const duration = terminalDuration(start?.record, lifecycle.record);
-  const cost = summarizeTaskCost(
-    safeLines.slice(start?.index ?? 0, lifecycle.index + 1),
-    now
-  );
+  let segmentStart = start?.index ?? 0;
+  if (!start) {
+    for (let i = lifecycle.index - 1; i >= 0; i -= 1) {
+      const previous = parseRelevantRecord(safeLines[i]);
+      if (isLifecycleRecord(previous) && !previous.finalAnswer) { segmentStart = i + 1; break; }
+    }
+  }
+  const segment = safeLines.slice(segmentStart, lifecycle.index + 1);
+  const partial = Boolean(metadata.partial || !start);
+  const cost = summarizeTaskCost(segment, now);
   const outcome = lifecycle.record.kind === "task_complete"
     ? "completed"
     : (
@@ -373,19 +398,17 @@ function summarizeTaskWindow(lines, now = Date.now(), metadata = {}) {
       endedAt: Number.isFinite(endedAt)
         ? endedAt
         : startedAt + duration.elapsedSeconds,
-      completedAt: (
-        Number.isFinite(endedAt) ? endedAt : startedAt + duration.elapsedSeconds
-      ) * 1_000,
+      completedAt: Math.floor(lifecycle.record.eventAtMs / 1_000) === endedAt
+        ? lifecycle.record.eventAtMs : (endedAt ?? startedAt + duration.elapsedSeconds) * 1_000,
       elapsedSeconds: duration.elapsedSeconds,
       durationKnown: duration.durationKnown,
-      telemetry: summarizeTaskTelemetry(
-        safeLines.slice(start?.index ?? 0, lifecycle.index + 1),
-        { ...lifecycle.record, startedAt }, cost, Boolean(metadata.partial || !start)
-      ),
+      explicitTerminal: !lifecycle.record.finalAnswer,
+      telemetry: summarizeTaskTelemetry(segment, { ...lifecycle.record, startedAt,
+        appliedTier: metadata.appliedTier ?? appliedTierBefore(safeLines, segmentStart) }, cost, partial),
       outcome,
       ...context,
       ...cost,
-      partial: Boolean(metadata.partial),
+      partial,
       pricingDate: PRICING_DATE
     },
     lifecycleKey: `${outcome}:${lifecycle.record.turnId || startedAt}:${
@@ -455,7 +478,11 @@ async function listRolloutFiles(roots, now, lookbackMs = null) {
       if (entry.isDirectory()) {
         await visit(root, candidate, archived);
       } else if (entry.isFile() && entry.name.endsWith(".jsonl")) {
-        const stat = await fs.stat(candidate);
+        const stat = await fs.stat(candidate).catch(error => {
+          if (error?.code !== "ENOENT") throw error;
+          return null;
+        });
+        if (!stat) continue;
         if (Number.isFinite(lookbackMs) && now - stat.mtimeMs > lookbackMs) continue;
         found.push({
           path: candidate,
@@ -498,7 +525,15 @@ async function readTaskWindow(file, byteBudget, observedTurnId = null) {
           lifecycle.record.turnId
         ));
       const hasObservedTurn = !observedTurnId || lines.some(line => parseRelevantRecord(line)?.turnId === observedTurnId);
-      if (lifecycle && ((hasRequiredStart && hasObservedTurn) || start === 0)) {
+      // An explicit completion still carries timing even when its start is
+      // outside the tail. Do not let old long turns consume every live scan.
+      const explicitTerminal = lifecycle && !lifecycle.record.finalAnswer &&
+        lifecycle.record.kind !== "task_started" && Number.isFinite(lifecycle.record.startedAt);
+      const windowLimit = explicitTerminal && !observedTurnId
+        ? MAX_UNOBSERVED_TERMINAL_TAIL_BYTES : MAX_ACTIVE_TURN_BYTES;
+      const nextWindowBytes = Math.min(file.size, windowBytes * 2, windowLimit, Math.max(0, byteBudget - bytesReadTotal));
+      if (lifecycle && ((hasRequiredStart && hasObservedTurn) || start === 0 ||
+          (explicitTerminal && nextWindowBytes <= windowBytes))) {
         const head = await readProjectNameFromHead(
           handle,
           file.size,
@@ -508,7 +543,7 @@ async function readTaskWindow(file, byteBudget, observedTurnId = null) {
         return {
           lines,
           bytesRead: bytesReadTotal,
-          partial: !hasRequiredStart,
+          partial: !hasRequiredStart || !hasObservedTurn,
           projectName: head.projectName,
           threadId: head.threadId, taskKind: head.taskKind, parentThreadId: head.parentThreadId,
           trailingLine: (() => {
@@ -517,16 +552,7 @@ async function readTaskWindow(file, byteBudget, observedTurnId = null) {
           })()
         };
       }
-      if (start === 0 || windowBytes >= MAX_ACTIVE_TURN_BYTES || windowBytes >= byteBudget) {
-        return { lines: [], bytesRead: bytesReadTotal, partial: start > 0 };
-      }
-      const nextWindowBytes = Math.min(
-        file.size,
-        windowBytes * 2,
-        MAX_ACTIVE_TURN_BYTES,
-        Math.max(0, byteBudget - bytesReadTotal)
-      );
-      if (nextWindowBytes <= windowBytes) return { lines, bytesRead: bytesReadTotal, partial: true };
+      if (nextWindowBytes <= windowBytes) return { lines, bytesRead: bytesReadTotal, partial: start > 0 };
       windowBytes = nextWindowBytes;
     }
   } finally {
@@ -750,11 +776,13 @@ function normalizeTerminalTask(value) {
     projectName: normalizeProjectName(value?.projectName),
     startedAt,
     endedAt,
-    completedAt: endedAt * 1_000,
+    completedAt: Math.floor(value?.completedAt / 1_000) === endedAt
+      ? value.completedAt : endedAt * 1_000,
     elapsedSeconds: Number.isFinite(value?.elapsedSeconds)
       ? Math.max(0, Math.floor(value.elapsedSeconds))
       : Math.max(0, endedAt - startedAt),
     durationKnown: value?.durationKnown !== false,
+    explicitTerminal: value?.explicitTerminal !== false,
     outcome: normalizeTaskOutcome(value?.outcome),
     telemetry: normalizeTaskTelemetry(value?.telemetry),
     estimatedCostUsd: Number.isFinite(value?.estimatedCostUsd)
@@ -994,7 +1022,9 @@ class CodexActiveTaskReader {
         if (record && ["task_complete", "turn_aborted"].includes(record.kind)) terminalIndices.push({ index, segmentStart });
       });
       for (const entry of terminalIndices.slice(-MAX_CANDIDATE_FILES)) {
-        const prior = summarizeTaskWindow(window.lines.slice(entry.segmentStart, entry.index + 1), now, metadata).terminalTask;
+        const prior = summarizeTaskWindow(window.lines.slice(entry.segmentStart, entry.index + 1), now, {
+          ...metadata, appliedTier: appliedTierBefore(window.lines, entry.segmentStart)
+        }).terminalTask;
         if (prior) priorTerminals.push(prior);
       }
       cached = { contextKey, summary, priorTerminals };
@@ -1143,7 +1173,10 @@ class CodexActiveTaskReader {
       ACTIVE_LOOKBACK_MS
     );
     const recentFiles = inventory
-      .sort((left, right) => right.mtimeMs - left.mtimeMs)
+      .sort((left, right) => {
+        const priority = file => this.observedRolloutTurns.has(rolloutFileIdentity(file)) ? 0 : file.archived ? 2 : 1;
+        return priority(left) - priority(right) || right.mtimeMs - left.mtimeMs;
+      })
       .slice(0, MAX_CANDIDATE_FILES);
     const tasks = [];
     const terminalTasks = [];
@@ -1158,14 +1191,21 @@ class CodexActiveTaskReader {
       }
       const remainingBudget = MAX_TOTAL_SCAN_BYTES - scannedBytes;
       const fileIdentity = rolloutFileIdentity(file);
-      const window = await this.readCachedTaskWindow(file, remainingBudget, this.observedRolloutTurns.get(fileIdentity));
+      let window;
+      try {
+        window = await this.readCachedTaskWindow(file, remainingBudget, this.observedRolloutTurns.get(fileIdentity));
+      } catch (error) {
+        if (!["ENOENT", "EBUSY", "EPERM"].includes(error?.code)) throw error;
+        truncated = true;
+        continue;
+      }
       scannedBytes += window.bytesRead;
-      if (window.partial) truncated = true;
       const { summary, priorTerminals } = this.summarizeCachedWindow(window, now, {
         partial: window.partial, projectName: window.projectName,
         taskKind: window.taskKind, parentThreadId: window.parentThreadId,
         ...(goalContexts.get(window.threadId) || goalContexts.get(window.parentThreadId) || {})
       });
+      if (window.partial && (!summary.terminalTask?.explicitTerminal || this.observedRolloutTurns.has(fileIdentity))) truncated = true;
       terminalTasks.push(...priorTerminals);
       if (summary.task?.id) this.observedRolloutTurns.set(fileIdentity, summary.task.id);
       else this.observedRolloutTurns.delete(fileIdentity);
@@ -1194,6 +1234,7 @@ class CodexActiveTaskReader {
             completedAt: endedAt * 1_000,
             elapsedSeconds: Math.max(0, endedAt - summary.task.startedAt),
             durationKnown: true,
+            explicitTerminal: false,
             outcome: summary.task.goalStatus ? "managed-stopped" : "abnormal-interrupted"
           });
         } else if (now - Math.max(file.mtimeMs, (latestEventAt || 0) * 1000) > ACTIVE_INACTIVITY_TIMEOUT_MS && summary.task.goalStatus !== "active") {
@@ -1207,6 +1248,7 @@ class CodexActiveTaskReader {
             completedAt: endedAt * 1_000,
             elapsedSeconds: Math.max(0, endedAt - summary.task.startedAt),
             durationKnown: true,
+            explicitTerminal: false,
             outcome: summary.task.goalStatus ? "managed-stopped" : "abnormal-interrupted"
           });
         } else if (tasks.length < MAX_ACTIVE_TASKS) {
@@ -1289,6 +1331,8 @@ function normalizeActiveTaskResult(raw, now = Date.now()) {
     .map(normalizeTerminalTask)
     .filter(Boolean)
     .slice(0, MAX_CANDIDATE_FILES);
+  const measured = terminalTasks.filter(task => task.outcome === "completed" && Number.isFinite(task.telemetry?.firstTokenMs))
+    .sort((left, right) => right.completedAt - left.completedAt)[0];
   const historySnapshot = raw.history?.available
     ? normalizeTaskHistorySnapshot(raw.history, null, now)
     : null;
@@ -1296,6 +1340,8 @@ function normalizeActiveTaskResult(raw, now = Date.now()) {
     available: true,
     tasks,
     terminalTasks,
+    lastMeasuredFirstToken: measured ? { ms: measured.telemetry.firstTokenMs,
+      endedAt: measured.endedAt, projectName: measured.projectName } : null,
     latestTask: tasks.slice().sort((left, right) => right.startedAt - left.startedAt)[0] ||
       terminalTasks.filter(task => task.outcome === "completed")
         .sort((left, right) => right.completedAt - left.completedAt)[0] || null,

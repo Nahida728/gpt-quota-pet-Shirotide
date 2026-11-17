@@ -121,6 +121,30 @@ test("summary-only reads retain the complete account snapshot used for fee calib
   assert.deepEqual(corrected.dailyUsageBuckets, []);
 });
 
+test("duplicate daily entries do not inflate counts or replace a valid account snapshot", () => {
+  const bucket = { startDate: "2026-11-17", tokens: 200 };
+  const initial = normalizeTokenUsageResponse({ summary: { lifetimeTokens: 200, totalWorkDays: 12 },
+    dailyUsageBuckets: [bucket, { ...bucket }] }, {}, 1000);
+  assert.deepEqual(initial.dailyUsageBuckets, [bucket]);
+  assert.equal(initial.totalWorkDays, 1);
+  for (const raw of [
+    { summary: { lifetimeTokens: 500 }, dailyUsageBuckets: [] },
+    { summary: { lifetimeTokens: 200 }, dailyUsageBuckets: [bucket, { ...bucket, tokens: 300 }] },
+    { summary: { lifetimeTokens: null }, dailyUsageBuckets: [bucket] }
+  ]) {
+    const next = normalizeTokenUsageResponse(raw, initial.persistence, 2000);
+    assert.equal(next.cached, true);
+    assert.equal(next.lifetimeTokens, 200);
+    assert.deepEqual(next.dailyUsageBuckets, [bucket]);
+  }
+});
+
+test("the aggregation bound retains the newest date across a long gap", () => {
+  const daily = aggregateTokenUsage([{ startDate: "1990-01-01", tokens: 2 }, { startDate: "2026-11-17", tokens: 9 }]);
+  assert.equal(daily.length, 10000);
+  assert.deepEqual(daily.at(-1), { startDate: "2026-11-17", tokens: 9 });
+});
+
 test("aggregates token buckets by day, Monday-based week, and month with empty gaps", () => {
   const buckets = normalizeDailyBuckets([
     { startDate: "2026-06-30", tokens: 5 },

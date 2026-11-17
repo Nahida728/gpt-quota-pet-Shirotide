@@ -1,5 +1,5 @@
 (function exposeWorkbench(global) {
-  const routes = Object.freeze({ overview: ["main"], usage: ["ledger", "trend", "cost", "pricing"], tasks: ["running", "pending", "statistics"], quota: ["credits", "subscription", "official", "forecast"], updates: ["timeline"], settings: ["general", "sources", "diagnostics", "about"] });
+  const routes = Object.freeze({ overview: ["main"], usage: ["ledger", "trend", "cost", "pricing"], tasks: ["all", "running", "pending", "statistics"], quota: ["credits", "subscription", "official", "forecast"], updates: ["timeline"], settings: ["general", "sources", "diagnostics", "about"] });
   const titleKeys = { overview: "navOverview", usage: "navUsage", tasks: "navTasks", quota: "navQuota", updates: "navUpdates", settings: "settingsTitle" };
   let current = { page: "overview", tab: "main" };
   let options = {}, sources = [], pricing = null, pricingLanguage = null;

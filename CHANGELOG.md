@@ -1,5 +1,23 @@
 # Changelog / 更新日志
 
+## 2.0.0-rc.3 — 2026-11-18
+
+### 中文
+
+- 支持 GPT-6.2 Astra / Sol 标准 API 等价计价，含缓存与长上下文价格。保留原有 Token 账本。
+- 首字时间不再因下一回合仍在运行或长日志截断而消失；当前回合未记录时，单独标明上次实测。读取 Codex 的速度档位设置，只在有明确日志时显示流式输出时长。
+- 修复任务漏显示：优先扫描运行中的会话，扫描不完整也保留明确的完成记录。总览同时预览进行中和待处理任务，点击可看全部；后台收到的待处理任务不会被刷新覆盖。
+- 修复重复日期桶导致的 Token 高估，以及无索引旧账本恢复时的计数丢失。趋势页统一日均 Token 和费用的统计口径，展示全部可用历史；扩大图表区域，总览最多预览三条任务。
+- 桌宠按压、回弹时，已打开的气泡与宠物同步缩放，气泡点击区域不变。
+
+### English
+
+- Add GPT-6.2 Astra and Sol Standard API-equivalent pricing, including cache and long-context rates, without replacing the Token ledger.
+- Preserve the last measured first-token latency when a new turn has no timing or a long log is truncated. Read Codex speed settings and show streaming duration only when explicitly logged.
+- Fix missing tasks by prioritizing active rollouts and keeping explicit completions from partial reads. Preview running and pending tasks together, open the All tasks tab from the overview, and retain handoffs received while the workspace is hidden.
+- Prevent duplicate daily buckets from inflating Token counts and preserve aggregate-only legacy ledgers during recovery. Keep trend averages on the same basis, show all available dated usage, and give the chart and overview task previews more room.
+- An open pet bubble now squashes and rebounds with the pet without moving its click target.
+
 ## 2.0.0-rc.2 — 2026-10-30
 
 - 品牌升级为 GPT-白汐 / GPT-Shirotide，仓库更名为 `gpt-quota-pet-Shirotide`；统一新宠物图标、任务栏图标、GIF 开屏、中英文说明和 RC 更新通道。

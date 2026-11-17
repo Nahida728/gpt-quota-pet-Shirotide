@@ -23,6 +23,21 @@ test("a state above the old 4 MiB limit survives restart and archive recovery", 
   assert.equal(createQuotaStateStore(file).data.taskPerformanceRecords.totalElapsedSeconds, 1904843);
 });
 
+test("a compatible aggregate-only model ledger retains its counts through archive recovery", t => {
+  const file = path.join(workspace(t), "quota-state.json");
+  const snapshot = { schemaVersion: 7, usageAdapterVersion: 3, ledgerGeneration: 2, observedAt: 10,
+    models: [{ model: "gpt-6.2-sol", inputTokens: 900, cachedInputTokens: 500, outputTokens: 100, requestCount: 1 }],
+    dailyUsage: [] };
+  createQuotaStateStore(file).set("tokenCostSnapshot", snapshot, { forceBackup: true });
+  fs.writeFileSync(file, "{}");
+  const restored = createQuotaStateStore(file).data.tokenCostSnapshot;
+  assert.equal(restored.ledgerGeneration, 2);
+  assert.equal(restored.models[0].inputTokens, 900);
+  assert.equal(restored.models[0].cachedInputTokens, 500);
+  assert.equal(restored.models[0].outputTokens, 100);
+  assert.equal(restored.models[0].requestCount, 1);
+});
+
 test("task recovery excludes the reset scan lineage but preserves unrelated histories", () => {
   const recovered = reconcileQuotaStates({
     tokenCostSnapshot: { ledgerGeneration: 0 },

@@ -53,19 +53,34 @@ function normalizeDailyBuckets(value) {
     .map(([startDate, tokens]) => ({ startDate, tokens }));
 }
 
+function accountBuckets(value) {
+  if (!Array.isArray(value)) return null;
+  const unique = new Map();
+  for (const bucket of value) {
+    const date = parseDateKey(bucket?.startDate);
+    const tokens = normalizeCount(bucket?.tokens);
+    if (!date || tokens === null) continue;
+    if (unique.has(date) && unique.get(date) !== tokens) return null;
+    unique.set(date, tokens);
+  }
+  return value.length && !unique.size ? null
+    : normalizeDailyBuckets([...unique].map(([startDate, tokens]) => ({ startDate, tokens })));
+}
+
 function normalizeSnapshot(value) {
   if (!value || typeof value !== "object") return null;
-  const hasDailyUsageBuckets = Array.isArray(value.dailyUsageBuckets);
-  const dailyUsageBuckets = normalizeDailyBuckets(value.dailyUsageBuckets);
-  const derivedTotalWorkDays = hasDailyUsageBuckets
+  const lifetimeTokens = normalizeCount(value.lifetimeTokens);
+  const buckets = accountBuckets(value.dailyUsageBuckets);
+  const dailyUsageBuckets = buckets || [];
+  const derivedTotalWorkDays = dailyUsageBuckets.length || (buckets && lifetimeTokens === 0)
     ? dailyUsageBuckets.reduce(
         (count, bucket) => count + (bucket.tokens > 0 ? 1 : 0),
         0
       )
     : null;
   const snapshot = {
-    lifetimeTokens: normalizeCount(value.lifetimeTokens),
-    totalWorkDays: normalizeCount(value.totalWorkDays) ?? derivedTotalWorkDays,
+    lifetimeTokens,
+    totalWorkDays: derivedTotalWorkDays,
     currentStreakDays: normalizeCount(value.currentStreakDays),
     longestStreakDays: normalizeCount(value.longestStreakDays),
     peakDailyTokens: normalizeCount(value.peakDailyTokens),
@@ -92,15 +107,15 @@ function normalizeTokenUsageResponse(raw, previousState = {}, now = Date.now()) 
   });
 
   const cached = normalizeSnapshot(previousState?.tokenUsageSnapshot);
-  // A summary-only response cannot replace the last complete dated snapshot;
-  // otherwise fee calibration flickers back to unadjusted local counters.
-  const missingDailyBuckets = !Array.isArray(raw?.dailyUsageBuckets);
-  if (current && !(missingDailyBuckets && cached?.dailyUsageBuckets.length)) {
+  const complete = snapshot => snapshot?.lifetimeTokens != null && snapshot.totalWorkDays !== null;
+  // Missing totals, missing/conflicting dates and a spurious empty list must
+  // not evict a complete snapshot (including a real, explicitly empty account).
+  if (current && (!complete(cached) || complete(current))) {
     return {
       available: true,
       cached: false,
       ...current,
-      persistence: { tokenUsageSnapshot: current }
+      persistence: current.lifetimeTokens !== null ? { tokenUsageSnapshot: current } : {}
     };
   }
 
@@ -194,9 +209,11 @@ function aggregateTokenUsage(value, period = "day") {
 
   const keys = [...grouped.keys()].sort();
   const output = [];
-  let cursor = keys[0];
   const last = keys.at(-1);
-  while (cursor <= last && output.length <= MAX_DAILY_BUCKETS) {
+  const earliest = mode === "month" ? addUtcMonths(last, 1 - MAX_DAILY_BUCKETS)
+    : addUtcDays(last, (1 - MAX_DAILY_BUCKETS) * (mode === "week" ? 7 : 1));
+  let cursor = keys[0] > earliest ? keys[0] : earliest;
+  while (cursor <= last && output.length < MAX_DAILY_BUCKETS) {
     output.push({ startDate: cursor, tokens: grouped.get(cursor) || 0 });
     cursor = mode === "month"
       ? addUtcMonths(cursor, 1)

@@ -1,6 +1,6 @@
 {
   "name": "codex-quota-monitor",
-  "version": "2.0.0-rc.2",
+  "version": "2.0.0-rc.3",
   "description": "GPT-白汐 / GPT-Shirotide — Codex quota desktop pet, task center and multi-provider usage ledger.",
   "main": "src/main.js",
   "author": "GPT-Shirotide",
@@ -57,7 +57,7 @@
     "portable": {
       "artifactName": "gpt-shirotide-${version}-portable-${arch}.${ext}"
     },
-    "buildVersion": "2.0.0.102",
+    "buildVersion": "2.0.0.103",
     "beforePack": "./scripts/filter-packaged-docs.cjs",
     "publish": {
       "provider": "github",
@@ -77,7 +77,7 @@
     "koffi": "^3.1.2",
     "semver": "7.7.3"
   },
-  "displayVersion": "2.0.0-rc.2",
+  "displayVersion": "2.0.0-rc.3",
   "homepage": "https://github.com/Nahida728/gpt-quota-pet-Shirotide",
   "repository": {
     "type": "git",

@@ -9,8 +9,10 @@ button { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparen
 .sparkles { position: absolute; top: 6%; right: 5%; font-size: 25px; color: #9d84e4; opacity: 0; pointer-events: none; }
 .celebrating .sparkles { animation: sparkle .8s ease-out 3; }
 .bubble { position: absolute; z-index: 2; padding: 0; border: 0; background: none; animation: bubble-in .2s ease-out; }
-.bubble::before { content: ""; position: absolute; inset: 0; background: url("../assets/pet-bubble.png") center / 100% 100% no-repeat; pointer-events: none; }
-.bubble.is-below::before { transform: scaleY(-1); }
+.bubble-visual { position: absolute; inset: 0; pointer-events: none; transform-origin: center bottom; }
+.bubble-visual::before { content: ""; position: absolute; inset: 0; background: url("../assets/pet-bubble.png") center / 100% 100% no-repeat; }
+.bubble.is-below .bubble-visual { transform-origin: center top; }
+.bubble.is-below .bubble-visual::before { transform: scaleY(-1); }
 .bubble-content { position: absolute; width: 70%; left: 15%; top: 36%; transform: translateY(-50%); }
 .bubble { cursor: pointer; }
 .bubble-content > p { text-align: center; font-size: 14px; line-height: 1.6; }
@@ -32,5 +34,5 @@ button:focus-visible { outline: 2px solid #399bb0; }
 @keyframes working { 50% { box-shadow: 0 0 4px #5de9db; opacity: .55; } }
 @keyframes sparkle { 30% { opacity: 1; transform: translateY(-8px) rotate(15deg) scale(1.15); } 100% { opacity: 0; transform: translateY(-14px) scale(.8); } }
 @keyframes bubble-in { from { opacity: 0; transform: translateY(4px) scale(.96); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .bubble-visual { scale: none !important; } }
 #chatter { text-align: center; font-size: 15px; font-weight: 700; line-height: 1.6; }

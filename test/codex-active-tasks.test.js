@@ -191,6 +191,38 @@ test("compact tails reuse unchanged files, read appended bytes, and safely join 
   assert.equal(summary.terminalTask.projectName, "project");
 });
 
+test("bounded tails keep measured first-token latency without a start and project applied speed safely", async t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "codex-terminal-tail-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const filePath = path.join(root, "rollout.jsonl");
+  const file = () => { const stat = fs.statSync(filePath); return { path: filePath, size: stat.size, mtimeMs: stat.mtimeMs }; };
+  const reader = new CodexActiveTaskReader({ sessionsRoot: root });
+  const settings = JSON.stringify({ type: "event_msg", payload: { type: "thread_settings_applied",
+    thread_settings: { service_tier: "priority", instructions: "private text" } } });
+  const startedAt = 1000;
+  const terminal = JSON.stringify({ type: "event_msg", timestamp: "1970-01-01T00:26:40.830Z", payload: {
+    type: "task_complete", turn_id: "slow", started_at: startedAt, duration_ms: 600830, time_to_first_token_ms: 305000
+  } });
+  fs.writeFileSync(filePath, [taskStarted("slow", startedAt), "x".repeat(8000), terminal, ""].join("\n"));
+  const tail = await reader.readCachedTaskWindow(file(), 4096, null);
+  const finished = summarizeTaskWindow(tail.lines, 1601000, tail).terminalTask;
+  assert.equal(finished.partial, true);
+  assert.equal(finished.explicitTerminal, true);
+  assert.equal(finished.telemetry.firstTokenMs, 305000);
+  assert.equal(finished.completedAt, 1600830);
+
+  fs.writeFileSync(filePath, [settings, taskStarted("next", 1601), turnContext("gpt-6.2-sol"), ""].join("\n"));
+  const next = await reader.readCachedTaskWindow(file(), 4096, null);
+  const running = summarizeTaskWindow(next.lines, 1611000, next).task;
+  assert.equal(running.telemetry.serviceTier, "Fast");
+  assert.equal(running.telemetry.firstTokenMs, null);
+  assert.equal(running.telemetry.streamingDurationMs, null);
+  assert.doesNotMatch(next.lines.join("\n"), /private text/);
+  const result = normalizeActiveTaskResult({ available: true, tasks: [running], terminalTasks: [finished] }, 1611000);
+  assert.equal(result.latestTask.id, "next");
+  assert.equal(result.lastMeasuredFirstToken.ms, 305000);
+});
+
 test("identifies an explicit in-progress task and prices only that task", () => {
   const lines = [
     sessionMeta("C:\\Users\\person\\Desktop\\sample-project"),

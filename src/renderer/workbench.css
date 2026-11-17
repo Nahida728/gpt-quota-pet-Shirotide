@@ -234,6 +234,7 @@ select option { background: #fff; color: var(--text); }
 .active-task-preview-list { display: grid; gap: 0; }
 .active-task-preview-row { display: grid; grid-template-columns: 8px minmax(0,1fr) auto; gap: 1px 9px; align-items: center; padding: 7px 0; border-top: 1px solid var(--line); }
 .active-task-preview-dot { grid-row: span 2; width: 7px; height: 7px; border-radius: 50%; background: var(--emerald); box-shadow: 0 0 0 3px rgb(31 155 120 / .12); }
+.active-task-preview-row.is-completed .active-task-preview-dot { background: var(--accent); box-shadow: none; }
 .active-task-preview-identity { grid-row: span 2; display: grid; min-width: 0; }
 .active-task-preview-identity strong { font-size: 13.5px; overflow-wrap: anywhere; }
 .active-task-preview-identity span { color: var(--faint); font-size: 12px; overflow-wrap: anywhere; }
@@ -330,6 +331,14 @@ select option { background: #fff; color: var(--text); }
 .token-chart-toolbar { justify-content: space-between; }
 .segmented, .token-period-switch { display: inline-flex; gap: 2px; padding: 3px; border-radius: var(--radius); background: rgb(18 49 63 / .06); }
 .token-chart-shell { position: relative; height: clamp(200px,30vh,300px); }
+body[data-page="usage"][data-tab="trend"] .workspace-page[data-page="usage"]:not([hidden]),
+#tokenUsageModal:not([hidden]), #tokenUsageModal .token-dialog, #tokenUsageModal .chart-panel {
+  display: flex; flex-direction: column;
+}
+body[data-page="usage"][data-tab="trend"] .workspace-page[data-page="usage"]:not([hidden]) { min-height: 100%; }
+#tokenUsageModal:not([hidden]), #tokenUsageModal .token-dialog, #tokenUsageModal .chart-panel { flex: 1; margin-bottom: 0; }
+#tokenUsageModal .token-chart-shell { flex: 1 1 200px; min-height: 200px; height: auto; }
+#tokenUsageModal #tokenUsageChart { position: absolute; inset: 0; }
 #tokenUsageChart { display: block; width: 100%; height: 100%; }
 .token-chart-empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--faint); }
 .token-chart-tooltip { position: absolute; z-index: 3; display: grid; gap: 2px; max-width: calc(100% - 16px); padding: 8px 12px; transform: translateX(-50%); pointer-events: none; border: 1px solid var(--line); border-radius: var(--radius-sm); background: rgb(255 255 255 / .97); box-shadow: var(--shadow-hover); font-size: 12.5px; }
@@ -746,6 +755,8 @@ html[lang="en"] .overview-page .task-performance-grid span { overflow-wrap: norm
 .overview-page .panel-heading h2 { gap: 6px; }
 .overview-page .active-task-card .live-pill, .overview-page .active-task-card .chip { padding-left: 6px; padding-right: 6px; }
 .overview-page .active-task-metrics { flex-shrink: 0; }
+.overview-page .active-task-preview-list { flex: 1; align-content: start; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+.overview-page .active-task-more { flex-shrink: 0; }
 .sidebar-bottom { margin-top: auto; display: grid; gap: 8px; }
 .sidebar-bottom .sidebar-foot { margin-top: 0; }
 .sidebar-client-update { cursor: pointer; padding: 10px; gap: 5px; }

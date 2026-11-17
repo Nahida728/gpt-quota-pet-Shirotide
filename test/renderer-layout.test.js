@@ -41,7 +41,9 @@ test("quota, token, task and permanent history views remain reachable",()=>{
  assert.match(html,/data-panel="quota:subscription"/);assert.match(html,/data-panel="quota:official"/);
 });
 test("shared state keeps accounting denominators and completion outcomes",()=>{
- assert.match(renderer,/usage\.lifetimeTokens\s*\/\s*workDays/);assert.match(renderer,/cost\.estimatedCostUsd\s*\/\s*costWorkDays/);
+ assert.match(renderer,/usage\.lifetimeTokens\s*\/\s*workDays/);
+ assert.match(renderer,/sameDatedUsage[\s\S]*?cost\.estimatedCostUsd\s*\/\s*workDays/);
+ assert.match(renderer,/ledgerCost\(official\.dailyCostUsd,\s*false\)/);
  assert.match(renderer,/function confirmAllCompletedTasks/);assert.match(renderer,/completedTaskCount/);assert.match(renderer,/manualInterruptedTaskCount/);assert.match(renderer,/abnormalInterruptedTaskCount/);
  assert.match(renderer,/function syncWorkbench/);assert.match(renderer,/function renderTaskDetail/);assert.match(renderer,/noMatchingTasks/);
 });

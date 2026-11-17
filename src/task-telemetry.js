@@ -1,4 +1,4 @@
-// Only numeric counters and timestamps leave this reader. Interval rates are
+// Only numeric counters, timestamps and known tier labels leave this reader. Interval rates are
 // output-token averages between log records, not per-token decoding speeds.
 const MAX_SAFE = Number.MAX_SAFE_INTEGER;
 const { tokenUsageInfo, USAGE_RECORD_PATTERN, usageCounterValues, observeUsageMirror } = require("./usage-record");
@@ -14,6 +14,18 @@ function normalizeServiceTier(value) {
   if (["standard", "default"].includes(tier)) return "Standard";
   if (["fast", "priority"].includes(tier)) return "Fast";
   if (["ultrafast", "ultra_fast", "ultra-fast"].includes(tier)) return "UltraFast";
+  return null;
+}
+
+function readServiceTier(record) {
+  const payload = record?.payload;
+  if (record?.type === "event_msg" && payload?.type === "thread_settings_applied") {
+    const settings = payload.thread_settings;
+    return normalizeServiceTier(settings?.service_tier ?? settings?.serviceTier);
+  }
+  if (record?.type === "turn_context") {
+    return normalizeServiceTier(payload?.service_tier ?? payload?.serviceTier);
+  }
   return null;
 }
 
@@ -44,9 +56,10 @@ function summarizeTaskTelemetry(lines, terminal, cost, partial = false) {
   const totalTokens = models.reduce((sum, model) => Math.min(MAX_SAFE, sum + (safeNumber(model.inputTokens) || 0) + (safeNumber(model.outputTokens) || 0)), 0);
   const inputTokens = models.reduce((sum, model) => Math.min(MAX_SAFE, sum + (safeNumber(model.inputTokens) || 0)), 0);
   const cachedInputTokens = models.reduce((sum, model) => Math.min(MAX_SAFE, sum + Math.min(safeNumber(model.inputTokens) || 0, safeNumber(model.cachedInputTokens) || 0)), 0);
-  const firstTokenMs = safeNumber(terminal?.firstTokenMs);
+  let firstTokenMs = safeNumber(terminal?.firstTokenMs);
   let streamingDurationMs = safeNumber(terminal?.streamingDurationMs);
   let serviceTier = normalizeServiceTier(terminal?.serviceTier);
+  let appliedTier = normalizeServiceTier(terminal?.appliedTier);
   const durationMs = safeNumber(terminal?.durationMs) ?? (
     Number.isFinite(terminal?.startedAt) && Number.isFinite(terminal?.eventAt)
       ? Math.max(0, terminal.eventAt - terminal.startedAt) * 1000 : null
@@ -61,15 +74,20 @@ function summarizeTaskTelemetry(lines, terminal, cost, partial = false) {
   let validIntervals = !partial;
   const rates = [];
   for (const line of Array.isArray(lines) ? lines : []) {
-    if (!USAGE_RECORD_PATTERN.test(line) && !/"type"\s*:\s*"turn_context"/.test(line)) continue;
+    if (!USAGE_RECORD_PATTERN.test(line) && !/"type"\s*:\s*"(?:turn_context|thread_settings_applied)"/.test(line)) continue;
     let record;
     try { record = JSON.parse(line); } catch { continue; }
     if (record.type === "turn_context") {
-      serviceTier = normalizeServiceTier(record.payload?.service_tier ?? record.payload?.serviceTier) ?? serviceTier;
+      serviceTier = readServiceTier(record) ?? serviceTier;
+      continue;
+    }
+    if (record.type === "event_msg" && record.payload?.type === "thread_settings_applied") {
+      appliedTier ??= readServiceTier(record);
       continue;
     }
     const info = tokenUsageInfo(record);
     if (!info) continue;
+    firstTokenMs ??= safeNumber(info.time_to_first_token_ms);
     streamingDurationMs = safeNumber(info.streaming_duration_ms ?? info.stream_duration_ms) ?? streamingDurationMs;
     serviceTier = normalizeServiceTier(info.service_tier ?? info.serviceTier) ?? serviceTier;
     const usage = info?.last_token_usage;
@@ -111,7 +129,7 @@ function summarizeTaskTelemetry(lines, terminal, cost, partial = false) {
   return normalizeTaskTelemetry({
     firstTokenMs,
     streamingDurationMs: safeNumber(terminal?.streamingDurationMs) ?? streamingDurationMs,
-    serviceTier: normalizeServiceTier(terminal?.serviceTier) ?? serviceTier,
+    serviceTier: normalizeServiceTier(terminal?.serviceTier) ?? serviceTier ?? appliedTier,
     totalTokens: countersKnown ? totalTokens : null,
     outputTokens: countersKnown ? outputTokens : null,
     cacheHitRate: cacheSampled && cacheCountersKnown && inputTokens > 0 ? cachedInputTokens / inputTokens * 100 : null,
@@ -124,4 +142,4 @@ function summarizeTaskTelemetry(lines, terminal, cost, partial = false) {
   });
 }
 
-module.exports = { normalizeTaskTelemetry, summarizeTaskTelemetry, normalizeServiceTier };
+module.exports = { normalizeTaskTelemetry, summarizeTaskTelemetry, normalizeServiceTier, readServiceTier };

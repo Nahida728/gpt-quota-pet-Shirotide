@@ -27,7 +27,8 @@ for (const name of ['manual-usage.json', 'manual-usage.json.bak']) {
 }
 const manualBefore = readManualUsage(path.join(profile, 'manual-usage.json'));
 fs.writeFileSync(path.join(profile, 'settings.json'), JSON.stringify({ language: 'zh', alwaysOnTop: false,
-  desktopWindow: { x: 60, y: 30, width: 1200, height: 800 }, desktopSettingsVersion: 2, closeBehavior: 'tray', petMode: false }));
+  desktopWindow: { x: 60, y: 30, width: 1200, height: 800 }, desktopSettingsVersion: 2, closeBehavior: 'tray',
+  petMode: false, petSettings: { sound: false } }));
 const exe = path.join(root, 'release', `${ASSET_PREFIX}-${pkg.version}-portable-x64.exe`);
 const mainPort = 9355;
 const launch = () => spawn(exe, [`--user-data-dir=${profile}`, `--inspect=${mainPort}`], { windowsHide: true, stdio: 'ignore' });
@@ -63,6 +64,7 @@ function evaluate(expression) {
 }
 const infoExpression = `(()=>{const load=process.mainModule.require.bind(process.mainModule);const {app,BrowserWindow}=load('electron');const w=BrowserWindow.getAllWindows().find(w=>/renderer\\/index\\.html$/.test(w.webContents.getURL()));if(!w)return null;w.webContents.setBackgroundThrottling(false);const p=w.webContents.getLastWebPreferences();return {pid:process.pid,packaged:app.isPackaged,version:app.getVersion(),profile:app.getPath('userData'),executable:process.execPath,bounds:w.getBounds(),maximum:w.getMaximumSize(),minimized:w.isMinimized(),sandbox:p.sandbox,contextIsolation:p.contextIsolation,nodeIntegration:p.nodeIntegration,asar:load('node:crypto').createHash('sha256').update(load('original-fs').readFileSync(load('node:path').join(process.resourcesPath,'app.asar'))).digest('hex')}})()`;
 const inRenderer = source => evaluate(`globalThis.__releaseRendererGate=(async()=>{const {BrowserWindow}=process.mainModule.require('electron');const w=BrowserWindow.getAllWindows().find(w=>/renderer\\/index\\.html$/.test(w.webContents.getURL()));return w.webContents.executeJavaScript(${JSON.stringify(source)})})()`);
+const inPet = source => evaluate(`globalThis.__releasePetGate=(async()=>{const {BrowserWindow}=process.mainModule.require('electron');const w=BrowserWindow.getAllWindows().find(w=>/pet\\/index\\.html$/.test(w.webContents.getURL()));return w.webContents.executeJavaScript(${JSON.stringify(source)})})()`);
 async function shutdown() {
   await evaluate("setTimeout(()=>process.mainModule.require('electron').app.quit(),50);true");
   socket.close(); socket = null; owned = false;
@@ -92,16 +94,33 @@ async function shutdown() {
       const original={tasks:activeTasks,pending:pendingTasks,available:activeTasksAvailable,language};
       for(const node of document.querySelectorAll('[aria-modal="true"]'))if(!node.hidden){cancelSecondaryModalTransition(node);node.hidden=true;}
       secondaryModalQueue.length=0;setWorkspaceInert(false);
-      const task={id:'release-layout',projectName:'Shirotide task',startedAt:Date.now()/1000-30,elapsedSeconds:30,estimatedCostUsd:.12,models:[{model:'gpt-6.1-sol',inputTokens:1000,cachedInputTokens:800,outputTokens:100,estimatedCostUsd:.12}]};
-      activeTasks=[task,{...task,id:'release-layout-2',taskKind:'subagent'}];pendingTasks=[];activeTasksAvailable=true;
+      const task={id:'release-layout',projectName:'Shirotide task',startedAt:Date.now()/1000-30,elapsedSeconds:30,estimatedCostUsd:.12,models:[{model:'gpt-6.2-sol',inputTokens:1000,cachedInputTokens:800,outputTokens:100,estimatedCostUsd:.12}],telemetry:{serviceTier:'Standard'}};
+      pendingTasks=[];
       const results=[];
       for(const locale of ['zh','en']){
-        language=locale;applyLanguage();Workbench.navigate('tasks','running',{focus:false});renderActiveTaskDetails();
+        language=locale;applyLanguage();Workbench.navigate('overview','main',{focus:false});
+        const pending={...task,id:'release-pending',outcome:'completed',endedAt:task.startedAt,completedAt:Date.now()-30000};
+        renderActiveTasks({available:true,tasks:[task],latestTask:task,pendingTasks:[pending,{...pending,id:'release-other'},{...pending,id:'release-overflow'}],
+          lastMeasuredFirstToken:{ms:305000,endedAt:task.startedAt,projectName:pending.projectName}});
+        const rows=[...elements.activeTaskPreviewList.querySelectorAll('.active-task-preview-row')];
+        const preview=rows.length===3&&rows.slice(1).every(row=>row.classList.contains('is-completed'))&&!elements.activeTaskMoreIndicator.hidden&&
+          elements.activeTaskPreviewList.getBoundingClientRect().bottom<=elements.activeTaskMoreIndicator.getBoundingClientRect().top+1;
+        const timing=elements.latestTaskFirstTokenLabel.textContent===t('taskPreviousFirstToken')&&
+          elements.latestTaskFirstToken.textContent===formatTaskDuration(305)&&
+          elements.latestTaskStreamingDuration.textContent===t('taskTimingNotLogged')&&
+          elements.latestTaskServiceTier.textContent==='Standard';
+        renderTaskPerformance({...task,telemetry:{...task.telemetry,streamingDurationMs:8400}});
+        const recordedDuration=elements.latestTaskStreamingDuration.textContent==='8.4s';
+        elements.activeTaskCard.click();
+        const allTasks=document.body.dataset.tab==='all'&&elements.taskFilter.value==='all'&&
+          elements.activeTaskList.querySelectorAll('.active-task-item').length===4;
+        activeTasks=[task,{...task,id:'release-layout-2',taskKind:'subagent'}];pendingTasks=[];
+        Workbench.navigate('tasks','running',{focus:false});renderActiveTaskDetails();
         const cards=[...elements.activeTaskList.querySelectorAll('.active-task-item')];
         const source=cards[0].querySelector('[data-task-detail-id]');source.focus();source.click();
         await new Promise(resolve=>setTimeout(resolve,60));
         const modal=elements.taskDetailModal,dialog=modal.querySelector('.task-detail-dialog'),rect=dialog.getBoundingClientRect();
-        const current={locale,cards:cards.length,sameRow:Math.abs(cards[0].getBoundingClientRect().top-cards[1].getBoundingClientRect().top)<1,
+        const current={locale,preview,timing,recordedDuration,allTasks,cards:cards.length,sameRow:Math.abs(cards[0].getBoundingClientRect().top-cards[1].getBoundingClientRect().top)<1,
           modal:!modal.hidden&&modal.getAttribute('aria-modal')==='true',centered:Math.abs(rect.left+rect.width/2-innerWidth/2)<2,
           focused:document.activeElement===elements.taskDetailClose,inert:document.querySelector('.workspace').inert,
           transition:getComputedStyle(elements.taskDetailClose).transitionDuration};
@@ -114,7 +133,20 @@ async function shutdown() {
       return results;
     })()`);
     console.log(JSON.stringify({presentation}));
-    for (const row of presentation) for (const key of ['sameRow','modal','centered','focused','inert','closed','restored','unblocked']) assert.equal(row[key],true,`${row.locale}:${key}`);
+    for (const row of presentation) for (const key of ['preview','timing','recordedDuration','allTasks','sameRow','modal','centered','focused','inert','closed','restored','unblocked']) assert.equal(row[key],true,`${row.locale}:${key}`);
+    const trend = await inRenderer(`(()=>{
+      const old=latestSnapshot;
+      const dailyUsageBuckets=Array.from({length:35},(_,i)=>({startDate:new Date(Date.UTC(2026,9,i+1)).toISOString().slice(0,10),tokens:10000}));
+      latestSnapshot={tokenUsage:{available:true,scope:'account',lifetimeTokens:350000,totalWorkDays:35,dailyUsageBuckets},
+        tokenCost:{available:true,estimatedCostUsd:35,localUsage:{totalWorkDays:7},models:[{model:'gpt-6.2-sol',inputTokens:35000,
+          outputTokens:0,estimatedCostUsd:35,priced:true,pricing:{vendor:'OpenAI'}}]}};
+      Workbench.navigate('usage','trend',{focus:false});tokenPeriod='day';renderTokenUsageModal();
+      const result={days:tokenChartSeries.length,avgTokens:elements.tokenModalDailyAverage.textContent===formatTokenCount(10000),
+        avgCost:elements.tokenModalDailyCost.textContent===ledgerCost(10,false),height:elements.tokenUsageChart.getBoundingClientRect().height};
+      latestSnapshot=old;return result;
+    })()`);
+    assert.equal(trend.days,35);
+    assert.ok(trend.avgTokens && trend.avgCost && trend.height > 300, JSON.stringify(trend));
     assert.deepEqual(await inRenderer('window.codexMonitor.readManualUsage()'),manualBefore);
     console.log('Bilingual modal/ledger gate passed');
     if(process.argv.includes('--screenshots')) {
@@ -137,6 +169,33 @@ async function shutdown() {
         await evaluate(`globalThis.__releaseCaptureGate=(async()=>{const load=process.mainModule.require.bind(process.mainModule);const p=load('electron').BrowserWindow.getAllWindows().find(w=>/pet\\/index/.test(w.webContents.getURL()));await p.webContents.executeJavaScript('gptPet.tap()');await new Promise(r=>setTimeout(r,300));const s=await p.webContents.executeJavaScript('gptPet.read()');const a=s.layout.actor,b=s.layout.bubble;const x=Math.floor(Math.min(a.x,b.x)-12),y=Math.floor(Math.min(a.y,b.y)-12),right=Math.ceil(Math.max(a.x+a.width,b.x+b.width)+12),bottom=Math.ceil(Math.max(a.y+a.height,b.y+b.height)+12);const shot=await p.webContents.capturePage({x,y,width:right-x,height:bottom-y},{stayHidden:true,stayAwake:true});load('node:fs').writeFileSync(${JSON.stringify(destination)},shot.toPNG());return true})()`);
       }
     }
+    assert.equal(await inRenderer('codexMonitor.enterPetMode()'),true);
+    const petSqueeze = await inPet(`(async()=>{
+      const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+      const button=document.getElementById('pet'), bubble=document.getElementById('bubble'), art=document.getElementById('bubbleVisual');
+      const canvas=document.getElementById('petCanvas'), ctx=canvas.getContext('2d');
+      const spriteHeight=()=>{
+        const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+        let top=canvas.height,bottom=-1;
+        for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++)if(pixels[(y*canvas.width+x)*4+3]>100){
+          top=Math.min(top,y);bottom=y;break;
+        }
+        return bottom<top?0:bottom-top+1;
+      };
+      gptPet.tap();await wait(450);
+      const rest={bubble:art.getBoundingClientRect().height,button:bubble.getBoundingClientRect().height,sprite:spriteHeight()};
+      button.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));await wait(300);
+      const pressed={bubble:art.getBoundingClientRect().height,button:bubble.getBoundingClientRect().height,sprite:spriteHeight()};
+      button.dispatchEvent(new KeyboardEvent('keyup',{key:'Enter',bubbles:true}));await wait(850);
+      const released=art.getBoundingClientRect().height;
+      const visible=!bubble.hidden;
+      bubble.click();await wait(100);const switchesToChatter=!document.getElementById('chatter').hidden;
+      bubble.click();await wait(100);
+      return {visible,pixels:rest.sprite>0&&pressed.sprite>0,spriteSquashed:pressed.sprite<rest.sprite*.95,
+        bubbleSquashed:pressed.bubble<rest.bubble*.95,hitStable:pressed.button===rest.button,
+        settled:Math.abs(released-rest.bubble)<1,clickIntact:switchesToChatter&&bubble.hidden};
+    })()`);
+    for (const [key, value] of Object.entries(petSqueeze)) assert.equal(value,true,`pet:${key}`);
     await shutdown(); child = launch(); await connect();
     let cold;
     for(let i=0;i<100;i++){cold=await evaluate(infoExpression).catch(error=>{if(error.message.includes("Promise was collected"))return null;throw error;});if(cold)break;await delay(100);}
@@ -144,7 +203,7 @@ async function shutdown() {
     assert.deepEqual(readManualUsage(path.join(profile,'manual-usage.json')),manualBefore);
     await shutdown();
     const result={version:pkg.version,rootPid:native.pid,coldPid:cold.pid,executable:native.executable,realLedgerBytes:sourceBytes.length,manualEntries:manualBefore.entries.length,
-      archiveRecovery:true,coldRestart:true,manualPreserved:true,packagedAsarMatch:true,presentation};
+      archiveRecovery:true,coldRestart:true,manualPreserved:true,packagedAsarMatch:true,presentation,trend,petSqueeze};
     fs.writeFileSync(path.join(root,'release',`smoke-${pkg.version}-audit.json`),JSON.stringify(result,null,2));
     console.log(JSON.stringify(result,null,2));
   }catch(error){console.error(error.stack);process.exitCode=1;if(socket&&owned)await shutdown().catch(()=>{});}

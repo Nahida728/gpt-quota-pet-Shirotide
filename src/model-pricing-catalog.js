@@ -1,6 +1,6 @@
-// USD / million text tokens, Standard/global API equivalents. Checked 2026-10-28.
+// USD / million text tokens, Standard/global API equivalents.
 // No gateway markup, subscription charge, tool fee or cache-storage time is inferred.
-const PRICING_DATE = "2026-10-28";
+const PRICING_DATE = "2026-11-17";
 const SOURCES = Object.freeze({
   OpenAI: "https://developers.openai.com/api/docs/pricing",
   Anthropic: "https://platform.claude.com/docs/en/about-claude/pricing",
@@ -22,6 +22,8 @@ const context = (threshold, input = 2, output = 1.5, inclusive = false) => ({
 });
 
 add("gpt-6.1-terra", "OpenAI", 1, .05, 5, { cacheWrite: 1.25, cacheWriteLong: 2.5, ...context(272000) });
+add("gpt-6.2-astra", "OpenAI", 8, .4, 40, { cacheWrite: 10, cacheWriteLong: 20, ...context(272000) });
+add("gpt-6.2-sol", "OpenAI", 2, .1, 10, { cacheWrite: 2.5, cacheWriteLong: 5, ...context(272000) });
 add("gpt-5.4-nano", "OpenAI", .2, .02, 1.25);
 add("gpt-5.5-pro gpt-5.4-pro", "OpenAI", 30, null, 180, { cacheWrite: null, ...context(272000) });
 add("gpt-5.2-pro", "OpenAI", 21, null, 168, { cacheWrite: null });

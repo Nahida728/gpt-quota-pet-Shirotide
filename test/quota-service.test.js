@@ -106,6 +106,29 @@ test("a brief missing-task scan rebounds without an abnormal notice; goal steps 
   service.dispose();
 });
 
+test("truncated scans deliver explicit handoffs without treating absent tasks as stopped", async t => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "codex-partial-handoff-"));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const task = { id: "observed", startedAt: 90 };
+  const other = { id: "possibly-still-running", startedAt: 91 };
+  let raw = { available: true, tasks: [task, other], terminalTasks: [] };
+  const service = new QuotaService({ appStatePath: path.join(directory, "state.json"), client: { dispose() {} },
+    versionDetector: { read: async () => null }, costUsageReader: emptyCostUsageReader,
+    activeTaskReader: { read: async () => raw } });
+  t.after(() => service.dispose());
+  await service.readActiveTasks(100000);
+  const completed = { ...task, outcome: "completed", endedAt: 101, elapsedSeconds: 11,
+    explicitTerminal: true, telemetry: { firstTokenMs: 1500 } };
+  const short = { ...completed, id: "between-polls", startedAt: 101, endedAt: 102, elapsedSeconds: 1 };
+  raw = { ...raw, truncated: true, tasks: [], terminalTasks: [completed, short] };
+  const result = await service.readActiveTasks(105000);
+  assert.deepEqual(result.pendingTasks.map(turn => turn.id), ["observed", "between-polls"]);
+  raw = { ...raw, terminalTasks: [] };
+  const next = await service.readActiveTasks(110000);
+  assert.equal(next.pendingTasks.length, 0);
+  assert.equal(next.lastMeasuredFirstToken.ms, 1500);
+});
+
 test("requests the account usage endpoint with the protocol's null params", async () => {
   const client = new AppServerClient();
   client.start = async () => {};

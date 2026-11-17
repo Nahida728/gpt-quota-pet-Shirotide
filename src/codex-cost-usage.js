@@ -1356,11 +1356,13 @@ function reconcileCostSnapshots(values) {
   }
   const rolloutIndex = [...entries.values()]
     .sort((left, right) => left.id.localeCompare(right.id));
+  const newest = snapshots.sort((left, right) => right.observedAt - left.observedAt)[0];
+  // Compatible aggregate-only snapshots have no entries to sum. Retain the
+  // newest aggregate in its own generation instead of replacing it with zero.
+  if (!rolloutIndex.length) return newest;
   const models = combineModels(rolloutIndex.map(entry => entry.models));
   const dailyUsage = combineDailyUsage(rolloutIndex.map(entry => entry.dailyUsage));
   const unattributedUsage = sumUnattributedUsage(rolloutIndex);
-  const newest = snapshots.sort((left, right) => right.observedAt - left.observedAt)[0];
-  const newestIndexed = snapshots.find(snapshot => snapshot.rolloutIndex.length > 0);
   const indexComplete = newest.indexComplete === true;
   return {
     schemaVersion: COST_SNAPSHOT_SCHEMA_VERSION,

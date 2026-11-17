@@ -390,10 +390,12 @@ class QuotaService {
           const terminalTasks = new Map(
             result.terminalTasks.map(task => [activeTaskIdentity(task), task])
           );
-          if (this.activeTaskBaselineEstablished && !result.truncated) {
+          if (this.activeTaskBaselineEstablished) {
             for (const [identity, previous] of this.previousActiveTasks) {
               if (currentTasks.has(identity)) continue;
-              const terminal = terminalTasks.get(identity);
+              const candidate = terminalTasks.get(identity);
+              const terminal = !result.truncated || candidate?.explicitTerminal ? candidate : null;
+              if (!terminal && result.truncated) continue;
               // A brief scan/move race is not terminal evidence. Require a second
               // complete read, while freezing the first disappearance's clock.
               if (!terminal && !this.missingTaskCandidates.has(identity)) {
@@ -421,6 +423,16 @@ class QuotaService {
                     outcome: previous.goalStatus ? "managed-stopped" : "abnormal-interrupted"
                   });
               this.missingTaskCandidates.delete(identity);
+              this.previousActiveTasks.delete(identity);
+            }
+            // Short turns can start and finish between reads. Require an
+            // explicit terminal record newer than the last successful sample.
+            const handedOff = new Set(pendingTasks.map(activeTaskIdentity));
+            for (const [identity, task] of terminalTasks) {
+              if (task.explicitTerminal && task.completedAt > this.lastTaskObservationAt &&
+                  task.completedAt <= result.observedAt && !currentTasks.has(identity) && !handedOff.has(identity)) {
+                pendingTasks.push(task);
+              }
             }
           }
           for (const identity of currentTasks.keys()) this.missingTaskCandidates.delete(identity);
@@ -428,6 +440,11 @@ class QuotaService {
             ? new Map([...this.previousActiveTasks, ...currentTasks])
             : new Map([...this.missingTaskCandidates, ...currentTasks]);
           this.activeTaskBaselineEstablished = true;
+          this.lastTaskObservationAt = Math.max(result.observedAt, this.lastTaskObservationAt || 0);
+        }
+        const measured = result.lastMeasuredFirstToken;
+        if (measured && measured.endedAt >= (this.lastMeasuredFirstToken?.endedAt ?? 0)) {
+          this.lastMeasuredFirstToken = measured;
         }
 
         const recordUpdate = updateTaskPerformanceRecords(
@@ -465,6 +482,7 @@ class QuotaService {
         const { terminalTasks, history, historySnapshot, ...publicResult } = result;
         return {
           ...publicResult,
+          lastMeasuredFirstToken: this.lastMeasuredFirstToken ?? null,
           pendingTasks,
           completedTasks: pendingTasks,
           records: recordUpdate.records
@@ -472,6 +490,7 @@ class QuotaService {
       })
       .catch(() => ({
         ...normalizeActiveTaskResult(null, now),
+        lastMeasuredFirstToken: this.lastMeasuredFirstToken ?? null,
         pendingTasks: [],
         completedTasks: [],
         records: this.latestTaskRecords || normalizeTaskPerformanceRecords([this.state.data])

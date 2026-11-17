@@ -1,11 +1,16 @@
 const api = window.gptPet;
 const pet = document.getElementById("pet"), portrait = document.getElementById("portrait");
-const bubble = document.getElementById("bubble");
+const bubble = document.getElementById("bubble"), bubbleVisual = document.getElementById("bubbleVisual");
 const quotaContent = document.getElementById("quotaContent"), chatter = document.getElementById("chatter");
 let state, press = null, moving = false, lastSerial = 0;
 let pointer, lastPointerHit, layoutVersion = -1;
 const painter = window.PetPainter.create(document.getElementById('petCanvas'));
-const feel = window.PetFeel.create(pet, pose => painter.setPose(pose));
+const feel = window.PetFeel.create(pet, pose => {
+  painter.setPose(pose);
+  // Keep the visual spring inside the screen-edge inset without changing the
+  // bubble button's actual hit rectangle or the native window.
+  bubbleVisual.style.scale = pose.engaged ? `${1 + (pose.scaleX - 1) * .55} ${pose.scaleY}` : "";
+});
 const duck = window.PetDuck.create(() => state?.active && state?.preferences.sound);
 const flight = window.PetFlight.create(pet, api, (axis, strength) => feel.impact(axis, strength),
   (x, y, flying) => painter.setPosition(x, y, flying));
@@ -26,8 +31,12 @@ const copy = {
 const t = (key, n) => copy[state?.language === "en" ? "en" : "zh"][key].replace("{n}", n ?? "");
 function render(next) {
   if (!next?.layout) return;
+  const wasActive = state?.active;
   state = next;
-  if (!state.active) flight.cancel();
+  if (!state.active) {
+    flight.cancel();
+    if (wasActive) { press = null; feel.reset(); }
+  }
   painter.setActive(state.active);
   if (!state.active || !state.preferences.sound) duck.cancel();
   const { actor, bubble: rect } = state.layout;

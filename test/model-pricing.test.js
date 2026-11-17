@@ -11,6 +11,20 @@ function record(model, usage, cumulative = usage) {
     JSON.stringify({ type: "token_usage_record", timestamp: "2026-10-28T01:00:00Z", payload: { usage, thread_token_usage: cumulative } })];
 }
 
+test("GPT-6.2 Astra and Sol price Standard cache and per-call long context independently", () => {
+  const usage = { inputTokens: 272000, cachedInputTokens: 100000, cacheWriteInputTokens: 10000, outputTokens: 20000 };
+  const close = (value, expected) => assert.ok(Math.abs(value - expected) < 1e-12, `${value} != ${expected}`);
+  close(calculateUsageCost("gpt-6.2-astra", usage).cost, 2.236);
+  close(calculateUsageCost("openai/gpt-6.2-sol-2026-11-17", usage).cost, .559);
+  close(calculateUsageCost("gpt-6.2-astra", { ...usage, inputTokens: 272001 }).cost, 4.072016);
+  close(calculateUsageCost("gpt-6.2-sol", { ...usage, inputTokens: 272001 }).cost, 1.018004);
+  close(calculateUsageCost("gpt-6.2-astra", { ...usage, cacheWriteLongInputTokens: 10000 }).cost, 2.336);
+  close(calculateUsageCost("gpt-6.2-sol", { ...usage, cacheWriteLongInputTokens: 10000 }).cost, .584);
+  for (const alias of ["gpt-6.2-luna", "gpt-6.2-terra", "gpt-6.2-sol-custom"]) {
+    assert.equal(calculateUsageCost(alias, usage), null);
+  }
+});
+
 test("official Claude generations and routed/date aliases keep their own published rates", () => {
   const usage = { inputTokens: 100000, cachedInputTokens: 10000, outputTokens: 1000 };
   const cases = [["claude-sonnet-5-5", .191], ["router/anthropic/claude-sonnet-5.5-20260928-thinking", .191],

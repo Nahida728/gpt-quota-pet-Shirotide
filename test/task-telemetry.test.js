@@ -3,6 +3,34 @@ const assert = require("node:assert/strict");
 const { summarizeTaskTelemetry, normalizeTaskTelemetry } = require("../src/task-telemetry");
 const { summarizeTaskWindow, normalizeActiveTaskResult } = require("../src/codex-active-tasks");
 
+test("completed Codex rollouts show a verified output span and count reasoning once", () => {
+  const startedAt = 1791590400;
+  const log = (ms, type, payload) => JSON.stringify({
+    timestamp: new Date(startedAt * 1000 + ms).toISOString(), type, payload
+  });
+  const usage = { input_tokens: 170, cached_input_tokens: 40, output_tokens: 130, reasoning_output_tokens: 95 };
+  const terminal = { type: "task_complete", turn_id: "turn", started_at: startedAt, duration_ms: 30000, time_to_first_token_ms: 4000 };
+  const lines = [
+    log(0, "event_msg", { type: "task_started", turn_id: "turn", started_at: startedAt }),
+    log(1, "turn_context", { model: "gpt-6.2-sol" }),
+    log(29500, "response_item", { role: "assistant", phase: "final_answer", content: "not retained" }),
+    log(29900, "event_msg", { type: "token_count", info: { last_token_usage: usage, total_token_usage: usage } }),
+    log(30000, "event_msg", terminal)
+  ];
+  const task = summarizeTaskWindow(lines, (startedAt + 31) * 1000).terminalTask;
+  assert.equal(task.telemetry.streamingDurationKind, "output-span");
+  assert.equal(task.telemetry.streamingDurationMs, 25500);
+  assert.equal(task.telemetry.reasoningOutputTokens, 95);
+  assert.equal(task.telemetry.totalTokens, 300);
+  assert.equal(task.telemetry.averageTokensPerSecond, 130 / 30);
+  const result = normalizeActiveTaskResult({ available: true, tasks: [], terminalTasks: [task] });
+  assert.equal(result.lastStreamingTiming.kind, "output-span");
+  assert.equal(result.latestTask.models[0].reasoningOutputTokens, 95);
+  assert.doesNotMatch(JSON.stringify(result), /not retained/);
+  const replay = summarizeTaskWindow([...lines.slice(0, -1), log(60000, "event_msg", terminal)]).terminalTask;
+  assert.equal(replay.telemetry.streamingDurationMs, null);
+});
+
 test("compact task reads preserve offset mirror evidence and unattributed output", async t => {
   const fs = require("node:fs"), os = require("node:os"), path = require("node:path");
   const { CodexActiveTaskReader } = require("../src/codex-active-tasks");

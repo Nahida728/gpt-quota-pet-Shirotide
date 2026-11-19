@@ -333,9 +333,12 @@ Renderer security settings are non-negotiable:
   Never copy their snapshots into the manual ledger, infer ownership of other
   routes from a shared maker, or count their cached input a second time. Automatic
   records are read-only; edits to a mixed row explicitly affect its manual part.
-- Streaming duration and Standard/Fast/UltraFast are explicit evidence fields.
-  Never subtract first-token latency from whole-turn time or infer tier from
-  throughput. Whitelist safe tier aliases, including the applied
+- Prefer explicit streaming duration. If unavailable, show a separately labeled
+  first-token-to-final-answer interval using compatible start, final-answer and
+  completion timestamps. It may include waits and is not continuous streaming
+  time. Reject incompatible/replayed timestamps and keep the previous interval
+  explicitly labeled when a new turn has no measurement. Never infer speed tier
+  from throughput. Whitelist safe tier aliases, including the applied
   `thread_settings_applied.thread_settings.service_tier` fallback. Missing
   streaming duration is not logged. Retain the latest measured terminal
   first-token latency separately, with its turn/time attribution when the

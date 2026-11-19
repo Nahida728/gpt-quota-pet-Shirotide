@@ -1,5 +1,14 @@
 # Changelog / 更新日志
 
+## 2.0.0 正式版 / Stable
+
+- 继承候选版的 GPT-6.2 Astra / Sol 计价、任务显示、Token 账本和桌宠改进。
+- 优先显示 Codex 原生流式时长。客户端没有上报流式计时的时候，单独展示首字至最终回复的有据区间；可能包含思考、工具及等待，不等同于连续流式时长。
+- 任务详情单列思考 Tokens。思考用量计入任务总 Token 和平均 TPS，作为输出的子集，不加两次。
+- Graduates the GPT-6.2 pricing, task, ledger, and desktop pet improvements to stable.
+- Prefer recorded streaming time. If absent, show the labeled first-token-to-final-answer span, which may include reasoning, tools, and waits.
+- Show reasoning Tokens in task details and include them once in total Tokens and average TPS.
+
 ## 2.0.0-rc.3 — 2026-11-18
 
 ### 中文

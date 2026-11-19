@@ -294,7 +294,9 @@ function normalizeCostModels(models) {
       : 0,
     outputTokens: Number.isFinite(model?.outputTokens)
       ? Math.max(0, Math.floor(model.outputTokens))
-      : 0
+      : 0,
+    reasoningOutputTokens: Number.isFinite(model?.reasoningOutputTokens) && Number.isFinite(model?.outputTokens)
+      ? Math.max(0, Math.floor(Math.min(model.reasoningOutputTokens, model.outputTokens))) : 0
   }));
 }
 
@@ -306,6 +308,7 @@ function summarizeTaskCost(lines, now) {
     unattributedInputTokens: cost.unattributedInputTokens,
     unattributedCachedInputTokens: cost.unattributedCachedInputTokens,
     unattributedOutputTokens: cost.unattributedOutputTokens,
+    unattributedReasoningOutputTokens: cost.unattributedReasoningOutputTokens,
     models: normalizeCostModels(cost.models)
   };
 }
@@ -403,7 +406,7 @@ function summarizeTaskWindow(lines, now = Date.now(), metadata = {}) {
       elapsedSeconds: duration.elapsedSeconds,
       durationKnown: duration.durationKnown,
       explicitTerminal: !lifecycle.record.finalAnswer,
-      telemetry: summarizeTaskTelemetry(segment, { ...lifecycle.record, startedAt,
+      telemetry: summarizeTaskTelemetry(segment, { ...lifecycle.record, startedAt, startLogMs: start?.record.eventAtMs,
         appliedTier: metadata.appliedTier ?? appliedTierBefore(safeLines, segmentStart) }, cost, partial),
       outcome,
       ...context,
@@ -1331,8 +1334,10 @@ function normalizeActiveTaskResult(raw, now = Date.now()) {
     .map(normalizeTerminalTask)
     .filter(Boolean)
     .slice(0, MAX_CANDIDATE_FILES);
-  const measured = terminalTasks.filter(task => task.outcome === "completed" && Number.isFinite(task.telemetry?.firstTokenMs))
-    .sort((left, right) => right.completedAt - left.completedAt)[0];
+  const orderedCompletions = terminalTasks.filter(task => task.outcome === "completed")
+    .sort((left, right) => right.completedAt - left.completedAt);
+  const measured = orderedCompletions.find(task => Number.isFinite(task.telemetry?.firstTokenMs));
+  const streamed = orderedCompletions.find(task => Number.isFinite(task.telemetry?.streamingDurationMs));
   const historySnapshot = raw.history?.available
     ? normalizeTaskHistorySnapshot(raw.history, null, now)
     : null;
@@ -1342,6 +1347,8 @@ function normalizeActiveTaskResult(raw, now = Date.now()) {
     terminalTasks,
     lastMeasuredFirstToken: measured ? { ms: measured.telemetry.firstTokenMs,
       endedAt: measured.endedAt, projectName: measured.projectName } : null,
+    lastStreamingTiming: streamed ? { ms: streamed.telemetry.streamingDurationMs,
+      kind: streamed.telemetry.streamingDurationKind, endedAt: streamed.endedAt, projectName: streamed.projectName } : null,
     latestTask: tasks.slice().sort((left, right) => right.startedAt - left.startedAt)[0] ||
       terminalTasks.filter(task => task.outcome === "completed")
         .sort((left, right) => right.completedAt - left.completedAt)[0] || null,

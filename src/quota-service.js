@@ -446,6 +446,10 @@ class QuotaService {
         if (measured && measured.endedAt >= (this.lastMeasuredFirstToken?.endedAt ?? 0)) {
           this.lastMeasuredFirstToken = measured;
         }
+        const streamed = result.lastStreamingTiming;
+        if (streamed && streamed.endedAt >= (this.lastStreamingTiming?.endedAt ?? 0)) {
+          this.lastStreamingTiming = streamed;
+        }
 
         const recordUpdate = updateTaskPerformanceRecords(
           this.latestTaskRecords || this.state.data.taskPerformanceRecords,
@@ -483,6 +487,7 @@ class QuotaService {
         return {
           ...publicResult,
           lastMeasuredFirstToken: this.lastMeasuredFirstToken ?? null,
+          lastStreamingTiming: this.lastStreamingTiming ?? null,
           pendingTasks,
           completedTasks: pendingTasks,
           records: recordUpdate.records
@@ -491,6 +496,7 @@ class QuotaService {
       .catch(() => ({
         ...normalizeActiveTaskResult(null, now),
         lastMeasuredFirstToken: this.lastMeasuredFirstToken ?? null,
+        lastStreamingTiming: this.lastStreamingTiming ?? null,
         pendingTasks: [],
         completedTasks: [],
         records: this.latestTaskRecords || normalizeTaskPerformanceRecords([this.state.data])

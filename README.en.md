@@ -1,10 +1,10 @@
 # GPT-Shirotide / GPT-白汐
 
-[简体中文](README.md) · [Download 2.0.0-rc.2](https://github.com/Nahida728/gpt-quota-pet-Shirotide/releases/tag/v2.0.0-rc.2)
+[简体中文](README.md) · [Download 2.0.0 stable](https://github.com/Nahida728/gpt-quota-pet-Shirotide/releases/tag/v2.0.0)
 
 **GPT-Shirotide** is a Windows x64 Electron workspace and white-dragon desktop companion for Codex quotas, tasks, token usage and API-equivalent costs.
 
-**Current version: 2.0.0-rc.2, a release candidate.** The repository is now `gpt-quota-pet-Shirotide`. The application ID and local data directory are retained. Upgrade from 1.x by downloading this release manually; stable updates do not install RC builds.
+**Current version: 2.0.0 stable.** The repository is now `gpt-quota-pet-Shirotide`. The application ID and local data directory are retained.
 
 ### Running app screenshots
 
@@ -37,13 +37,13 @@ Choose any provider and model names. Append models to a provider, increment a mo
 
 ### Installation
 
-1. Open [Release v2.0.0-rc.2](https://github.com/Nahida728/gpt-quota-pet-Shirotide/releases/tag/v2.0.0-rc.2).
-2. Install `gpt-shirotide-2.0.0-rc.2-setup-x64.exe`, or run `gpt-shirotide-2.0.0-rc.2-portable-x64.exe` directly.
+1. Open [Release v2.0.0](https://github.com/Nahida728/gpt-quota-pet-Shirotide/releases/tag/v2.0.0).
+2. Install `gpt-shirotide-2.0.0-setup-x64.exe`, or run `gpt-shirotide-2.0.0-portable-x64.exe` directly. Install to a dedicated directory, never a directory containing source code or personal files.
 3. Install the official Codex Windows client and sign in. No API Key entry is required here.
 4. Use the fixed 1200 × 800 DIP workspace, reduced only for smaller work areas. Drag its title space; configure pinning and close-to-tray behavior in Settings.
 5. Upload or drop a background, adjust framing, opacity and blur, then apply to save.
 
-Compare downloads against `SHA256SUMS-v2.0.0-rc.2.txt` using `Get-FileHash -Algorithm SHA256`. Windows x64 and network access to OpenAI are required. API-key mode usually does not supply subscription quotas. An absent independent Reserve bucket stays unavailable.
+Compare downloads against `SHA256SUMS-v2.0.0.txt` using `Get-FileHash -Algorithm SHA256`. Windows x64 and network access to OpenAI are required. API-key mode usually does not supply subscription quotas. An absent independent Reserve bucket stays unavailable.
 
 ### Reading the numbers
 

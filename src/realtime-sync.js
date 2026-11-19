@@ -60,6 +60,7 @@ class RealtimeSync {
       const fingerprint = JSON.stringify({
         tasks: (result.tasks || []).map(stableTask), latestTask: result.latestTask,
         lastMeasuredFirstToken: result.lastMeasuredFirstToken,
+        lastStreamingTiming: result.lastStreamingTiming,
         pendingTasks: result.pendingTasks, available: result.available, truncated: result.truncated,
         records: Object.fromEntries(Object.entries(result.records || {}).filter(([key]) => !/At$/.test(key)))
       });

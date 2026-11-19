@@ -199,7 +199,14 @@ const i18n = {
     taskPreviousFirstToken: "上次首字",
     taskPreviousFirstTokenHint: "最近一次实测：{project}（{time}）。当前回合尚未记录首字时间。",
     taskTimingNotLogged: "未上报",
-    taskStreamingEvidence: "仅显示 Codex 记录的流式输出时长。不使用整个回合耗时或首字响应推算。",
+    taskStreamingEvidence: "Codex 明确上报的流式时长。",
+    taskOutputSpanEvidence: "用首字时刻和最终回复的日志时间计算首字至末条输出的区间。可能包含思考、工具及等待，不等于连续流式时长。",
+    taskOutputSpan: "首字至末条输出",
+    taskLastStream: "上次流式时长",
+    taskLastOutputSpan: "上次输出区间",
+    taskPreviousStreamHint: "上次有记录的任务：{project}（{time}）。",
+    taskReasoningTokens: "思考 Tokens",
+    taskReasoningIncluded: "其中思考 {tokens} Tokens，已计入输出和平均 TPS",
     taskTierEvidence: "来自当前回合或 Codex 应用的线程速度设置，不由输出速率推算。",
     taskNoFilterMatch: "没有符合筛选条件的任务",
     taskTotalTokens: "总 Tokens",
@@ -767,7 +774,14 @@ const i18n = {
     taskPreviousFirstToken: "Last first token",
     taskPreviousFirstTokenHint: "Last measured: {project} ({time}). No first-token timing has been logged for the current turn.",
     taskTimingNotLogged: "Not logged",
-    taskStreamingEvidence: "Shows streaming duration only when Codex records it. Turn length and first-token latency are not substitutes.",
+    taskStreamingEvidence: "Streaming duration reported directly by Codex.",
+    taskOutputSpanEvidence: "Time from the first token to the logged final answer. May include reasoning, tools and waits; not continuous streaming time.",
+    taskOutputSpan: "First to last output",
+    taskLastStream: "Last stream",
+    taskLastOutputSpan: "Last output span",
+    taskPreviousStreamHint: "Last timed task: {project} ({time}).",
+    taskReasoningTokens: "Reasoning tokens",
+    taskReasoningIncluded: "Includes {tokens} reasoning tokens in output and average TPS",
     taskTierEvidence: "From the turn or Codex's applied thread setting, not inferred from token rate.",
     taskNoFilterMatch: "No tasks match these filters",
     taskTotalTokens: "Total tokens",
@@ -1152,7 +1166,7 @@ const elements = Object.fromEntries([
   "checkpointRange24", "checkpointRange48", "checkpointStatistics",
   "taskFilter", "taskSort", "confirmAllTasks",
   "appVersion", "taskPerformance", "latestTaskIdentity", "latestTaskFirstTokenLabel", "latestTaskFirstToken", "latestTaskTokens",
-  "latestTaskPeak", "latestTaskMin", "latestTaskAverage", "latestTaskCacheHit", "latestTaskStreamingDuration", "latestTaskServiceTier", "taskPerformanceScope", "taskConcurrency",
+  "latestTaskPeak", "latestTaskMin", "latestTaskAverage", "latestTaskCacheHit", "latestTaskStreamingLabel", "latestTaskStreamingDuration", "latestTaskServiceTier", "taskPerformanceScope", "taskConcurrency",
   "monitorUpdateStatus", "monitorUpdateCheck", "monitorUpdateInstall",
   "settingsButton", "settingsPopover", "settingsClose", 
   "chooseBackground", "clearBackground",
@@ -1252,6 +1266,7 @@ let tokenChartHoverIndex = null;
 let activeTasks = [];
 let latestPerformanceTask = null;
 let lastMeasuredFirstToken = null;
+let lastStreamingTiming = null;
 const queuedTaskHandoffs = new Map();
 let pendingTasks = [];
 const dismissedPendingTaskIds = new Set();
@@ -1662,8 +1677,11 @@ function renderTaskDetail() {
   stats.querySelector("strong").dataset.detailElapsed = "true";
   appendActiveTaskStat(stats,t("activeTaskCostLabel"),formatActiveTaskCost(task));
   appendActiveTaskStat(stats,t("taskFirstToken"),formatTaskTiming(task.telemetry?.firstTokenMs));
-  appendActiveTaskStat(stats,t("taskStreamingDuration"),formatTaskTiming(task.telemetry?.streamingDurationMs));
+  appendActiveTaskStat(stats,t(task.telemetry?.streamingDurationKind === "output-span" ? "taskOutputSpan" : "taskStreamingDuration"),
+    formatTaskTiming(task.telemetry?.streamingDurationMs));
   appendActiveTaskStat(stats,t("taskServiceTier"),task.telemetry?.serviceTier || "—");
+  appendActiveTaskStat(stats,t("taskTotalTokens"),formatTaskTokens(task.telemetry?.totalTokens, task.telemetry?.partial));
+  appendActiveTaskStat(stats,t("taskReasoningTokens"),formatTaskTokens(task.telemetry?.reasoningOutputTokens, task.telemetry?.partial));
   content.append(stats,createTaskModelRows(task));
   const note=document.createElement("p");note.className="active-task-explanation";
   note.textContent=t("activeTaskDetailsHint");content.append(note);
@@ -2330,6 +2348,10 @@ function formatTaskTiming(ms) {
   if (ms < 1000) return `${Math.round(ms)}ms`;
   if (ms >= 60000) return formatTaskDuration(ms / 1000);
   return `${new Intl.NumberFormat(language === "zh" ? "zh-CN" : "en-US", { maximumFractionDigits: 1 }).format(ms / 1000)}s`;
+}
+
+function formatTaskTokens(value, partial) {
+  return Number.isFinite(value) ? (partial ? "≥" : "") + formatTokenCount(value) : "—";
 }
 
 function getTaskElapsedSeconds(task) {
@@ -3842,16 +3864,28 @@ function renderTaskPerformance(task = latestPerformanceTask) {
     : valid(firstTokenMs) ? `${firstTokenMs} ms` : t("noData");
   elements.latestTaskTokens.textContent = valid(telemetry.totalTokens)
     ? `${telemetry.partial ? "≥" : ""}${new Intl.NumberFormat(language === "zh" ? "zh-CN" : "en-US", { notation: "compact", maximumFractionDigits: 1 }).format(telemetry.totalTokens)}` : "—";
-  elements.latestTaskTokens.title = valid(telemetry.totalTokens) ? `${telemetry.partial ? "≥" : ""}${telemetry.totalTokens.toLocaleString()} Tokens` : t("noData");
+  const reasoningHint = valid(telemetry.reasoningOutputTokens)
+    ? t("taskReasoningIncluded", { tokens: formatTaskTokens(telemetry.reasoningOutputTokens, telemetry.partial) }) : "";
+  elements.latestTaskTokens.title = valid(telemetry.totalTokens)
+    ? [`${formatTaskTokens(telemetry.totalTokens, telemetry.partial)} Tokens`, reasoningHint].filter(Boolean).join("; ") : t("noData");
   elements.latestTaskPeak.textContent = rate(telemetry.peakTokensPerSecond);
   elements.latestTaskMin.textContent = rate(telemetry.minTokensPerSecond);
   elements.latestTaskAverage.textContent = rate(telemetry.averageTokensPerSecond);
   elements.latestTaskCacheHit.textContent = valid(telemetry.cacheHitRate) && telemetry.cacheHitRate <= 100 ? `${rate(telemetry.cacheHitRate)}%` : "—";
-  elements.latestTaskStreamingDuration.textContent = valid(telemetry.streamingDurationMs)
-    ? formatTaskTiming(telemetry.streamingDurationMs) : latest ? t("taskTimingNotLogged") : "—";
+  const priorStream = valid(telemetry.streamingDurationMs) ? null : lastStreamingTiming;
+  const streamMs = priorStream?.ms ?? telemetry.streamingDurationMs;
+  const outputSpan = (priorStream?.kind ?? telemetry.streamingDurationKind) === "output-span";
+  elements.latestTaskStreamingLabel.textContent = t(priorStream
+    ? (outputSpan ? "taskLastOutputSpan" : "taskLastStream")
+    : (outputSpan ? "taskOutputSpan" : "taskStreamingDuration"));
+  elements.latestTaskStreamingDuration.textContent = valid(streamMs)
+    ? formatTaskTiming(streamMs) : latest ? t("taskTimingNotLogged") : "—";
+  const streamEvidence = t(outputSpan ? "taskOutputSpanEvidence" : "taskStreamingEvidence");
+  elements.latestTaskStreamingDuration.title = priorStream
+    ? `${streamEvidence} ${t("taskPreviousStreamHint", { project: priorStream.projectName || t("activeTaskProjectFallback"), time: formatDate(priorStream.endedAt) })}`
+    : streamEvidence;
   elements.latestTaskServiceTier.textContent = ["Standard", "Fast", "UltraFast"].includes(telemetry.serviceTier)
     ? telemetry.serviceTier : "—";
-  elements.latestTaskStreamingDuration.title = t("taskStreamingEvidence");
   elements.latestTaskServiceTier.title = t("taskTierEvidence");
   const scope = t("taskTelemetryScope", { task: identity });
   elements.taskPerformance.removeAttribute("title");
@@ -3867,6 +3901,9 @@ function renderActiveTasks(result = {}) {
     : [];
   if (result.lastMeasuredFirstToken && result.lastMeasuredFirstToken.endedAt >= (lastMeasuredFirstToken?.endedAt ?? 0)) {
     lastMeasuredFirstToken = result.lastMeasuredFirstToken;
+  }
+  if (result.lastStreamingTiming && result.lastStreamingTiming.endedAt >= (lastStreamingTiming?.endedAt ?? 0)) {
+    lastStreamingTiming = result.lastStreamingTiming;
   }
   renderTaskPerformance(result.available ? (result.latestTask ?? null) : latestPerformanceTask);
   const concurrentCount = activeTasksAvailable ? `${activeTasksTruncated ? "≥" : ""}${activeTasks.length}` : "—";

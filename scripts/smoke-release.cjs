@@ -110,17 +110,28 @@ async function shutdown() {
           elements.latestTaskStreamingDuration.textContent===t('taskTimingNotLogged')&&
           elements.latestTaskServiceTier.textContent==='Standard';
         renderTaskPerformance({...task,telemetry:{...task.telemetry,streamingDurationMs:8400}});
-        const recordedDuration=elements.latestTaskStreamingDuration.textContent==='8.4s';
+        const recordedDuration=elements.latestTaskStreamingDuration.textContent==='8.4s'&&
+          elements.latestTaskStreamingLabel.textContent===t('taskStreamingDuration');
+        lastStreamingTiming={ms:25500,kind:'output-span',endedAt:task.startedAt,projectName:pending.projectName};
+        renderTaskPerformance({...task,telemetry:{...task.telemetry,totalTokens:1100,reasoningOutputTokens:95}});
+        const previousSpan=elements.latestTaskStreamingDuration.textContent==='25.5s'&&
+          elements.latestTaskStreamingLabel.textContent===t('taskLastOutputSpan')&&
+          elements.latestTaskTokens.title.includes(t('taskReasoningIncluded',{tokens:formatTokenCount(95)}));
+        lastStreamingTiming=null;
         elements.activeTaskCard.click();
         const allTasks=document.body.dataset.tab==='all'&&elements.taskFilter.value==='all'&&
           elements.activeTaskList.querySelectorAll('.active-task-item').length===4;
-        activeTasks=[task,{...task,id:'release-layout-2',taskKind:'subagent'}];pendingTasks=[];
+        activeTasks=[{...task,telemetry:{...task.telemetry,totalTokens:1100,reasoningOutputTokens:95,
+          streamingDurationKind:'output-span',streamingDurationMs:25500}},
+          {...task,id:'release-layout-2',taskKind:'subagent'}];pendingTasks=[];
         Workbench.navigate('tasks','running',{focus:false});renderActiveTaskDetails();
         const cards=[...elements.activeTaskList.querySelectorAll('.active-task-item')];
         const source=cards[0].querySelector('[data-task-detail-id]');source.focus();source.click();
         await new Promise(resolve=>setTimeout(resolve,60));
         const modal=elements.taskDetailModal,dialog=modal.querySelector('.task-detail-dialog'),rect=dialog.getBoundingClientRect();
-        const current={locale,preview,timing,recordedDuration,allTasks,cards:cards.length,sameRow:Math.abs(cards[0].getBoundingClientRect().top-cards[1].getBoundingClientRect().top)<1,
+        const detailStats=[...elements.taskDetailContent.querySelectorAll('.active-task-item-stats > div')];
+        const reasoningDetail=detailStats.some(node=>node.children[0].textContent===t('taskReasoningTokens')&&node.children[1].textContent===formatTokenCount(95));
+        const current={locale,preview,timing,recordedDuration,previousSpan,reasoningDetail,allTasks,cards:cards.length,sameRow:Math.abs(cards[0].getBoundingClientRect().top-cards[1].getBoundingClientRect().top)<1,
           modal:!modal.hidden&&modal.getAttribute('aria-modal')==='true',centered:Math.abs(rect.left+rect.width/2-innerWidth/2)<2,
           focused:document.activeElement===elements.taskDetailClose,inert:document.querySelector('.workspace').inert,
           transition:getComputedStyle(elements.taskDetailClose).transitionDuration};
@@ -133,7 +144,7 @@ async function shutdown() {
       return results;
     })()`);
     console.log(JSON.stringify({presentation}));
-    for (const row of presentation) for (const key of ['preview','timing','recordedDuration','allTasks','sameRow','modal','centered','focused','inert','closed','restored','unblocked']) assert.equal(row[key],true,`${row.locale}:${key}`);
+    for (const row of presentation) for (const key of ['preview','timing','recordedDuration','previousSpan','reasoningDetail','allTasks','sameRow','modal','centered','focused','inert','closed','restored','unblocked']) assert.equal(row[key],true,`${row.locale}:${key}`);
     const trend = await inRenderer(`(()=>{
       const old=latestSnapshot;
       const dailyUsageBuckets=Array.from({length:35},(_,i)=>({startDate:new Date(Date.UTC(2026,9,i+1)).toISOString().slice(0,10),tokens:10000}));

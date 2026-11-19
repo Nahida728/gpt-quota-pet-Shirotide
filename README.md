@@ -7,11 +7,11 @@
 ![Windows x64](https://img.shields.io/badge/Windows-x64-0078D4)
 ![MIT](https://img.shields.io/badge/license-MIT-0a7fa0)
 
-[下载 2.0.0-rc.2](https://github.com/Nahida728/gpt-quota-pet-Shirotide/releases/tag/v2.0.0-rc.2) · [更新日志](CHANGELOG.md) · [问题反馈](https://github.com/Nahida728/gpt-quota-pet-Shirotide/issues) · [English](README.en.md)
+[下载 2.0.0 正式版](https://github.com/Nahida728/gpt-quota-pet-Shirotide/releases/tag/v2.0.0) · [更新日志](CHANGELOG.md) · [问题反馈](https://github.com/Nahida728/gpt-quota-pet-Shirotide/issues) · [English](README.en.md)
 
 GPT-白汐是一款 Windows x64 Electron 应用，汇总 Codex 额度、任务、Token 用量和 API 等价费用。收起工作台后，白龙小宠物留在桌面，可以捏捏、拖动、甩出，也能查看五小时和一周额度。
 
-**当前版本：2.0.0-rc.2，候选发布版。** 原仓库 `codex-quota-monitor` 已更名为 `gpt-quota-pet-Shirotide`。应用标识和本地数据目录保持不变。从 1.x 升级请手动下载本版本；正式版更新通道不会自动安装 RC。
+**当前版本：2.0.0 正式版。** 原仓库 `codex-quota-monitor` 已更名为 `gpt-quota-pet-Shirotide`。应用标识和本地数据目录保持不变。
 
 ## 实机截图
 
@@ -46,16 +46,16 @@ GPT-白汐是一款 Windows x64 Electron 应用，汇总 Codex 额度、任务�
 
 ## 下载与使用
 
-1. 打开 [v2.0.0-rc.2 Release](https://github.com/Nahida728/gpt-quota-pet-Shirotide/releases/tag/v2.0.0-rc.2)。
-2. 下载 `gpt-shirotide-2.0.0-rc.2-setup-x64.exe` 安装，或直接运行 `gpt-shirotide-2.0.0-rc.2-portable-x64.exe`。
+1. 打开 [v2.0.0 Release](https://github.com/Nahida728/gpt-quota-pet-Shirotide/releases/tag/v2.0.0)。
+2. 下载 `gpt-shirotide-2.0.0-setup-x64.exe` 安装，或直接运行 `gpt-shirotide-2.0.0-portable-x64.exe`。安装时请使用专用目录，不要选择源码或存放个人文件的目录。
 3. 安装并登录官方 Codex Windows 客户端。额度通过本地 app-server 读取，无需在本软件输入 API Key。
 4. 主窗口固定为 1200 × 800 DIP，小屏幕按工作区收缩。拖动标题空白处移动，在设置中选择置顶和关闭到托盘。
 5. 点击或拖入背景图片，调整构图、强度、模糊和卡片透明度，点击应用保存。
 
-发布页附 `SHA256SUMS-v2.0.0-rc.2.txt`。校验示例：
+发布页附 `SHA256SUMS-v2.0.0.txt`。校验示例：
 
 ```powershell
-Get-FileHash .\gpt-shirotide-2.0.0-rc.2-portable-x64.exe -Algorithm SHA256
+Get-FileHash .\gpt-shirotide-2.0.0-portable-x64.exe -Algorithm SHA256
 ```
 
 需要 Windows x64 和可访问 OpenAI 的网络。API Key 模式通常不提供订阅额度。服务未返回独立 Reserve 桶时显示不可用，不从主额度推算。
